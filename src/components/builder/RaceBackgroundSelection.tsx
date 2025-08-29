@@ -3,7 +3,7 @@ import { Badge } from '../ui/badge'
 import { Button } from '../ui/button'
 import { useCharacterBuilderStore } from '../../stores/characterBuilderStore'
 import { User, Scroll, Crown, TreePine, Flame, Moon, Star, ChevronDown } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 // Mock race data - in a real app this would come from a data service
 const MOCK_RACES = [
@@ -106,6 +106,14 @@ export function RaceBackgroundSelection() {
   
   const selectedRace = MOCK_RACES.find(r => r.id === currentBuild.race)
   const selectedBackground = MOCK_BACKGROUNDS.find(b => b.id === currentBuild.background)
+  
+  // Trigger validation when selections change
+  useEffect(() => {
+    if (currentBuild) {
+      const { validateCurrentStep } = useCharacterBuilderStore.getState()
+      validateCurrentStep()
+    }
+  }, [currentBuild, currentBuild?.race, currentBuild?.background])
   
   return (
     <div className="space-y-6">

@@ -24,11 +24,11 @@ export function BasicInfo() {
   
   // Trigger validation when component mounts or values change
   useEffect(() => {
-    if (currentBuild) {
+    if (currentBuild && buildName) {
       const { validateCurrentStep } = useCharacterBuilderStore.getState()
       validateCurrentStep()
     }
-  }, [currentBuild, buildName, buildNotes])
+  }, [currentBuild, buildName])
   
   const handleNameChange = (value: string) => {
     setBuildName(value)
