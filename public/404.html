@@ -9,15 +9,10 @@
     <script>
       // Single Page App hack for GitHub Pages
       // https://github.com/rafgraph/spa-github-pages
-      (function(l) {
-        if (l.search[1] === '/' ) {
-          var decoded = sessionStorage.redirect || '';
-          delete sessionStorage.redirect;
-          if (decoded) {
-            history.replaceState(null, null, decoded);
-          }
-        }
-      }(window.location))
+      // Store current path and redirect to index
+      sessionStorage.redirect = location.href;
+      location.replace(location.protocol + '//' + location.hostname + 
+        (location.port ? ':' + location.port : '') + '/The-Destiny-Ledger-v1/');
     </script>
   </head>
   <body>
