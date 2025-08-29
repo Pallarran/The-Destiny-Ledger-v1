@@ -9,8 +9,11 @@ import { LevelPathExplorer } from './pages/LevelPathExplorer'
 import { Settings } from './pages/Settings'
 
 function App() {
+  // Use basename for GitHub Pages deployment, but not for local development
+  const basename = import.meta.env.DEV ? '' : '/The-Destiny-Ledger-v1'
+  
   return (
-    <Router>
+    <Router basename={basename}>
       <Layout>
         <Routes>
           <Route path="/" element={<Landing />} />
