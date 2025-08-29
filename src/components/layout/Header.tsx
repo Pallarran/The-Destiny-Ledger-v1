@@ -1,0 +1,29 @@
+import { Link } from 'react-router-dom'
+import { BookOpen, Settings } from 'lucide-react'
+
+export function Header() {
+  return (
+    <header className="bg-bg border-b border-border/20 px-6 py-4">
+      <div className="flex items-center justify-between">
+        <Link to="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+          <div className="w-8 h-8 bg-accent rounded-md flex items-center justify-center">
+            <BookOpen className="w-5 h-5 text-ink" />
+          </div>
+          <div>
+            <h1 className="text-xl font-bold text-panel font-serif">THE DESTINY LEDGER</h1>
+            <p className="text-xs text-muted uppercase tracking-wider">OPTIMIZE & COMPARE</p>
+          </div>
+        </Link>
+
+        <div className="flex items-center gap-4">
+          <Link 
+            to="/settings"
+            className="p-2 text-muted hover:text-panel transition-colors"
+          >
+            <Settings className="w-5 h-5" />
+          </Link>
+        </div>
+      </div>
+    </header>
+  )
+}

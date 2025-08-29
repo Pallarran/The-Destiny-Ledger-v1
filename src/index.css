@@ -1,0 +1,57 @@
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=Cormorant+Garamond:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #0F1318;         /* app chrome (header/sidebar) */
+  --panel: #EDE2CB;      /* parchment cards */
+  --ink: #1E232A;        /* primary text on parchment */
+  --muted: #4F5A66;      /* secondary text */
+  --accent: #63CBFF;     /* arcane blue (focus, charts) */
+  --gold: #C8A86B;       /* dividers/highlights */
+  --emerald: #89B57D;    /* success */
+  --border: #D8C9A5;     /* etched borders */
+  --danger: #BE4B49;
+  --radius: 16px;
+  --shadow: 0 1px 0 rgba(0,0,0,.10), inset 0 0 0 1px var(--border);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'Inter', system-ui, sans-serif;
+  line-height: 1.5;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+}
+
+h1, h2 {
+  font-family: 'Cinzel', 'Cormorant Garamond', serif;
+}
+
+.panel {
+  background: var(--panel);
+  color: var(--ink);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.glow {
+  filter: drop-shadow(0 0 8px rgba(99, 203, 255, .45));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glow {
+    filter: none;
+  }
+}
