@@ -73,6 +73,15 @@ export function AbilityScoreAssignment() {
     }
   }, [currentBuild?.abilityScores])
   
+  // Trigger validation when component mounts or scores change
+  useEffect(() => {
+    if (currentBuild) {
+      // Trigger initial validation to enable Next button if valid
+      const { validateCurrentStep } = useCharacterBuilderStore.getState()
+      validateCurrentStep()
+    }
+  }, [currentBuild, localScores])
+  
   const handleMethodChange = (newMethod: AbilityAssignmentMethod) => {
     setAbilityAssignmentMethod(newMethod)
     
@@ -145,85 +154,50 @@ export function AbilityScoreAssignment() {
         </p>
       </div>
       
-      {/* Method Selection */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card 
-          className={`cursor-pointer transition-all ${
-            method === 'pointbuy' 
-              ? 'ring-2 ring-accent border-accent/20 bg-accent/5' 
-              : 'hover:border-accent/30'
-          }`}
-          onClick={() => handleMethodChange('pointbuy')}
-        >
-          <CardHeader className="pb-3">
-            <div className="flex items-center gap-2">
-              <Calculator className="w-5 h-5 text-accent" />
-              <CardTitle className="text-base">Point Buy</CardTitle>
-            </div>
-            <CardDescription>
-              Purchase ability scores with a budget of 27 points
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="pt-0">
-            <div className="text-sm text-muted">
-              • Most balanced approach<br />
-              • Costs increase exponentially<br />
-              • Maximum starting score: 15
-            </div>
-          </CardContent>
-        </Card>
+      {/* Compact Method Selection */}
+      <div className="space-y-3">
+        <div className="flex flex-wrap gap-2">
+          <Button
+            variant={method === 'pointbuy' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => handleMethodChange('pointbuy')}
+            className={method === 'pointbuy' ? 'bg-accent text-ink' : ''}
+          >
+            <Calculator className="w-4 h-4 mr-2" />
+            Point Buy (27pts)
+          </Button>
+          <Button
+            variant={method === 'standard' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => handleMethodChange('standard')}
+            className={method === 'standard' ? 'bg-accent text-ink' : ''}
+          >
+            <TrendingUp className="w-4 h-4 mr-2" />
+            Standard Array
+          </Button>
+          <Button
+            variant={method === 'custom' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => handleMethodChange('custom')}
+            className={method === 'custom' ? 'bg-accent text-ink' : ''}
+          >
+            <Edit3 className="w-4 h-4 mr-2" />
+            Manual Entry
+          </Button>
+        </div>
         
-        <Card 
-          className={`cursor-pointer transition-all ${
-            method === 'standard' 
-              ? 'ring-2 ring-accent border-accent/20 bg-accent/5' 
-              : 'hover:border-accent/30'
-          }`}
-          onClick={() => handleMethodChange('standard')}
-        >
-          <CardHeader className="pb-3">
-            <div className="flex items-center gap-2">
-              <TrendingUp className="w-5 h-5 text-gold" />
-              <CardTitle className="text-base">Standard Array</CardTitle>
-            </div>
-            <CardDescription>
-              Assign predetermined scores: 15, 14, 13, 12, 10, 8
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="pt-0">
-            <div className="text-sm text-muted">
-              • Quick and simple<br />
-              • Assign scores to abilities<br />
-              • Consistent across all builds
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card 
-          className={`cursor-pointer transition-all ${
-            method === 'custom' 
-              ? 'ring-2 ring-accent border-accent/20 bg-accent/5' 
-              : 'hover:border-accent/30'
-          }`}
-          onClick={() => handleMethodChange('custom')}
-        >
-          <CardHeader className="pb-3">
-            <div className="flex items-center gap-2">
-              <Edit3 className="w-5 h-5 text-emerald" />
-              <CardTitle className="text-base">Manual Entry</CardTitle>
-            </div>
-            <CardDescription>
-              Enter any ability scores (rolled dice, variant rules, etc.)
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="pt-0">
-            <div className="text-sm text-muted">
-              • Complete flexibility<br />
-              • For rolled stats or variants<br />
-              • Range: 8-20 per ability
-            </div>
-          </CardContent>
-        </Card>
+        {/* Method Description */}
+        <div className="text-sm text-muted bg-panel/5 rounded-lg p-3">
+          {method === 'pointbuy' && (
+            <span><strong>Point Buy:</strong> Purchase ability scores with 27 points. Balanced approach, costs increase exponentially, max starting score: 15.</span>
+          )}
+          {method === 'standard' && (
+            <span><strong>Standard Array:</strong> Assign predetermined scores (15, 14, 13, 12, 10, 8) to your abilities. Quick and consistent.</span>
+          )}
+          {method === 'custom' && (
+            <span><strong>Manual Entry:</strong> Enter any ability scores manually (8-20 range). Use for rolled stats or variant rules.</span>
+          )}
+        </div>
       </div>
       
       {/* Point Buy Status */}
@@ -268,8 +242,8 @@ export function AbilityScoreAssignment() {
                     </CardDescription>
                   </div>
                   <div className="text-right">
-                    <div className="text-2xl font-bold text-panel">{score}</div>
-                    <div className="text-sm text-muted">{formatModifier(modifier)}</div>
+                    <div className="text-3xl font-bold text-accent">{score}</div>
+                    <div className="text-sm text-muted">({formatModifier(modifier)})</div>
                   </div>
                 </div>
               </CardHeader>
@@ -359,8 +333,8 @@ export function AbilityScoreAssignment() {
               return (
                 <div key={ability} className="space-y-1">
                   <div className="font-medium text-sm text-muted">{ability}</div>
-                  <div className="text-lg font-bold text-panel">{score}</div>
-                  <div className="text-sm text-muted">{formatModifier(modifier)}</div>
+                  <div className="text-xl font-bold text-accent">{score}</div>
+                  <div className="text-sm text-muted">({formatModifier(modifier)})</div>
                 </div>
               )
             })}
