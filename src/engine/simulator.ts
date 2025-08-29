@@ -1,7 +1,7 @@
 import { calculateBuildDPR } from './calculations'
 import type { CombatState, SimulationConfig, WeaponConfig } from './types'
 import type { BuildConfiguration, DPRConfiguration, DPRResult } from '../stores/types'
-import { getClass, getSubclass, getFeat, getWeapon, getBuff } from '../rules/loaders'
+import { getClass, getFeat, getWeapon, getBuff } from '../rules/loaders'
 
 // Convert a build configuration to combat state
 export function buildToCombatState(build: BuildConfiguration, level?: number): CombatState {

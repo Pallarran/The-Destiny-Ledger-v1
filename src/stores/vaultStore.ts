@@ -18,7 +18,7 @@ interface VaultStoreState extends VaultState {
 }
 
 export const useVaultStore = create<VaultStoreState>()(
-  immer((set, get) => ({
+  immer((set, _get) => ({
     builds: [],
     selectedBuildIds: [],
     searchQuery: '',

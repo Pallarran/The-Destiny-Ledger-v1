@@ -5,10 +5,10 @@ import type { BuildConfiguration } from '../stores/types'
 // v1: Initial schema
 // v2: Add settings table
 
-export interface PersistedBuild extends BuildConfiguration {
+export interface PersistedBuild extends Omit<BuildConfiguration, 'createdAt' | 'updatedAt'> {
   // Convert Date objects to ISO strings for storage
-  createdAt: string | Date
-  updatedAt: string | Date
+  createdAt: string
+  updatedAt: string
 }
 
 export interface PersistedSettings {

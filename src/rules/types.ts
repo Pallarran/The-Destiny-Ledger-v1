@@ -18,6 +18,40 @@ export interface AbilityScoreArray {
   CHA: number
 }
 
+export type AbilityScores = AbilityScoreArray
+
+export interface CharacterLevel {
+  level: number
+  classId: string
+  subclassId: string | null
+  features: string[]
+  spells: string[]
+}
+
+export interface Equipment {
+  mainHand: string | null
+  offHand: string | null
+  armor: string | null
+  shield: boolean
+  other: string[]
+}
+
+export interface CharacterBuild {
+  id: string
+  name: string
+  race: string
+  abilityScores: AbilityScores
+  levels: CharacterLevel[]
+  equipment: Equipment
+  buffs: string[]
+  settings: {
+    fightingStyle: string | null
+    spellcastingAbility: AbilityScore | null
+    gwmThreshold: number
+    ssThreshold: number
+  }
+}
+
 export interface DamageRoll {
   count: number
   die: number // d6 = 6, d8 = 8, etc

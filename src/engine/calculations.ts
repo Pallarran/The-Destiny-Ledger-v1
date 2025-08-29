@@ -1,5 +1,4 @@
 import type { 
-  AttackRoll, 
   DamageRoll, 
   DiceRoll, 
   CombatState, 
@@ -99,8 +98,7 @@ export function calculateSingleAttackDPR(
   attackBonus: number,
   damage: DamageRoll,
   targetAC: number,
-  advantage: 'normal' | 'advantage' | 'disadvantage' = 'normal',
-  critMultiplier: number = 2
+  advantage: 'normal' | 'advantage' | 'disadvantage' = 'normal'
 ): number {
   const probs = calculateHitProbability(attackBonus, targetAC, advantage)
   const normalDamage = calculateDamageRoll(damage)

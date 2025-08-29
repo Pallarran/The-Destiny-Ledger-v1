@@ -29,7 +29,7 @@ const createDefaultConfig = (buildId: string): DPRConfiguration => ({
 })
 
 export const useDPRStore = create<DPRState>()(
-  immer((set, get) => ({
+  immer((set, _get) => ({
     currentConfig: null,
     currentResult: null,
     isCalculating: false,

@@ -3,7 +3,7 @@ import { db } from '../db/database'
 import { useVaultStore } from '../stores/vaultStore'
 import { useSettingsStore } from '../stores/settingsStore'
 import { useBuilderStore } from '../stores/builderStore'
-import type { BuildConfiguration, AppSettings } from '../stores/types'
+import type { AppSettings } from '../stores/types'
 
 // Hook to sync vault store with database
 export function useVaultSync() {
@@ -114,6 +114,13 @@ export function useSaveBuild() {
   }, [isDirty, currentBuild])
   
   return { saveBuild, isDirty }
+}
+
+export function useDatabase() {
+  const saveBuild = async (build: any) => {
+    await db.saveBuild(build)
+  }
+  return { saveBuild }
 }
 
 // Hook to load a build from database

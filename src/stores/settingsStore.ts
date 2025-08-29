@@ -35,7 +35,7 @@ const defaultSettings: AppSettings = {
 }
 
 export const useSettingsStore = create<SettingsState>()(
-  immer((set, get) => ({
+  immer((set, _get) => ({
     ...defaultSettings,
     
     updateRoleWeight: (role, weight) => {

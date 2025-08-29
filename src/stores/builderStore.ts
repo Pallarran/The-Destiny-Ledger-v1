@@ -43,7 +43,7 @@ const createDefaultBuild = (): BuildConfiguration => ({
 })
 
 export const useBuilderStore = create<BuilderState>()(
-  immer((set, get) => ({
+  immer((set, _get) => ({
     currentBuild: null,
     isDirty: false,
     
