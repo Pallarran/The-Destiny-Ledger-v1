@@ -158,7 +158,7 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
       set((state) => {
         state.currentBuild = createDefaultBuilder(name)
         state.isDirty = false
-        state.currentStep = 'ability-scores'
+        state.currentStep = 'basic-info'
         updateNavigationState(state)
       })
     },
@@ -580,9 +580,27 @@ function validateBasicInfo(build: CharacterBuilder): boolean {
 }
 
 function validateAbilityScores(build: CharacterBuilder): boolean {
-  // Basic validation - all scores must be within reasonable bounds
   const scores = Object.values(build.abilityScores)
-  return scores.every(score => score >= 8 && score <= 20)
+  const scoresValid = scores.every(score => score >= 8 && score <= 20)
+  
+  if (!scoresValid) return false
+  
+  // Method-specific validation
+  if (build.abilityAssignmentMethod === 'pointbuy') {
+    // For point buy, all 27 points must be spent
+    const pointCosts = { 8: 0, 9: 1, 10: 2, 11: 3, 12: 4, 13: 5, 14: 7, 15: 9 }
+    const totalUsed = scores.reduce((sum, score) => sum + (pointCosts[score as keyof typeof pointCosts] || 0), 0)
+    return totalUsed === 27
+  } else if (build.abilityAssignmentMethod === 'standard') {
+    // For standard array, all values (15,14,13,12,10,8) must be used exactly once
+    const standardArray = [15, 14, 13, 12, 10, 8]
+    const sortedScores = [...scores].sort((a, b) => b - a)
+    const sortedStandard = [...standardArray].sort((a, b) => b - a)
+    return JSON.stringify(sortedScores) === JSON.stringify(sortedStandard)
+  } else {
+    // For custom/manual, just check bounds (already done above)
+    return true
+  }
 }
 
 function validateRaceBackground(build: CharacterBuilder): boolean {

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '../ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card'
 import { Badge } from '../ui/badge'
@@ -21,12 +21,24 @@ export function LevelTimeline() {
   }
   
   const levels = currentBuild.enhancedLevelTimeline.sort((a, b) => a.level - b.level)
-  const nextLevel = Math.max(...levels.map(l => l.level), 0) + 1
+  const nextLevel = levels.length > 0 ? Math.max(...levels.map(l => l.level)) + 1 : 1
   
+  // Trigger validation when levels change
+  useEffect(() => {
+    if (currentBuild) {
+      const { validateCurrentStep } = useCharacterBuilderStore.getState()
+      validateCurrentStep()
+    }
+  }, [currentBuild, levels])
+
   const handleAddLevel = () => {
-    if (selectedClass) {
-      addLevel(selectedClass, nextLevel)
-      setSelectedClass('')
+    if (selectedClass && nextLevel <= 20) {
+      try {
+        addLevel(selectedClass, nextLevel)
+        setSelectedClass('')
+      } catch (error) {
+        console.error('Error adding level:', error)
+      }
     }
   }
   
