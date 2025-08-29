@@ -171,11 +171,11 @@ export const DEFAULT_POINT_BUY_CONFIG: PointBuyConfig = {
 }
 
 export const DEFAULT_ABILITY_SCORES: AbilityScoreArray = {
-  STR: 15,
-  DEX: 14,
-  CON: 13,
-  INT: 12,
-  WIS: 10,
+  STR: 8,
+  DEX: 8,
+  CON: 8,
+  INT: 8,
+  WIS: 8,
   CHA: 8
 }
 

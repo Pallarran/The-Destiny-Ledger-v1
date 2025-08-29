@@ -58,11 +58,11 @@ export function AbilityScoreAssignment() {
   } = useCharacterBuilderStore()
   
   const [localScores, setLocalScores] = useState(currentBuild?.abilityScores || {
-    STR: 15, DEX: 14, CON: 13, INT: 12, WIS: 10, CHA: 8
+    STR: 8, DEX: 8, CON: 8, INT: 8, WIS: 8, CHA: 8
   })
   
   const [standardArrayAssignment, setStandardArrayAssignment] = useState<Record<AbilityScore, number>>({
-    STR: 15, DEX: 14, CON: 13, INT: 12, WIS: 10, CHA: 8
+    STR: 0, DEX: 0, CON: 0, INT: 0, WIS: 0, CHA: 0
   })
   
   const method = currentBuild?.abilityAssignmentMethod || 'pointbuy'
@@ -87,13 +87,20 @@ export function AbilityScoreAssignment() {
     
     // Apply default scores based on method
     if (newMethod === 'standard') {
-      const newScores = { ...standardArrayAssignment }
-      setLocalScores(newScores)
-      Object.entries(newScores).forEach(([ability, score]) => {
+      // Start with unassigned (8s show as placeholders)
+      const unassignedScores = { STR: 8, DEX: 8, CON: 8, INT: 8, WIS: 8, CHA: 8 }
+      setLocalScores(unassignedScores)
+      setStandardArrayAssignment({ STR: 0, DEX: 0, CON: 0, INT: 0, WIS: 0, CHA: 0 })
+      Object.entries(unassignedScores).forEach(([ability, score]) => {
         setAbilityScore(ability as AbilityScore, score)
       })
-    } else if (newMethod === 'pointbuy') {
-      resetAbilityScores()
+    } else if (newMethod === 'pointbuy' || newMethod === 'custom') {
+      // Start with all 8s for point buy and manual entry
+      const baseScores = { STR: 8, DEX: 8, CON: 8, INT: 8, WIS: 8, CHA: 8 }
+      setLocalScores(baseScores)
+      Object.entries(baseScores).forEach(([ability, score]) => {
+        setAbilityScore(ability as AbilityScore, score)
+      })
     }
   }
   
@@ -208,11 +215,14 @@ export function AbilityScoreAssignment() {
               <Calculator className="w-5 h-5 text-accent" />
               <span className="font-medium">Point Buy Budget</span>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
+              <div className="text-sm text-muted">
+                Used: <span className="font-medium">{calculatePointBuyTotal()}/27</span>
+              </div>
               <Badge 
                 variant={remainingPoints === 0 ? "default" : remainingPoints > 0 ? "secondary" : "destructive"}
               >
-                {remainingPoints} points remaining
+                {remainingPoints} remaining
               </Badge>
               {remainingPoints < 0 && (
                 <div className="flex items-center gap-1 text-destructive text-sm">
@@ -220,6 +230,33 @@ export function AbilityScoreAssignment() {
                   Over budget
                 </div>
               )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+      
+      {/* Standard Array Available Values */}
+      {method === 'standard' && (
+        <Card>
+          <CardContent className="flex items-center justify-between p-4">
+            <div className="flex items-center gap-2">
+              <TrendingUp className="w-5 h-5 text-accent" />
+              <span className="font-medium">Available Array Values</span>
+            </div>
+            <div className="flex items-center gap-2">
+              {STANDARD_ARRAY.map(value => {
+                const used = Object.values(standardArrayAssignment).filter(v => v === value).length
+                const available = 1 - used
+                return (
+                  <Badge 
+                    key={value}
+                    variant={available > 0 ? "secondary" : "outline"}
+                    className={available > 0 ? "bg-accent/10 text-accent" : "opacity-50"}
+                  >
+                    {value} {available === 0 && "✓"}
+                  </Badge>
+                )
+              })}
             </div>
           </CardContent>
         </Card>
@@ -242,8 +279,17 @@ export function AbilityScoreAssignment() {
                     </CardDescription>
                   </div>
                   <div className="text-right">
-                    <div className="text-3xl font-bold text-accent">{score}</div>
-                    <div className="text-sm text-muted">({formatModifier(modifier)})</div>
+                    {method === 'standard' && standardArrayAssignment[ability as AbilityScore] === 0 ? (
+                      <div className="text-2xl font-bold text-muted">--</div>
+                    ) : (
+                      <div className="text-3xl font-bold text-accent">{score}</div>
+                    )}
+                    <div className="text-sm text-muted">
+                      {method === 'standard' && standardArrayAssignment[ability as AbilityScore] === 0 
+                        ? 'Unassigned' 
+                        : `(${formatModifier(modifier)})`
+                      }
+                    </div>
                   </div>
                 </div>
               </CardHeader>
@@ -316,44 +362,6 @@ export function AbilityScoreAssignment() {
         })}
       </div>
       
-      {/* Summary */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Dices className="w-5 h-5" />
-            Ability Score Summary
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-6 gap-4 text-center">
-            {Object.entries(ABILITY_LABELS).map(([ability]) => {
-              const score = localScores[ability as AbilityScore]
-              const modifier = getAbilityModifier(score)
-              
-              return (
-                <div key={ability} className="space-y-1">
-                  <div className="font-medium text-sm text-muted">{ability}</div>
-                  <div className="text-xl font-bold text-accent">{score}</div>
-                  <div className="text-sm text-muted">({formatModifier(modifier)})</div>
-                </div>
-              )
-            })}
-          </div>
-          
-          {method === 'pointbuy' && (
-            <div className="mt-4 pt-4 border-t border-border/20 text-center">
-              <p className="text-sm text-muted">
-                Total Points Used: <span className="font-medium">{calculatePointBuyTotal()}/27</span>
-                {remainingPoints !== 0 && (
-                  <span className={remainingPoints > 0 ? "text-gold ml-2" : "text-destructive ml-2"}>
-                    ({remainingPoints > 0 ? `${remainingPoints} remaining` : `${Math.abs(remainingPoints)} over`})
-                  </span>
-                )}
-              </p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
     </div>
   )
 }
