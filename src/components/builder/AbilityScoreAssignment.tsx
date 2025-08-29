@@ -342,16 +342,36 @@ export function AbilityScoreAssignment() {
                 )}
                 
                 {method === 'custom' && (
-                  <div>
+                  <div className="space-y-2">
                     <Label className="text-xs text-muted">Custom score:</Label>
-                    <Input
-                      type="number"
-                      min={8}
-                      max={20}
-                      value={score}
-                      onChange={(e) => handleScoreChange(ability as AbilityScore, parseInt(e.target.value) || 8)}
-                      className="mt-1"
-                    />
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleScoreChange(ability as AbilityScore, score - 1)}
+                        disabled={score <= 8}
+                        className="w-8 h-8 p-0"
+                      >
+                        <Minus className="w-3 h-3" />
+                      </Button>
+                      <Input
+                        type="number"
+                        min={8}
+                        max={20}
+                        value={score}
+                        onChange={(e) => handleScoreChange(ability as AbilityScore, parseInt(e.target.value) || 8)}
+                        className="flex-1 text-center"
+                      />
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleScoreChange(ability as AbilityScore, score + 1)}
+                        disabled={score >= 20}
+                        className="w-8 h-8 p-0"
+                      >
+                        <Plus className="w-3 h-3" />
+                      </Button>
+                    </div>
                   </div>
                 )}
               </CardContent>
