@@ -31,7 +31,9 @@ export function EquipmentSelection() {
   
   const [activeTab, setActiveTab] = useState<'weapons' | 'armor'>('weapons')
   
-  if (!currentBuild) return null
+  if (!currentBuild) {
+    return <div className="text-center text-muted">Loading equipment options...</div>
+  }
   
   const selectedMainHand = MOCK_WEAPONS.find(w => w.id === currentBuild.selectedMainHand)
   const selectedRanged = MOCK_WEAPONS.find(w => w.id === currentBuild.selectedRanged)

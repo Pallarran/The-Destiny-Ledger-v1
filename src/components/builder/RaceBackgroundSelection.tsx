@@ -95,7 +95,9 @@ export function RaceBackgroundSelection() {
     setBackground
   } = useCharacterBuilderStore()
   
-  if (!currentBuild) return null
+  if (!currentBuild) {
+    return <div className="text-center text-muted">Loading race and background options...</div>
+  }
   
   const selectedRace = MOCK_RACES.find(r => r.id === currentBuild.race)
   const selectedBackground = MOCK_BACKGROUNDS.find(b => b.id === currentBuild.background)

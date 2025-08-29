@@ -32,7 +32,9 @@ export function BuildSummary() {
   const [isCalculatingDPR, setIsCalculatingDPR] = useState(false)
   const [dprResult, setDprResult] = useState<number | null>(null)
   
-  if (!currentBuild) return null
+  if (!currentBuild) {
+    return <div className="text-center text-muted">Loading build summary...</div>
+  }
   
   const isValid = validateAllSteps()
   const completedSteps = Object.values(stepValidation).filter(Boolean).length

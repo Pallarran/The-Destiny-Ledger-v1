@@ -16,7 +16,9 @@ export function LevelTimeline() {
   const { currentBuild, addLevel } = useCharacterBuilderStore()
   const [selectedClass, setSelectedClass] = useState('')
   
-  if (!currentBuild) return null
+  if (!currentBuild) {
+    return <div className="text-center text-muted">Loading class progression...</div>
+  }
   
   const levels = currentBuild.enhancedLevelTimeline.sort((a, b) => a.level - b.level)
   const nextLevel = Math.max(...levels.map(l => l.level), 0) + 1

@@ -132,7 +132,9 @@ export function AbilityScoreAssignment() {
   
   const canDecrease = (score: number) => score > 8
   
-  if (!currentBuild) return null
+  if (!currentBuild) {
+    return <div className="text-center text-muted">Loading ability scores...</div>
+  }
   
   return (
     <div className="space-y-6">

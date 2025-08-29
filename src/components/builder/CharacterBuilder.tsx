@@ -128,14 +128,17 @@ export function CharacterBuilder({ buildId }: CharacterBuilderProps) {
     return (completedSteps / BUILDER_STEPS.length) * 100
   }
   
+  // Show loading state instead of early return to avoid hooks issues
   if (!currentBuild) {
     return (
-      <Panel className="flex items-center justify-center h-96">
-        <div className="text-center">
-          <div className="animate-spin w-8 h-8 border-2 border-accent border-t-transparent rounded-full mx-auto mb-4" />
-          <p className="text-muted">Loading character builder...</p>
-        </div>
-      </Panel>
+      <div className="space-y-6">
+        <Panel className="flex items-center justify-center h-96">
+          <div className="text-center">
+            <div className="animate-spin w-8 h-8 border-2 border-accent border-t-transparent rounded-full mx-auto mb-4" />
+            <p className="text-muted">Loading character builder...</p>
+          </div>
+        </Panel>
+      </div>
     )
   }
   
