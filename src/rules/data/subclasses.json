@@ -1,0 +1,149 @@
+{
+  "battle_master": {
+    "id": "battle_master",
+    "name": "Battle Master",
+    "parentClass": "fighter",
+    "features": {
+      "3": [
+        {
+          "id": "combat_superiority",
+          "name": "Combat Superiority",
+          "description": "You learn maneuvers that are fueled by special dice called superiority dice.",
+          "source": "Battle Master",
+          "rulesKey": "combat_superiority"
+        },
+        {
+          "id": "student_of_war",
+          "name": "Student of War",
+          "description": "You gain proficiency with one type of artisan's tools of your choice.",
+          "source": "Battle Master"
+        }
+      ],
+      "7": [
+        {
+          "id": "know_your_enemy",
+          "name": "Know Your Enemy",
+          "description": "If you spend at least 1 minute observing or interacting with another creature outside combat, you can learn certain information about its capabilities.",
+          "source": "Battle Master"
+        }
+      ],
+      "10": [
+        {
+          "id": "improved_combat_superiority",
+          "name": "Improved Combat Superiority",
+          "description": "Your superiority dice turn into d10s.",
+          "source": "Battle Master",
+          "rulesKey": "improved_combat_superiority"
+        }
+      ],
+      "15": [
+        {
+          "id": "relentless",
+          "name": "Relentless",
+          "description": "When you roll initiative and have no superiority dice remaining, you regain 1 superiority die.",
+          "source": "Battle Master",
+          "rulesKey": "relentless"
+        }
+      ],
+      "18": [
+        {
+          "id": "improved_combat_superiority_2",
+          "name": "Improved Combat Superiority", 
+          "description": "Your superiority dice turn into d12s.",
+          "source": "Battle Master",
+          "rulesKey": "improved_combat_superiority_2"
+        }
+      ]
+    }
+  },
+  "assassin": {
+    "id": "assassin",
+    "name": "Assassin",
+    "parentClass": "rogue",
+    "features": {
+      "3": [
+        {
+          "id": "bonus_proficiencies",
+          "name": "Bonus Proficiencies",
+          "description": "You gain proficiency with the disguise kit and the poisoner's kit.",
+          "source": "Assassin"
+        },
+        {
+          "id": "assassinate",
+          "name": "Assassinate",
+          "description": "You have advantage on attack rolls against any creature that hasn't taken a turn in the combat yet.",
+          "source": "Assassin",
+          "rulesKey": "assassinate"
+        }
+      ],
+      "9": [
+        {
+          "id": "infiltration_expertise",
+          "name": "Infiltration Expertise",
+          "description": "You can unfailingly create false identities for yourself.",
+          "source": "Assassin"
+        }
+      ],
+      "13": [
+        {
+          "id": "impostor",
+          "name": "Impostor",
+          "description": "You gain the ability to unerringly mimic another person's speech, writing, and behavior.",
+          "source": "Assassin"
+        }
+      ],
+      "17": [
+        {
+          "id": "death_strike",
+          "name": "Death Strike",
+          "description": "You become a master of instant death.",
+          "source": "Assassin",
+          "rulesKey": "death_strike"
+        }
+      ]
+    }
+  },
+  "hunter": {
+    "id": "hunter",
+    "name": "Hunter",
+    "parentClass": "ranger",
+    "features": {
+      "3": [
+        {
+          "id": "hunters_prey",
+          "name": "Hunter's Prey",
+          "description": "You gain one of the following features of your choice: Colossus Slayer, Giant Killer, or Horde Breaker.",
+          "source": "Hunter",
+          "rulesKey": "hunters_prey"
+        }
+      ],
+      "7": [
+        {
+          "id": "defensive_tactics",
+          "name": "Defensive Tactics", 
+          "description": "You gain one of the following features of your choice: Escape the Horde, Multiattack Defense, or Steel Will.",
+          "source": "Hunter",
+          "rulesKey": "defensive_tactics"
+        }
+      ],
+      "11": [
+        {
+          "id": "multiattack",
+          "name": "Multiattack",
+          "description": "You gain one of the following features of your choice: Volley or Whirlwind Attack.",
+          "source": "Hunter",
+          "rulesKey": "multiattack"
+        }
+      ],
+      "15": [
+        {
+          "id": "superior_hunters_defense",
+          "name": "Superior Hunter's Defense",
+          "description": "You gain one of the following features of your choice: Evasion, Stand Against the Tide, or Uncanny Dodge.",
+          "source": "Hunter",
+          "rulesKey": "superior_hunters_defense"
+        }
+      ]
+    }
+  }
+}

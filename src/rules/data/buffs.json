@@ -1,0 +1,121 @@
+{
+  "bless": {
+    "id": "bless",
+    "name": "Bless",
+    "description": "You bless up to three creatures of your choice within range. Whenever a target makes an attack roll or a saving throw before the spell ends, the target can roll a d4 and add the number rolled to the attack roll or saving throw.",
+    "concentration": true,
+    "duration": "1 minute",
+    "actionCost": "action",
+    "allowedRound0": true,
+    "effects": {
+      "attackBonus": 2.5
+    }
+  },
+  "haste": {
+    "id": "haste",
+    "name": "Haste",
+    "description": "Choose a willing creature that you can see within range. Until the spell ends, the target's speed is doubled, it gains a +2 bonus to AC, it has advantage on Dexterity saving throws, and it gains an additional action on each of its turns.",
+    "concentration": true,
+    "duration": "1 minute",
+    "actionCost": "action", 
+    "allowedRound0": true,
+    "effects": {
+      "additionalAttacks": 1
+    }
+  },
+  "hunters_mark": {
+    "id": "hunters_mark",
+    "name": "Hunter's Mark",
+    "description": "You choose a creature you can see within range and mystically mark it as your quarry. Until the spell ends, you deal an extra 1d6 damage to the target whenever you hit it with a weapon attack.",
+    "concentration": true,
+    "duration": "1 hour",
+    "actionCost": "bonus",
+    "allowedRound0": true,
+    "effects": {
+      "onHitDamage": [
+        {
+          "count": 1,
+          "die": 6,
+          "bonus": 0,
+          "type": "force"
+        }
+      ]
+    }
+  },
+  "hex": {
+    "id": "hex", 
+    "name": "Hex",
+    "description": "You place a curse on a creature that you can see within range. Until the spell ends, you deal an extra 1d6 necrotic damage to the target whenever you hit it with an attack.",
+    "concentration": true,
+    "duration": "1 hour", 
+    "actionCost": "bonus",
+    "allowedRound0": true,
+    "effects": {
+      "onHitDamage": [
+        {
+          "count": 1,
+          "die": 6,
+          "bonus": 0,
+          "type": "necrotic"
+        }
+      ]
+    }
+  },
+  "faerie_fire": {
+    "id": "faerie_fire",
+    "name": "Faerie Fire",
+    "description": "Each object in a 20-foot cube within range is outlined in blue, green, or violet light. Any creature in the area when the spell is cast is also outlined in light if it fails a Dexterity saving throw. Attack rolls against an affected creature or object have advantage.",
+    "concentration": true,
+    "duration": "1 minute",
+    "actionCost": "action",
+    "allowedRound0": true,
+    "effects": {
+      "advantage": true
+    }
+  },
+  "greater_invisibility": {
+    "id": "greater_invisibility",
+    "name": "Greater Invisibility",
+    "description": "You or a creature you touch becomes invisible until the spell ends. Anything the target is wearing or carrying is invisible as long as it is on the target's person.",
+    "concentration": true,
+    "duration": "1 minute",
+    "actionCost": "action",
+    "allowedRound0": true,
+    "effects": {
+      "advantage": true
+    }
+  },
+  "elemental_weapon": {
+    "id": "elemental_weapon",
+    "name": "Elemental Weapon",
+    "description": "A nonmagical weapon you touch becomes a magic weapon. Choose one of the following damage types: acid, cold, fire, lightning, or thunder. For the duration, the weapon has a +1 bonus to attack rolls and deals an extra 1d4 damage of the chosen type when it hits.",
+    "concentration": true,
+    "duration": "1 hour",
+    "actionCost": "action",
+    "allowedRound0": true,
+    "effects": {
+      "attackBonus": 1,
+      "onHitDamage": [
+        {
+          "count": 1,
+          "die": 4,
+          "bonus": 0,
+          "type": "fire"
+        }
+      ]
+    }
+  },
+  "magic_weapon": {
+    "id": "magic_weapon",
+    "name": "Magic Weapon",
+    "description": "You touch a nonmagical weapon. Until the spell ends, that weapon becomes a magic weapon with a +1 bonus to attack rolls and damage rolls.",
+    "concentration": true,
+    "duration": "1 hour",
+    "actionCost": "bonus",
+    "allowedRound0": true,
+    "effects": {
+      "attackBonus": 1,
+      "damageBonus": 1
+    }
+  }
+}

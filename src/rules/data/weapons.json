@@ -1,0 +1,210 @@
+{
+  "shortsword": {
+    "id": "shortsword",
+    "name": "Shortsword",
+    "type": "martial",
+    "category": "melee",
+    "damage": [
+      {
+        "count": 1,
+        "die": 6,
+        "bonus": 0,
+        "type": "piercing"
+      }
+    ],
+    "properties": ["finesse", "light"]
+  },
+  "longsword": {
+    "id": "longsword",
+    "name": "Longsword",
+    "type": "martial",
+    "category": "melee",
+    "damage": [
+      {
+        "count": 1,
+        "die": 8,
+        "bonus": 0,
+        "type": "slashing"
+      }
+    ],
+    "versatile": [
+      {
+        "count": 1,
+        "die": 10,
+        "bonus": 0,
+        "type": "slashing"
+      }
+    ],
+    "properties": ["versatile"]
+  },
+  "greatsword": {
+    "id": "greatsword",
+    "name": "Greatsword",
+    "type": "martial",
+    "category": "melee",
+    "damage": [
+      {
+        "count": 2,
+        "die": 6,
+        "bonus": 0,
+        "type": "slashing"
+      }
+    ],
+    "properties": ["heavy", "two-handed"]
+  },
+  "greataxe": {
+    "id": "greataxe", 
+    "name": "Greataxe",
+    "type": "martial",
+    "category": "melee",
+    "damage": [
+      {
+        "count": 1,
+        "die": 12,
+        "bonus": 0,
+        "type": "slashing"
+      }
+    ],
+    "properties": ["heavy", "two-handed"]
+  },
+  "maul": {
+    "id": "maul",
+    "name": "Maul",
+    "type": "martial", 
+    "category": "melee",
+    "damage": [
+      {
+        "count": 2,
+        "die": 6,
+        "bonus": 0,
+        "type": "bludgeoning"
+      }
+    ],
+    "properties": ["heavy", "two-handed"]
+  },
+  "glaive": {
+    "id": "glaive",
+    "name": "Glaive",
+    "type": "martial",
+    "category": "melee",
+    "damage": [
+      {
+        "count": 1,
+        "die": 10,
+        "bonus": 0,
+        "type": "slashing"
+      }
+    ],
+    "properties": ["heavy", "reach", "two-handed"]
+  },
+  "halberd": {
+    "id": "halberd",
+    "name": "Halberd",
+    "type": "martial",
+    "category": "melee", 
+    "damage": [
+      {
+        "count": 1,
+        "die": 10,
+        "bonus": 0,
+        "type": "slashing"
+      }
+    ],
+    "properties": ["heavy", "reach", "two-handed"]
+  },
+  "longbow": {
+    "id": "longbow",
+    "name": "Longbow",
+    "type": "martial",
+    "category": "ranged",
+    "damage": [
+      {
+        "count": 1,
+        "die": 8,
+        "bonus": 0,
+        "type": "piercing"
+      }
+    ],
+    "range": {
+      "normal": 150,
+      "long": 600
+    },
+    "properties": ["ammunition", "heavy", "two-handed"]
+  },
+  "shortbow": {
+    "id": "shortbow",
+    "name": "Shortbow",
+    "type": "simple",
+    "category": "ranged",
+    "damage": [
+      {
+        "count": 1,
+        "die": 6,
+        "bonus": 0,
+        "type": "piercing"
+      }
+    ],
+    "range": {
+      "normal": 80,
+      "long": 320
+    },
+    "properties": ["ammunition", "two-handed"]
+  },
+  "light_crossbow": {
+    "id": "light_crossbow",
+    "name": "Light Crossbow",
+    "type": "simple",
+    "category": "ranged",
+    "damage": [
+      {
+        "count": 1,
+        "die": 8,
+        "bonus": 0,
+        "type": "piercing"
+      }
+    ],
+    "range": {
+      "normal": 80,
+      "long": 320
+    },
+    "properties": ["ammunition", "loading", "two-handed"]
+  },
+  "heavy_crossbow": {
+    "id": "heavy_crossbow",
+    "name": "Heavy Crossbow",
+    "type": "martial",
+    "category": "ranged",
+    "damage": [
+      {
+        "count": 1,
+        "die": 10,
+        "bonus": 0,
+        "type": "piercing"
+      }
+    ],
+    "range": {
+      "normal": 100,
+      "long": 400
+    },
+    "properties": ["ammunition", "heavy", "loading", "two-handed"]
+  },
+  "hand_crossbow": {
+    "id": "hand_crossbow",
+    "name": "Hand Crossbow",
+    "type": "martial",
+    "category": "ranged",
+    "damage": [
+      {
+        "count": 1,
+        "die": 6,
+        "bonus": 0,
+        "type": "piercing"
+      }
+    ],
+    "range": {
+      "normal": 30,
+      "long": 120
+    },
+    "properties": ["ammunition", "light", "loading"]
+  }
+}

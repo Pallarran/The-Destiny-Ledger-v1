@@ -1,0 +1,244 @@
+{
+  "fighter": {
+    "id": "fighter",
+    "name": "Fighter",
+    "hitDie": 10,
+    "primaryAbilities": ["STR", "DEX"],
+    "savingThrowProficiencies": ["STR", "CON"],
+    "skillChoices": [
+      "Acrobatics", "Animal Handling", "Athletics", "History", 
+      "Insight", "Intimidation", "Perception", "Survival"
+    ],
+    "skillChoiceCount": 2,
+    "fightingStyleLevel": 1,
+    "fightingStyles": [
+      {
+        "id": "archery",
+        "name": "Archery",
+        "description": "You gain a +2 bonus to attack rolls you make with ranged weapons.",
+        "rulesKey": "archery"
+      },
+      {
+        "id": "defense",
+        "name": "Defense", 
+        "description": "While you are wearing armor, you gain a +1 bonus to AC.",
+        "rulesKey": "defense"
+      },
+      {
+        "id": "dueling",
+        "name": "Dueling",
+        "description": "When you are wielding a melee weapon in one hand and no other weapons, you gain a +2 bonus to damage rolls with that weapon.",
+        "rulesKey": "dueling"
+      },
+      {
+        "id": "great_weapon_fighting",
+        "name": "Great Weapon Fighting",
+        "description": "When you roll a 1 or 2 on a damage die for an attack you make with a melee weapon that you are wielding with two hands, you can reroll the die and must use the new roll.",
+        "rulesKey": "gwf"
+      }
+    ],
+    "features": {
+      "1": [
+        {
+          "id": "second_wind",
+          "name": "Second Wind",
+          "description": "You have a limited well of stamina that you can draw on to protect yourself from harm.",
+          "source": "Fighter",
+          "rulesKey": "second_wind"
+        }
+      ],
+      "2": [
+        {
+          "id": "action_surge",
+          "name": "Action Surge",
+          "description": "You can push yourself beyond your normal limits for a moment.",
+          "source": "Fighter",
+          "rulesKey": "action_surge"
+        }
+      ],
+      "3": [
+        {
+          "id": "martial_archetype",
+          "name": "Martial Archetype",
+          "description": "You choose an archetype that you strive to emulate in your combat styles and techniques.",
+          "source": "Fighter"
+        }
+      ],
+      "5": [
+        {
+          "id": "extra_attack",
+          "name": "Extra Attack",
+          "description": "You can attack twice, instead of once, whenever you take the Attack action on your turn.",
+          "source": "Fighter",
+          "rulesKey": "extra_attack"
+        }
+      ],
+      "9": [
+        {
+          "id": "indomitable",
+          "name": "Indomitable",
+          "description": "You can reroll a saving throw that you fail.",
+          "source": "Fighter",
+          "rulesKey": "indomitable"
+        }
+      ],
+      "11": [
+        {
+          "id": "extra_attack_2",
+          "name": "Extra Attack (2)",
+          "description": "You can attack three times whenever you take the Attack action on your turn.",
+          "source": "Fighter",
+          "rulesKey": "extra_attack_2"
+        }
+      ],
+      "20": [
+        {
+          "id": "extra_attack_3",
+          "name": "Extra Attack (3)",
+          "description": "You can attack four times whenever you take the Attack action on your turn.",
+          "source": "Fighter",
+          "rulesKey": "extra_attack_3"
+        }
+      ]
+    }
+  },
+  "rogue": {
+    "id": "rogue",
+    "name": "Rogue",
+    "hitDie": 8,
+    "primaryAbilities": ["DEX"],
+    "savingThrowProficiencies": ["DEX", "INT"],
+    "skillChoices": [
+      "Acrobatics", "Athletics", "Deception", "Insight", "Intimidation",
+      "Investigation", "Perception", "Performance", "Persuasion", "Sleight of Hand", "Stealth"
+    ],
+    "skillChoiceCount": 4,
+    "features": {
+      "1": [
+        {
+          "id": "expertise",
+          "name": "Expertise",
+          "description": "Choose two of your skill proficiencies. Your proficiency bonus is doubled for any ability check you make that uses either of the chosen proficiencies.",
+          "source": "Rogue",
+          "rulesKey": "expertise"
+        },
+        {
+          "id": "sneak_attack",
+          "name": "Sneak Attack",
+          "description": "You know how to strike subtly and exploit a foe's distraction. Once per turn, you can deal an extra 1d6 damage.",
+          "source": "Rogue",
+          "rulesKey": "sneak_attack"
+        },
+        {
+          "id": "thieves_cant",
+          "name": "Thieves' Cant",
+          "description": "During your rogue training you learned thieves' cant, a secret mix of dialect, jargon, and code.",
+          "source": "Rogue"
+        }
+      ],
+      "2": [
+        {
+          "id": "cunning_action",
+          "name": "Cunning Action",
+          "description": "You can take a bonus action on each of your turns to Dash, Disengage, or Hide.",
+          "source": "Rogue",
+          "rulesKey": "cunning_action"
+        }
+      ],
+      "3": [
+        {
+          "id": "roguish_archetype",
+          "name": "Roguish Archetype",
+          "description": "You choose an archetype that you emulate in the exercise of your rogue abilities.",
+          "source": "Rogue"
+        }
+      ]
+    }
+  },
+  "ranger": {
+    "id": "ranger",
+    "name": "Ranger",
+    "hitDie": 10,
+    "primaryAbilities": ["DEX", "WIS"],
+    "savingThrowProficiencies": ["STR", "DEX"],
+    "skillChoices": [
+      "Animal Handling", "Athletics", "Insight", "Investigation",
+      "Nature", "Perception", "Stealth", "Survival"
+    ],
+    "skillChoiceCount": 3,
+    "fightingStyleLevel": 2,
+    "fightingStyles": [
+      {
+        "id": "archery",
+        "name": "Archery",
+        "description": "You gain a +2 bonus to attack rolls you make with ranged weapons.",
+        "rulesKey": "archery"
+      },
+      {
+        "id": "defense",
+        "name": "Defense",
+        "description": "While you are wearing armor, you gain a +1 bonus to AC.",
+        "rulesKey": "defense"
+      },
+      {
+        "id": "dueling",
+        "name": "Dueling", 
+        "description": "When you are wielding a melee weapon in one hand and no other weapons, you gain a +2 bonus to damage rolls with that weapon.",
+        "rulesKey": "dueling"
+      },
+      {
+        "id": "two_weapon_fighting",
+        "name": "Two-Weapon Fighting",
+        "description": "When you engage in two-weapon fighting, you can add your ability modifier to the damage of the second attack.",
+        "rulesKey": "twf"
+      }
+    ],
+    "features": {
+      "1": [
+        {
+          "id": "favored_enemy",
+          "name": "Favored Enemy",
+          "description": "You have studied, tracked, and learned to effectively counter certain types of creatures.",
+          "source": "Ranger"
+        },
+        {
+          "id": "natural_explorer",
+          "name": "Natural Explorer",
+          "description": "You are particularly familiar with one type of natural environment and are adept at traveling and surviving in such regions.",
+          "source": "Ranger"
+        }
+      ],
+      "2": [
+        {
+          "id": "spellcasting",
+          "name": "Spellcasting",
+          "description": "You have learned to use the magical essence of nature to cast spells.",
+          "source": "Ranger"
+        }
+      ],
+      "3": [
+        {
+          "id": "ranger_archetype",
+          "name": "Ranger Archetype",
+          "description": "You choose an archetype that you strive to emulate.",
+          "source": "Ranger"
+        },
+        {
+          "id": "primeval_awareness",
+          "name": "Primeval Awareness",
+          "description": "You can use your action and expend one ranger spell slot to focus your awareness on the region around you.",
+          "source": "Ranger"
+        }
+      ],
+      "5": [
+        {
+          "id": "extra_attack",
+          "name": "Extra Attack", 
+          "description": "You can attack twice, instead of once, whenever you take the Attack action on your turn.",
+          "source": "Ranger",
+          "rulesKey": "extra_attack"
+        }
+      ]
+    }
+  }
+}
