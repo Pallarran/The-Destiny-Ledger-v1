@@ -8,7 +8,6 @@ import { useCharacterBuilderStore } from '../../stores/characterBuilderStore'
 import type { AbilityScore } from '../../rules/types'
 import type { AbilityAssignmentMethod } from '../../types/character'
 import { 
-  Dices, 
   Calculator, 
   Edit3, 
   AlertTriangle,
@@ -53,8 +52,7 @@ export function AbilityScoreAssignment() {
   const {
     currentBuild,
     setAbilityAssignmentMethod,
-    setAbilityScore,
-    resetAbilityScores
+    setAbilityScore
   } = useCharacterBuilderStore()
   
   const [localScores, setLocalScores] = useState(currentBuild?.abilityScores || {
