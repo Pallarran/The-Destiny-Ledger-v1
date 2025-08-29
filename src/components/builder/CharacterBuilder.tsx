@@ -19,10 +19,12 @@ import {
   Dices,
   Zap,
   Sword,
-  FileText
+  FileText,
+  Users
 } from 'lucide-react'
 
 // Step components
+import { BasicInfo } from './BasicInfo'
 import { AbilityScoreAssignment } from './AbilityScoreAssignment'
 import { RaceBackgroundSelection } from './RaceBackgroundSelection' 
 import { LevelTimeline } from './LevelTimeline'
@@ -30,14 +32,16 @@ import { EquipmentSelection } from './EquipmentSelection'
 import { BuildSummary } from './BuildSummary'
 
 const STEP_ICONS = {
+  'basic-info': User,
   'ability-scores': Dices,
-  'race-background': User,
+  'race-background': Users,
   'class-progression': Zap,
   'equipment': Sword,
   'summary': FileText
 }
 
 const STEP_LABELS = {
+  'basic-info': 'Build Info',
   'ability-scores': 'Ability Scores',
   'race-background': 'Race & Background',
   'class-progression': 'Class Progression',
@@ -261,6 +265,10 @@ export function CharacterBuilder({ buildId }: CharacterBuilderProps) {
           <Panel>
             <Tabs value={currentStep} onValueChange={handleStepChange}>
               <TabsList className="hidden" />
+              
+              <TabsContent value="basic-info" className="mt-0">
+                <BasicInfo />
+              </TabsContent>
               
               <TabsContent value="ability-scores" className="mt-0">
                 <AbilityScoreAssignment />

@@ -88,7 +88,7 @@ const createDefaultBuilder = (name: string = 'New Character'): CharacterBuilder 
   round0Buffs: [],
   
   // Extended CharacterBuilder fields
-  currentStep: 'ability-scores',
+  currentStep: 'basic-info',
   completedSteps: [],
   abilityAssignmentMethod: 'pointbuy',
   pointBuyConfig: { ...DEFAULT_POINT_BUY_CONFIG },
@@ -111,10 +111,11 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
     currentBuild: null,
     isDirty: false,
     isLoading: false,
-    currentStep: 'ability-scores',
+    currentStep: 'basic-info',
     canProceed: false,
     canGoBack: false,
     stepValidation: {
+      'basic-info': false,
       'ability-scores': false,
       'race-background': false,
       'class-progression': false,
@@ -506,8 +507,9 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
       set((state) => {
         state.currentBuild = null
         state.isDirty = false
-        state.currentStep = 'ability-scores'
+        state.currentStep = 'basic-info'
         state.stepValidation = {
+          'basic-info': false,
           'ability-scores': false,
           'race-background': false,
           'class-progression': false,
@@ -548,6 +550,9 @@ function validateStep(state: any, step: BuilderStep): boolean {
   let isValid = false
   
   switch (step) {
+    case 'basic-info':
+      isValid = validateBasicInfo(state.currentBuild)
+      break
     case 'ability-scores':
       isValid = validateAbilityScores(state.currentBuild)
       break
@@ -567,6 +572,11 @@ function validateStep(state: any, step: BuilderStep): boolean {
   
   state.stepValidation[step] = isValid
   return isValid
+}
+
+function validateBasicInfo(build: CharacterBuilder): boolean {
+  // Build name is required, notes are optional
+  return !!build.name && build.name.trim().length > 0
 }
 
 function validateAbilityScores(build: CharacterBuilder): boolean {

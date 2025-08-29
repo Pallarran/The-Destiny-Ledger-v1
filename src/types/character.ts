@@ -6,6 +6,7 @@ import type { AbilityScore, AbilityScoreArray } from '../rules/types'
 
 // Character creation step progression
 export type BuilderStep = 
+  | 'basic-info'
   | 'ability-scores'
   | 'race-background'
   | 'class-progression'
@@ -180,6 +181,7 @@ export const DEFAULT_ABILITY_SCORES: AbilityScoreArray = {
 }
 
 export const BUILDER_STEPS: BuilderStep[] = [
+  'basic-info',
   'ability-scores',
   'race-background',
   'class-progression',

@@ -1,7 +1,9 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card'
+import { Card, CardContent } from '../ui/card'
 import { Badge } from '../ui/badge'
+import { Button } from '../ui/button'
 import { useCharacterBuilderStore } from '../../stores/characterBuilderStore'
-import { User, Scroll, Crown, TreePine, Flame, Moon, Star } from 'lucide-react'
+import { User, Scroll, Crown, TreePine, Flame, Moon, Star, ChevronDown } from 'lucide-react'
+import { useState } from 'react'
 
 // Mock race data - in a real app this would come from a data service
 const MOCK_RACES = [
@@ -95,6 +97,9 @@ export function RaceBackgroundSelection() {
     setBackground
   } = useCharacterBuilderStore()
   
+  const [showRaceOptions, setShowRaceOptions] = useState(false)
+  const [showBackgroundOptions, setShowBackgroundOptions] = useState(false)
+  
   if (!currentBuild) {
     return <div className="text-center text-muted">Loading race and background options...</div>
   }
@@ -114,173 +119,154 @@ export function RaceBackgroundSelection() {
       {/* Race Selection */}
       <div>
         <h3 className="text-lg font-semibold text-panel mb-3">Choose a Race</h3>
-        {selectedRace && (
-          <Card className="mb-4 border-accent/20 bg-accent/5">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <selectedRace.icon className="w-6 h-6 text-accent" />
-                <div>
-                  <div className="font-semibold text-panel">{selectedRace.name}</div>
-                  <div className="text-sm text-muted">{selectedRace.description}</div>
-                </div>
-                <Badge className="ml-auto bg-accent/10 text-accent border-accent/20">Selected</Badge>
+        
+        {/* Race Selector Button */}
+        <Button
+          variant="outline"
+          onClick={() => setShowRaceOptions(!showRaceOptions)}
+          className="w-full justify-between mb-3"
+        >
+          {selectedRace ? (
+            <div className="flex items-center gap-2">
+              <selectedRace.icon className="w-4 h-4" />
+              {selectedRace.name}
+            </div>
+          ) : (
+            'Select a race...'
+          )}
+          <ChevronDown className="w-4 h-4" />
+        </Button>
+        
+        {/* Race Options */}
+        {showRaceOptions && (
+          <Card className="mb-3">
+            <CardContent className="p-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                {MOCK_RACES.map((race) => {
+                  const Icon = race.icon
+                  const isSelected = currentBuild.race === race.id
+                  
+                  return (
+                    <Button
+                      key={race.id}
+                      variant={isSelected ? "default" : "outline"}
+                      onClick={() => {
+                        setRace(race.id)
+                        setShowRaceOptions(false)
+                      }}
+                      className="justify-start h-auto p-3"
+                    >
+                      <Icon className="w-4 h-4 mr-2 shrink-0" />
+                      <div className="text-left">
+                        <div className="font-medium">{race.name}</div>
+                        <div className="text-xs opacity-70">{race.features[0]}</div>
+                      </div>
+                    </Button>
+                  )
+                })}
               </div>
             </CardContent>
           </Card>
         )}
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {MOCK_RACES.map((race) => {
-            const Icon = race.icon
-            const isSelected = currentBuild.race === race.id
-            
-            return (
-              <Card 
-                key={race.id}
-                className={`cursor-pointer transition-all ${
-                  isSelected 
-                    ? 'ring-2 ring-accent border-accent/20 bg-accent/5' 
-                    : 'hover:border-accent/30 hover:shadow-md'
-                }`}
-                onClick={() => setRace(race.id)}
-              >
-                <CardHeader className="pb-3">
-                  <div className="flex items-center gap-2">
-                    <Icon className="w-5 h-5 text-accent" />
-                    <CardTitle className="text-base">{race.name}</CardTitle>
-                  </div>
-                  <CardDescription className="text-sm">
-                    {race.description}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="pt-0">
-                  <div className="space-y-2">
-                    {race.features.map((feature, index) => (
-                      <div key={index} className="text-xs text-muted bg-panel/5 rounded px-2 py-1">
+        {/* Selected Race Details */}
+        {selectedRace && (
+          <Card className="border-accent/20 bg-accent/5">
+            <CardContent className="p-4">
+              <div className="flex items-start gap-3">
+                <selectedRace.icon className="w-6 h-6 text-accent mt-1" />
+                <div className="flex-1">
+                  <div className="font-semibold text-panel mb-1">{selectedRace.name}</div>
+                  <div className="text-sm text-muted mb-3">{selectedRace.description}</div>
+                  <div className="flex flex-wrap gap-1">
+                    {selectedRace.features.map((feature, index) => (
+                      <Badge key={index} variant="outline" className="text-xs">
                         {feature}
-                      </div>
+                      </Badge>
                     ))}
                   </div>
-                </CardContent>
-              </Card>
-            )
-          })}
-        </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
       
       {/* Background Selection */}
       <div>
         <h3 className="text-lg font-semibold text-panel mb-3">Choose a Background</h3>
-        {selectedBackground && (
-          <Card className="mb-4 border-emerald/20 bg-emerald/5">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <Scroll className="w-6 h-6 text-emerald" />
-                <div>
-                  <div className="font-semibold text-panel">{selectedBackground.name}</div>
-                  <div className="text-sm text-muted">{selectedBackground.description}</div>
-                </div>
-                <Badge variant="secondary" className="ml-auto bg-emerald/10 text-emerald border-emerald/20">
-                  Selected
-                </Badge>
+        
+        {/* Background Selector Button */}
+        <Button
+          variant="outline"
+          onClick={() => setShowBackgroundOptions(!showBackgroundOptions)}
+          className="w-full justify-between mb-3"
+        >
+          {selectedBackground ? (
+            <div className="flex items-center gap-2">
+              <Scroll className="w-4 h-4" />
+              {selectedBackground.name}
+            </div>
+          ) : (
+            'Select a background...'
+          )}
+          <ChevronDown className="w-4 h-4" />
+        </Button>
+        
+        {/* Background Options */}
+        {showBackgroundOptions && (
+          <Card className="mb-3">
+            <CardContent className="p-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                {MOCK_BACKGROUNDS.map((background) => {
+                  const isSelected = currentBuild.background === background.id
+                  
+                  return (
+                    <Button
+                      key={background.id}
+                      variant={isSelected ? "secondary" : "outline"}
+                      onClick={() => {
+                        setBackground(background.id)
+                        setShowBackgroundOptions(false)
+                      }}
+                      className="justify-start h-auto p-3"
+                    >
+                      <Scroll className="w-4 h-4 mr-2 shrink-0" />
+                      <div className="text-left">
+                        <div className="font-medium">{background.name}</div>
+                        <div className="text-xs opacity-70">{background.features[0]}</div>
+                      </div>
+                    </Button>
+                  )
+                })}
               </div>
             </CardContent>
           </Card>
         )}
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {MOCK_BACKGROUNDS.map((background) => {
-            const isSelected = currentBuild.background === background.id
-            
-            return (
-              <Card 
-                key={background.id}
-                className={`cursor-pointer transition-all ${
-                  isSelected 
-                    ? 'ring-2 ring-emerald border-emerald/20 bg-emerald/5' 
-                    : 'hover:border-emerald/30 hover:shadow-md'
-                }`}
-                onClick={() => setBackground(background.id)}
-              >
-                <CardHeader className="pb-3">
-                  <div className="flex items-center gap-2">
-                    <Scroll className="w-5 h-5 text-emerald" />
-                    <CardTitle className="text-base">{background.name}</CardTitle>
-                  </div>
-                  <CardDescription className="text-sm">
-                    {background.description}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="pt-0">
-                  <div className="space-y-2">
-                    {background.features.map((feature, index) => (
-                      <div key={index} className="text-xs text-muted bg-panel/5 rounded px-2 py-1">
+        {/* Selected Background Details */}
+        {selectedBackground && (
+          <Card className="border-emerald/20 bg-emerald/5">
+            <CardContent className="p-4">
+              <div className="flex items-start gap-3">
+                <Scroll className="w-6 h-6 text-emerald mt-1" />
+                <div className="flex-1">
+                  <div className="font-semibold text-panel mb-1">{selectedBackground.name}</div>
+                  <div className="text-sm text-muted mb-3">{selectedBackground.description}</div>
+                  <div className="flex flex-wrap gap-1">
+                    {selectedBackground.features.map((feature, index) => (
+                      <Badge key={index} variant="outline" className="text-xs">
                         {feature}
-                      </div>
+                      </Badge>
                     ))}
                   </div>
-                </CardContent>
-              </Card>
-            )
-          })}
-        </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
       
-      {/* Selection Summary */}
-      {(selectedRace || selectedBackground) && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Character Origin Summary</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <h4 className="font-semibold text-panel mb-2 flex items-center gap-2">
-                  <User className="w-4 h-4" />
-                  Race
-                </h4>
-                {selectedRace ? (
-                  <div>
-                    <div className="font-medium">{selectedRace.name}</div>
-                    <div className="text-sm text-muted mb-2">{selectedRace.description}</div>
-                    <div className="space-y-1">
-                      {selectedRace.features.map((feature, index) => (
-                        <Badge key={index} variant="outline" className="text-xs mr-1 mb-1">
-                          {feature}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                ) : (
-                  <div className="text-sm text-muted italic">No race selected</div>
-                )}
-              </div>
-              
-              <div>
-                <h4 className="font-semibold text-panel mb-2 flex items-center gap-2">
-                  <Scroll className="w-4 h-4" />
-                  Background
-                </h4>
-                {selectedBackground ? (
-                  <div>
-                    <div className="font-medium">{selectedBackground.name}</div>
-                    <div className="text-sm text-muted mb-2">{selectedBackground.description}</div>
-                    <div className="space-y-1">
-                      {selectedBackground.features.map((feature, index) => (
-                        <Badge key={index} variant="outline" className="text-xs mr-1 mb-1">
-                          {feature}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                ) : (
-                  <div className="text-sm text-muted italic">No background selected</div>
-                )}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
     </div>
   )
 }
