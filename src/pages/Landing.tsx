@@ -17,34 +17,45 @@ export function Landing() {
       {/* Hero Section */}
       <Panel className="text-center py-12">
         <div className="max-w-4xl mx-auto">
-          <h1 className="text-4xl font-bold font-serif mb-4">
-            Welcome to The Destiny Ledger
-          </h1>
-          <p className="text-lg text-muted mb-8">
-            The ultimate D&D 5e character optimizer and damage per round (DPR) calculator.
-            Build, analyze, and compare your characters with mathematical precision.
-          </p>
+          <div className="mb-8">
+            <img 
+              src={`${import.meta.env.BASE_URL}destiny-ledger-logo-with-name.png`} 
+              alt="The Destiny Ledger"
+              className="mx-auto mb-6 max-w-md w-full h-auto"
+            />
+          </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            <div className="flex flex-col items-center p-4">
-              <User className="w-8 h-8 text-accent mb-2" />
-              <h3 className="font-semibold mb-1">Character Builder</h3>
-              <p className="text-sm text-muted text-center">Full character creation with classes, feats, and equipment</p>
+          <div className="space-y-6 mb-8">
+            <p className="text-xl text-panel font-medium">
+              Master the Art of Character Optimization
+            </p>
+            <p className="text-lg text-muted max-w-3xl mx-auto">
+              The ultimate D&D 5e character optimizer featuring closed-form mathematical DPR calculations, 
+              comprehensive build analysis, and multi-dimensional character comparison tools. 
+              Transform your character concepts into mathematically optimized powerhouses.
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div className="flex flex-col items-center p-6 bg-panel/5 rounded-lg border border-border/10">
+              <User className="w-10 h-10 text-accent mb-3" />
+              <h3 className="font-semibold mb-2 text-panel">Advanced Builder</h3>
+              <p className="text-sm text-muted text-center">Comprehensive character creation with ability score methods, multiclass progression, and equipment optimization</p>
             </div>
-            <div className="flex flex-col items-center p-4">
-              <BarChart3 className="w-8 h-8 text-accent mb-2" />
-              <h3 className="font-semibold mb-1">DPR Analysis</h3>
-              <p className="text-sm text-muted text-center">Closed-form mathematical damage calculations</p>
+            <div className="flex flex-col items-center p-6 bg-panel/5 rounded-lg border border-border/10">
+              <BarChart3 className="w-10 h-10 text-accent mb-3" />
+              <h3 className="font-semibold mb-2 text-panel">Mathematical DPR</h3>
+              <p className="text-sm text-muted text-center">Closed-form probability calculations with Great Weapon Master and Sharpshooter threshold analysis</p>
             </div>
-            <div className="flex flex-col items-center p-4">
-              <Shield className="w-8 h-8 text-accent mb-2" />
-              <h3 className="font-semibold mb-1">Role Comparison</h3>
-              <p className="text-sm text-muted text-center">Multi-dimensional analysis beyond just damage</p>
+            <div className="flex flex-col items-center p-6 bg-panel/5 rounded-lg border border-border/10">
+              <Shield className="w-10 h-10 text-accent mb-3" />
+              <h3 className="font-semibold mb-2 text-panel">Build Comparison</h3>
+              <p className="text-sm text-muted text-center">Multi-dimensional analysis including survivability, utility, and role effectiveness metrics</p>
             </div>
-            <div className="flex flex-col items-center p-4">
-              <TrendingUp className="w-8 h-8 text-accent mb-2" />
-              <h3 className="font-semibold mb-1">Level Optimization</h3>
-              <p className="text-sm text-muted text-center">Find the optimal leveling path for your build</p>
+            <div className="flex flex-col items-center p-6 bg-panel/5 rounded-lg border border-border/10">
+              <TrendingUp className="w-10 h-10 text-accent mb-3" />
+              <h3 className="font-semibold mb-2 text-panel">Path Optimization</h3>
+              <p className="text-sm text-muted text-center">Advanced multiclass progression analysis to maximize effectiveness at every level</p>
             </div>
           </div>
 
@@ -67,48 +78,51 @@ export function Landing() {
 
       {/* Quick Actions */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <Panel className="hover:shadow-lg transition-shadow cursor-pointer">
-          <Link to="/dpr" className="block">
+        <Panel className="hover:shadow-lg transition-shadow cursor-pointer hover:border-accent/20 transition-all">
+          <Link to="/dpr" className="block p-6">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-accent/10 rounded-lg flex items-center justify-center">
-                <BarChart3 className="w-6 h-6 text-accent" />
+              <div className="w-14 h-14 bg-accent/10 rounded-lg flex items-center justify-center">
+                <BarChart3 className="w-7 h-7 text-accent" />
               </div>
               <div>
-                <h3 className="font-semibold mb-1">DPR Lab</h3>
+                <h3 className="font-semibold mb-2 text-panel">DPR Laboratory</h3>
                 <p className="text-sm text-muted">
-                  Analyze damage output across AC ranges with advantage states
+                  Advanced damage analysis with probability distributions, AC scaling curves, 
+                  and optimization threshold calculations for feat synergies
                 </p>
               </div>
             </div>
           </Link>
         </Panel>
 
-        <Panel className="hover:shadow-lg transition-shadow cursor-pointer">
-          <Link to="/compare" className="block">
+        <Panel className="hover:shadow-lg transition-shadow cursor-pointer hover:border-accent/20 transition-all">
+          <Link to="/compare" className="block p-6">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-emerald/10 rounded-lg flex items-center justify-center">
-                <Sword className="w-6 h-6 text-emerald" />
+              <div className="w-14 h-14 bg-emerald/10 rounded-lg flex items-center justify-center">
+                <Sword className="w-7 h-7 text-emerald" />
               </div>
               <div>
-                <h3 className="font-semibold mb-1">Compare Builds</h3>
+                <h3 className="font-semibold mb-2 text-panel">Build Comparison Engine</h3>
                 <p className="text-sm text-muted">
-                  Side-by-side comparison with radar charts and DPR overlays
+                  Multi-dimensional build analysis with radar charts, DPR overlays, 
+                  and role effectiveness scoring across combat scenarios
                 </p>
               </div>
             </div>
           </Link>
         </Panel>
 
-        <Panel className="hover:shadow-lg transition-shadow cursor-pointer">
-          <Link to="/explorer" className="block">
+        <Panel className="hover:shadow-lg transition-shadow cursor-pointer hover:border-accent/20 transition-all">
+          <Link to="/explorer" className="block p-6">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-gold/10 rounded-lg flex items-center justify-center">
-                <Sparkles className="w-6 h-6 text-gold" />
+              <div className="w-14 h-14 bg-gold/10 rounded-lg flex items-center justify-center">
+                <Sparkles className="w-7 h-7 text-gold" />
               </div>
               <div>
-                <h3 className="font-semibold mb-1">Level Path Explorer</h3>
+                <h3 className="font-semibold mb-2 text-panel">Progression Optimizer</h3>
                 <p className="text-sm text-muted">
-                  Find optimal multiclass progression for maximum effectiveness
+                  Strategic level path analysis for optimal multiclass timing, 
+                  ASI/feat decisions, and power spike maximization
                 </p>
               </div>
             </div>

@@ -6,7 +6,7 @@ export function Header() {
     <header className="bg-bg border-b border-border/20 px-4 py-3">
       <div className="flex items-center justify-between">
         <Link to="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-          <img src={`${import.meta.env.BASE_URL}logo.png`} alt="The Destiny Ledger" className="w-10 h-10" />
+          <img src={`${import.meta.env.BASE_URL}destiny-ledger-main-logo.png`} alt="The Destiny Ledger" className="w-12 h-12" />
           <div>
             <h1 className="text-xl font-bold text-panel font-serif">THE DESTINY LEDGER</h1>
             <p className="text-xs text-muted uppercase tracking-wider">OPTIMIZE & COMPARE</p>
