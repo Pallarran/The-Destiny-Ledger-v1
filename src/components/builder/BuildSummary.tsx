@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card'
 import { Badge } from '../ui/badge'
 import { Progress } from '../ui/progress'
 import { useCharacterBuilderStore } from '../../stores/characterBuilderStore'
+import { Link } from 'react-router-dom'
 import { 
   User, 
   Dices, 
@@ -16,7 +17,9 @@ import {
   AlertTriangle,
   FileText,
   Play,
-  TrendingUp
+  TrendingUp,
+  Save,
+  Archive
 } from 'lucide-react'
 
 export function BuildSummary() {
@@ -24,7 +27,8 @@ export function BuildSummary() {
     currentBuild,
     stepValidation,
     validateAllSteps,
-    updateBuild
+    updateBuild,
+    saveBuild
   } = useCharacterBuilderStore()
   
   const [buildName, setBuildName] = useState(currentBuild?.name || '')
@@ -330,6 +334,46 @@ export function BuildSummary() {
                   Recalculate
                 </Button>
               </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+      
+      {/* Save to Vault */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Archive className="w-5 h-5" />
+            Save Build
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-6">
+            <Archive className="w-12 h-12 text-accent mx-auto mb-4" />
+            <p className="text-muted mb-4">
+              Save this build to your vault for future reference and comparison.
+            </p>
+            <div className="flex gap-3 justify-center">
+              <Button 
+                onClick={saveBuild}
+                disabled={!isValid || !buildName.trim()}
+                variant="accent"
+                className="min-w-[120px]"
+              >
+                <Save className="w-4 h-4 mr-2" />
+                Save Build
+              </Button>
+              <Button asChild variant="outline">
+                <Link to="/vault">
+                  <Archive className="w-4 h-4 mr-2" />
+                  View Vault
+                </Link>
+              </Button>
+            </div>
+            {(!isValid || !buildName.trim()) && (
+              <p className="text-destructive text-sm mt-2">
+                {!buildName.trim() ? 'Build name is required' : 'Complete the build to save'}
+              </p>
             )}
           </div>
         </CardContent>

@@ -19,6 +19,7 @@ export interface BuildConfiguration {
   createdAt: Date
   updatedAt: Date
   notes?: string
+  tags?: string[]
   
   // Character basics
   race: string
@@ -91,6 +92,7 @@ export interface VaultState {
   builds: BuildConfiguration[]
   selectedBuildIds: string[]
   searchQuery: string
+  selectedTags: string[]
   sortBy: 'name' | 'level' | 'createdAt' | 'updatedAt'
   sortOrder: 'asc' | 'desc'
 }

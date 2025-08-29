@@ -1,44 +1,129 @@
 import { Panel, PanelHeader } from '../components/ui/panel'
 import { Button } from '../components/ui/button'
+import { Card, CardContent } from '../components/ui/card'
 import { Link } from 'react-router-dom'
+import { useVaultStore, getFilteredBuilds } from '../stores/vaultStore'
+import { useCharacterBuilderStore } from '../stores/characterBuilderStore'
+import { formatDistanceToNow } from 'date-fns'
 import { 
   Plus, 
   Search, 
   Filter, 
-  MoreVertical,
   User,
   Calendar,
-  Star
+  Copy,
+  Trash2,
+  Play,
+  Download,
+  Upload,
+  FileJson
 } from 'lucide-react'
 
 export function BuildVault() {
-  // Placeholder data - will be replaced with actual state management
-  const builds = [
-    {
-      id: '1',
-      name: 'Sir Kaelen (Battle Master)',
-      classes: 'Fighter 6 / Rogue 3',
-      level: 9,
-      lastEdited: '2 hours ago',
-      favorite: true
-    },
-    {
-      id: '2', 
-      name: 'Lyra (Gloom Stalker)',
-      classes: 'Ranger 11',
-      level: 11,
-      lastEdited: '1 day ago',
-      favorite: false
-    },
-    {
-      id: '3',
-      name: 'Bartholomew (Life Cleric)', 
-      classes: 'Cleric 8',
-      level: 8,
-      lastEdited: '3 days ago',
-      favorite: true
+  const { 
+    searchQuery, 
+    setSearchQuery, 
+    deleteBuild, 
+    duplicateBuild,
+    setSortBy,
+    sortBy,
+    toggleSortOrder,
+    sortOrder,
+    exportBuilds,
+    exportBuild,
+    importBuilds
+  } = useVaultStore()
+  
+  const { loadBuild } = useCharacterBuilderStore()
+  const builds = useVaultStore(getFilteredBuilds)
+
+  const handleLoadBuild = (buildId: string) => {
+    const build = builds.find(b => b.id === buildId)
+    if (build) {
+      loadBuild(build)
     }
-  ]
+  }
+
+  const getClassSummary = (build: any) => {
+    const classCount = build.levelTimeline?.reduce((acc: any, entry: any) => {
+      acc[entry.classId] = (acc[entry.classId] || 0) + 1
+      return acc
+    }, {}) || {}
+    
+    return Object.entries(classCount)
+      .map(([classId, count]) => `${classId} ${count}`)
+      .join(' / ')
+  }
+
+  const formatLastEdited = (date: Date) => {
+    return formatDistanceToNow(date, { addSuffix: true })
+  }
+
+  const handleExportAll = () => {
+    if (builds.length === 0) {
+      alert('No builds to export')
+      return
+    }
+    
+    const jsonData = exportBuilds()
+    const blob = new Blob([jsonData], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `destiny-ledger-builds-${new Date().toISOString().split('T')[0]}.json`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+  }
+
+  const handleExportBuild = (buildId: string) => {
+    const jsonData = exportBuild(buildId)
+    if (!jsonData) {
+      alert('Failed to export build')
+      return
+    }
+    
+    const build = builds.find(b => b.id === buildId)
+    const filename = build ? `${build.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.json` : 'build.json'
+    
+    const blob = new Blob([jsonData], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = filename
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+  }
+
+  const handleImport = () => {
+    const input = document.createElement('input')
+    input.type = 'file'
+    input.accept = '.json'
+    input.onchange = (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0]
+      if (file) {
+        const reader = new FileReader()
+        reader.onload = (e) => {
+          try {
+            const content = e.target?.result as string
+            const result = importBuilds(content)
+            if (result.success) {
+              alert(`✓ ${result.message}`)
+            } else {
+              alert(`✗ ${result.message}`)
+            }
+          } catch (error) {
+            alert('Failed to read file')
+          }
+        }
+        reader.readAsText(file)
+      }
+    }
+    input.click()
+  }
 
   return (
     <div className="space-y-6">
@@ -52,49 +137,121 @@ export function BuildVault() {
               <input
                 type="text"
                 placeholder="Search builds..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10 pr-4 py-2 border border-border rounded-md bg-transparent focus:ring-2 focus:ring-accent focus:border-transparent outline-none"
               />
             </div>
-            <Button variant="outline" size="sm">
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as any)}
+              className="px-3 py-2 border border-border rounded-md bg-transparent focus:ring-2 focus:ring-accent focus:border-transparent outline-none"
+            >
+              <option value="updatedAt">Last Modified</option>
+              <option value="createdAt">Created Date</option>
+              <option value="name">Name</option>
+              <option value="level">Level</option>
+            </select>
+            <Button variant="outline" size="sm" onClick={toggleSortOrder}>
               <Filter className="w-4 h-4 mr-2" />
-              Filter
+              {sortOrder === 'desc' ? '↓' : '↑'}
             </Button>
           </div>
           
-          <Button asChild variant="accent">
-            <Link to="/builder">
-              <Plus className="w-4 h-4 mr-2" />
-              New Build
-            </Link>
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={handleImport}>
+              <Upload className="w-4 h-4 mr-2" />
+              Import
+            </Button>
+            <Button variant="outline" size="sm" onClick={handleExportAll} disabled={builds.length === 0}>
+              <Download className="w-4 h-4 mr-2" />
+              Export All
+            </Button>
+            <Button asChild variant="accent">
+              <Link to="/builder">
+                <Plus className="w-4 h-4 mr-2" />
+                New Build
+              </Link>
+            </Button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {builds.map((build) => (
-            <Panel key={build.id} className="p-4 hover:shadow-lg transition-shadow cursor-pointer">
-              <div className="flex justify-between items-start mb-3">
-                <div className="flex items-center gap-2">
-                  <User className="w-5 h-5 text-accent" />
-                  <span className="text-sm text-muted">Level {build.level}</span>
+            <Card key={build.id} className="p-4 hover:shadow-lg transition-shadow cursor-pointer group">
+              <CardContent className="p-0">
+                <div className="flex justify-between items-start mb-3">
+                  <div className="flex items-center gap-2">
+                    <User className="w-5 h-5 text-accent" />
+                    <span className="text-sm text-muted">Level {build.currentLevel}</span>
+                  </div>
+                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="w-6 h-6"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleLoadBuild(build.id)
+                      }}
+                      title="Load build"
+                    >
+                      <Play className="w-3 h-3" />
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="w-6 h-6"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        duplicateBuild(build.id)
+                      }}
+                      title="Duplicate build"
+                    >
+                      <Copy className="w-3 h-3" />
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="w-6 h-6"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleExportBuild(build.id)
+                      }}
+                      title="Export build"
+                    >
+                      <FileJson className="w-3 h-3" />
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="w-6 h-6 text-destructive hover:text-destructive"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        if (confirm(`Delete "${build.name}"? This cannot be undone.`)) {
+                          deleteBuild(build.id)
+                        }
+                      }}
+                      title="Delete build"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </Button>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  {build.favorite && (
-                    <Star className="w-4 h-4 text-gold fill-current" />
-                  )}
-                  <Button variant="ghost" size="icon" className="w-6 h-6">
-                    <MoreVertical className="w-3 h-3" />
-                  </Button>
+                
+                <div onClick={() => handleLoadBuild(build.id)}>
+                  <h3 className="font-semibold mb-1">{build.name}</h3>
+                  <p className="text-sm text-muted mb-3">
+                    {getClassSummary(build) || `${build.race} Character`}
+                  </p>
+                  
+                  <div className="flex items-center gap-2 text-xs text-muted">
+                    <Calendar className="w-3 h-3" />
+                    Last edited {formatLastEdited(build.updatedAt)}
+                  </div>
                 </div>
-              </div>
-              
-              <h3 className="font-semibold mb-1">{build.name}</h3>
-              <p className="text-sm text-muted mb-3">{build.classes}</p>
-              
-              <div className="flex items-center gap-2 text-xs text-muted">
-                <Calendar className="w-3 h-3" />
-                Last edited {build.lastEdited}
-              </div>
-            </Panel>
+              </CardContent>
+            </Card>
           ))}
         </div>
 

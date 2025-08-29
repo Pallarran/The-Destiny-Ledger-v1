@@ -24,9 +24,11 @@ interface CharacterBuilderStore extends CharacterBuilderState {
   
   // Build management
   createNewBuild: (name?: string) => void
+  loadBuild: (build: BuildConfiguration) => void
   loadFromBuildConfiguration: (build: BuildConfiguration) => void
   exportToBuildConfiguration: () => BuildConfiguration | null
   updateBuild: (updates: Partial<CharacterBuilder>) => void
+  saveBuild: () => void
   
   // Ability score actions
   setAbilityAssignmentMethod: (method: AbilityAssignmentMethod) => void
@@ -233,6 +235,30 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
           state.isDirty = true
         }
       })
+    },
+    
+    loadBuild: (build) => {
+      get().loadFromBuildConfiguration(build)
+    },
+    
+    saveBuild: () => {
+      const buildConfig = get().exportToBuildConfiguration()
+      if (buildConfig) {
+        // Import vault store to save the build
+        const { useVaultStore } = require('./vaultStore')
+        const { addBuild, updateBuild } = useVaultStore.getState()
+        
+        // Check if build exists (update) or is new (add)
+        const existingBuild = useVaultStore.getState().builds.find((b: any) => b.id === buildConfig.id)
+        if (existingBuild) {
+          updateBuild(buildConfig.id, buildConfig)
+        } else {
+          addBuild(buildConfig)
+        }
+        
+        // Mark as no longer dirty
+        get().clearDirty()
+      }
     },
     
     // Ability score actions
