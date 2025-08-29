@@ -50,6 +50,7 @@ interface CharacterBuilderProps {
 }
 
 export function CharacterBuilder({ buildId }: CharacterBuilderProps) {
+  console.log('CharacterBuilder rendering, buildId:', buildId)
   const navigate = useNavigate()
   const { addBuild } = useVaultStore()
   
@@ -71,6 +72,8 @@ export function CharacterBuilder({ buildId }: CharacterBuilderProps) {
     resetBuild,
     clearDirty
   } = useCharacterBuilderStore()
+  
+  console.log('CharacterBuilder store state:', { currentBuild, currentStep, isDirty })
   
   useEffect(() => {
     if (!currentBuild) {

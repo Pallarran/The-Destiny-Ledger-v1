@@ -1,5 +1,11 @@
-import { CharacterBuilder } from '@/components/builder/CharacterBuilder'
+import { CharacterBuilder } from '../components/builder/CharacterBuilder'
 
 export function CharacterBuilderNew() {
-  return <CharacterBuilder />
+  console.log('CharacterBuilderNew rendering')
+  return (
+    <div>
+      <h1>DEBUG: CharacterBuilderNew Component</h1>
+      <CharacterBuilder />
+    </div>
+  )
 }
