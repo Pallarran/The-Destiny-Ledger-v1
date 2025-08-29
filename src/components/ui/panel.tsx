@@ -8,7 +8,7 @@ const Panel = React.forwardRef<HTMLDivElement, PanelProps>(
     return (
       <div
         ref={ref}
-        className={cn("panel p-6", className)}
+        className={cn("panel p-4 md:p-6", className)}
         {...props}
       />
     )
@@ -25,7 +25,7 @@ const PanelHeader = React.forwardRef<HTMLDivElement, PanelHeaderProps>(
     return (
       <div
         ref={ref}
-        className={cn("flex items-center justify-between bg-ink text-panel px-4 py-2 -mx-6 -mt-6 mb-4", className)}
+        className={cn("flex items-center justify-between bg-ink text-panel px-4 py-2 -mx-4 md:-mx-6 -mt-4 md:-mt-6 mb-4", className)}
         {...props}
       >
         {title && <h2 className="text-lg font-semibold">{title}</h2>}
