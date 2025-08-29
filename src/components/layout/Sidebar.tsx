@@ -1,23 +1,19 @@
 import { Link, useLocation } from 'react-router-dom'
 import { cn } from '../../lib/utils'
 import { 
-  Home, 
   Archive, 
   User, 
   BarChart3, 
   GitCompare, 
-  TrendingUp,
-  Settings
+  TrendingUp
 } from 'lucide-react'
 
 const navigation = [
-  { name: 'Landing', href: '/', icon: Home },
   { name: 'Build Vault', href: '/vault', icon: Archive },
   { name: 'Character Builder', href: '/builder', icon: User },
   { name: 'DPR Lab', href: '/dpr', icon: BarChart3 },
   { name: 'Compare Builds', href: '/compare', icon: GitCompare },
   { name: 'Level Path Explorer', href: '/explorer', icon: TrendingUp },
-  { name: 'Settings', href: '/settings', icon: Settings },
 ]
 
 export function Sidebar() {
