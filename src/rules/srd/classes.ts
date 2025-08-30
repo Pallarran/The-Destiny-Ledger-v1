@@ -1005,6 +1005,679 @@ const paladinFeatures: Record<number, Feature[]> = {
       source: 'Paladin 19',
       rulesKey: 'asi'
     }
+  ],
+  20: [
+    {
+      id: 'divine_champion',
+      name: 'Divine Champion',
+      description: 'At 20th level, you become an avatar of righteousness.',
+      source: 'Paladin 20'
+    }
+  ]
+}
+
+// Ranger Class
+const rangerFeatures: Record<number, Feature[]> = {
+  1: [
+    {
+      id: 'favored_enemy',
+      name: 'Favored Enemy',
+      description: 'You have significant experience studying, tracking, hunting, and talking to a certain type of enemy.',
+      source: 'Ranger 1'
+    },
+    {
+      id: 'natural_explorer',
+      name: 'Natural Explorer',
+      description: 'You are particularly familiar with one type of natural environment.',
+      source: 'Ranger 1'
+    }
+  ],
+  2: [
+    {
+      id: 'fighting_style_ranger',
+      name: 'Fighting Style',
+      description: 'You adopt a particular style of fighting as your specialty.',
+      source: 'Ranger 2',
+      rulesKey: 'fighting_style'
+    },
+    {
+      id: 'spellcasting_ranger',
+      name: 'Spellcasting',
+      description: 'You can cast ranger spells.',
+      source: 'Ranger 2',
+      rulesKey: 'spellcasting'
+    }
+  ],
+  3: [
+    {
+      id: 'ranger_conclave',
+      name: 'Ranger Conclave',
+      description: 'Choose an archetype that you emulate.',
+      source: 'Ranger 3',
+      rulesKey: 'archetype'
+    },
+    {
+      id: 'primeval_awareness',
+      name: 'Primeval Awareness',
+      description: 'You can use your action to focus your awareness on the region around you.',
+      source: 'Ranger 3'
+    }
+  ],
+  4: [
+    {
+      id: 'asi_ranger_4',
+      name: 'Ability Score Improvement',
+      description: 'You can increase one ability score by 2, or two ability scores by 1 each, or take a feat.',
+      source: 'Ranger 4',
+      rulesKey: 'asi'
+    }
+  ],
+  5: [
+    {
+      id: 'extra_attack_ranger',
+      name: 'Extra Attack',
+      description: 'You can attack twice whenever you take the Attack action.',
+      source: 'Ranger 5',
+      rulesKey: 'extra_attack'
+    }
+  ],
+  8: [
+    {
+      id: 'asi_ranger_8',
+      name: 'Ability Score Improvement',
+      description: 'You can increase one ability score by 2, or two ability scores by 1 each, or take a feat.',
+      source: 'Ranger 8',
+      rulesKey: 'asi'
+    },
+    {
+      id: 'lands_stride',
+      name: "Land's Stride",
+      description: 'Moving through nonmagical difficult terrain costs you no extra movement.',
+      source: 'Ranger 8'
+    }
+  ],
+  10: [
+    {
+      id: 'hide_in_plain_sight',
+      name: 'Hide in Plain Sight',
+      description: 'You can spend 1 minute creating camouflage for yourself.',
+      source: 'Ranger 10'
+    }
+  ],
+  12: [
+    {
+      id: 'asi_ranger_12',
+      name: 'Ability Score Improvement',
+      description: 'You can increase one ability score by 2, or two ability scores by 1 each, or take a feat.',
+      source: 'Ranger 12',
+      rulesKey: 'asi'
+    }
+  ],
+  14: [
+    {
+      id: 'vanish',
+      name: 'Vanish',
+      description: 'You can use the Hide action as a bonus action.',
+      source: 'Ranger 14'
+    }
+  ],
+  16: [
+    {
+      id: 'asi_ranger_16',
+      name: 'Ability Score Improvement',
+      description: 'You can increase one ability score by 2, or two ability scores by 1 each, or take a feat.',
+      source: 'Ranger 16',
+      rulesKey: 'asi'
+    }
+  ],
+  18: [
+    {
+      id: 'feral_senses',
+      name: 'Feral Senses',
+      description: 'You gain preternatural senses that help you fight creatures you can\'t see.',
+      source: 'Ranger 18'
+    }
+  ],
+  19: [
+    {
+      id: 'asi_ranger_19',
+      name: 'Ability Score Improvement',
+      description: 'You can increase one ability score by 2, or two ability scores by 1 each, or take a feat.',
+      source: 'Ranger 19',
+      rulesKey: 'asi'
+    }
+  ],
+  20: [
+    {
+      id: 'foe_slayer',
+      name: 'Foe Slayer',
+      description: 'You become an unparalleled hunter of your enemies.',
+      source: 'Ranger 20'
+    }
+  ]
+}
+
+// Sorcerer Class
+const sorcererFeatures: Record<number, Feature[]> = {
+  1: [
+    {
+      id: 'spellcasting_sorcerer',
+      name: 'Spellcasting',
+      description: 'You can cast sorcerer spells.',
+      source: 'Sorcerer 1',
+      rulesKey: 'spellcasting'
+    },
+    {
+      id: 'sorcerous_origin',
+      name: 'Sorcerous Origin',
+      description: 'Choose a sorcerous origin, which describes the source of your innate magical power.',
+      source: 'Sorcerer 1',
+      rulesKey: 'archetype'
+    }
+  ],
+  2: [
+    {
+      id: 'font_of_magic',
+      name: 'Font of Magic',
+      description: 'You tap into a deep wellspring of magic within yourself. You have sorcery points equal to your sorcerer level.',
+      source: 'Sorcerer 2'
+    }
+  ],
+  3: [
+    {
+      id: 'metamagic',
+      name: 'Metamagic',
+      description: 'You gain the ability to twist your spells to suit your needs. Choose two Metamagic options.',
+      source: 'Sorcerer 3'
+    }
+  ],
+  4: [
+    {
+      id: 'asi_sorcerer_4',
+      name: 'Ability Score Improvement',
+      description: 'You can increase one ability score by 2, or two ability scores by 1 each, or take a feat.',
+      source: 'Sorcerer 4',
+      rulesKey: 'asi'
+    }
+  ],
+  8: [
+    {
+      id: 'asi_sorcerer_8',
+      name: 'Ability Score Improvement',
+      description: 'You can increase one ability score by 2, or two ability scores by 1 each, or take a feat.',
+      source: 'Sorcerer 8',
+      rulesKey: 'asi'
+    }
+  ],
+  10: [
+    {
+      id: 'metamagic_2',
+      name: 'Metamagic',
+      description: 'You learn another metamagic option.',
+      source: 'Sorcerer 10'
+    }
+  ],
+  12: [
+    {
+      id: 'asi_sorcerer_12',
+      name: 'Ability Score Improvement',
+      description: 'You can increase one ability score by 2, or two ability scores by 1 each, or take a feat.',
+      source: 'Sorcerer 12',
+      rulesKey: 'asi'
+    }
+  ],
+  16: [
+    {
+      id: 'asi_sorcerer_16',
+      name: 'Ability Score Improvement',
+      description: 'You can increase one ability score by 2, or two ability scores by 1 each, or take a feat.',
+      source: 'Sorcerer 16',
+      rulesKey: 'asi'
+    }
+  ],
+  17: [
+    {
+      id: 'metamagic_3',
+      name: 'Metamagic',
+      description: 'You learn another metamagic option.',
+      source: 'Sorcerer 17'
+    }
+  ],
+  19: [
+    {
+      id: 'asi_sorcerer_19',
+      name: 'Ability Score Improvement',
+      description: 'You can increase one ability score by 2, or two ability scores by 1 each, or take a feat.',
+      source: 'Sorcerer 19',
+      rulesKey: 'asi'
+    }
+  ],
+  20: [
+    {
+      id: 'sorcerous_restoration',
+      name: 'Sorcerous Restoration',
+      description: 'You regain 4 expended sorcery points whenever you finish a short rest.',
+      source: 'Sorcerer 20'
+    }
+  ]
+}
+
+// Warlock Class
+const warlockFeatures: Record<number, Feature[]> = {
+  1: [
+    {
+      id: 'otherworldly_patron',
+      name: 'Otherworldly Patron',
+      description: 'You have struck a bargain with an otherworldly being of your choice.',
+      source: 'Warlock 1',
+      rulesKey: 'archetype'
+    },
+    {
+      id: 'pact_magic',
+      name: 'Pact Magic',
+      description: 'Your arcane research and your patron have given you facility with spells.',
+      source: 'Warlock 1',
+      rulesKey: 'pact_magic'
+    }
+  ],
+  2: [
+    {
+      id: 'eldritch_invocations',
+      name: 'Eldritch Invocations',
+      description: 'You learn fragments of forbidden knowledge. Choose two eldritch invocations.',
+      source: 'Warlock 2'
+    }
+  ],
+  3: [
+    {
+      id: 'pact_boon',
+      name: 'Pact Boon',
+      description: 'Your patron bestows a gift upon you for your loyal service.',
+      source: 'Warlock 3'
+    }
+  ],
+  4: [
+    {
+      id: 'asi_warlock_4',
+      name: 'Ability Score Improvement',
+      description: 'You can increase one ability score by 2, or two ability scores by 1 each, or take a feat.',
+      source: 'Warlock 4',
+      rulesKey: 'asi'
+    }
+  ],
+  8: [
+    {
+      id: 'asi_warlock_8',
+      name: 'Ability Score Improvement',
+      description: 'You can increase one ability score by 2, or two ability scores by 1 each, or take a feat.',
+      source: 'Warlock 8',
+      rulesKey: 'asi'
+    }
+  ],
+  11: [
+    {
+      id: 'mystic_arcanum_6',
+      name: 'Mystic Arcanum (6th level)',
+      description: 'Your patron bestows upon you a magical secret. Choose one 6th-level spell.',
+      source: 'Warlock 11'
+    }
+  ],
+  12: [
+    {
+      id: 'asi_warlock_12',
+      name: 'Ability Score Improvement',
+      description: 'You can increase one ability score by 2, or two ability scores by 1 each, or take a feat.',
+      source: 'Warlock 12',
+      rulesKey: 'asi'
+    }
+  ],
+  13: [
+    {
+      id: 'mystic_arcanum_7',
+      name: 'Mystic Arcanum (7th level)',
+      description: 'Choose one 7th-level spell as an arcanum.',
+      source: 'Warlock 13'
+    }
+  ],
+  15: [
+    {
+      id: 'mystic_arcanum_8',
+      name: 'Mystic Arcanum (8th level)',
+      description: 'Choose one 8th-level spell as an arcanum.',
+      source: 'Warlock 15'
+    }
+  ],
+  16: [
+    {
+      id: 'asi_warlock_16',
+      name: 'Ability Score Improvement',
+      description: 'You can increase one ability score by 2, or two ability scores by 1 each, or take a feat.',
+      source: 'Warlock 16',
+      rulesKey: 'asi'
+    }
+  ],
+  17: [
+    {
+      id: 'mystic_arcanum_9',
+      name: 'Mystic Arcanum (9th level)',
+      description: 'Choose one 9th-level spell as an arcanum.',
+      source: 'Warlock 17'
+    }
+  ],
+  19: [
+    {
+      id: 'asi_warlock_19',
+      name: 'Ability Score Improvement',
+      description: 'You can increase one ability score by 2, or two ability scores by 1 each, or take a feat.',
+      source: 'Warlock 19',
+      rulesKey: 'asi'
+    }
+  ],
+  20: [
+    {
+      id: 'eldritch_master',
+      name: 'Eldritch Master',
+      description: 'You can draw on your inner reserve of mystical power.',
+      source: 'Warlock 20'
+    }
+  ]
+}
+
+// Monk Class
+const monkFeatures: Record<number, Feature[]> = {
+  1: [
+    {
+      id: 'unarmored_defense_monk',
+      name: 'Unarmored Defense',
+      description: 'While not wearing armor, your AC equals 10 + Dex modifier + Wis modifier.',
+      source: 'Monk 1'
+    },
+    {
+      id: 'martial_arts',
+      name: 'Martial Arts',
+      description: 'You gain mastery of combat styles using unarmed strikes and monk weapons.',
+      source: 'Monk 1',
+      rulesKey: 'martial_arts'
+    }
+  ],
+  2: [
+    {
+      id: 'ki',
+      name: 'Ki',
+      description: 'You can harness the mystic energy of ki. You have ki points equal to your monk level.',
+      source: 'Monk 2'
+    },
+    {
+      id: 'unarmored_movement',
+      name: 'Unarmored Movement',
+      description: 'Your speed increases by 10 feet while not wearing armor.',
+      source: 'Monk 2'
+    }
+  ],
+  3: [
+    {
+      id: 'monastic_tradition',
+      name: 'Monastic Tradition',
+      description: 'Choose a monastic tradition.',
+      source: 'Monk 3',
+      rulesKey: 'archetype'
+    },
+    {
+      id: 'deflect_missiles',
+      name: 'Deflect Missiles',
+      description: 'You can use your reaction to deflect or catch missiles.',
+      source: 'Monk 3'
+    }
+  ],
+  4: [
+    {
+      id: 'asi_monk_4',
+      name: 'Ability Score Improvement',
+      description: 'You can increase one ability score by 2, or two ability scores by 1 each, or take a feat.',
+      source: 'Monk 4',
+      rulesKey: 'asi'
+    },
+    {
+      id: 'slow_fall',
+      name: 'Slow Fall',
+      description: 'You can use your reaction to reduce falling damage.',
+      source: 'Monk 4'
+    }
+  ],
+  5: [
+    {
+      id: 'extra_attack_monk',
+      name: 'Extra Attack',
+      description: 'You can attack twice whenever you take the Attack action.',
+      source: 'Monk 5',
+      rulesKey: 'extra_attack'
+    },
+    {
+      id: 'stunning_strike',
+      name: 'Stunning Strike',
+      description: 'You can interfere with the flow of ki in an opponent\'s body.',
+      source: 'Monk 5'
+    }
+  ],
+  6: [
+    {
+      id: 'ki_empowered_strikes',
+      name: 'Ki-Empowered Strikes',
+      description: 'Your unarmed strikes count as magical.',
+      source: 'Monk 6'
+    }
+  ],
+  7: [
+    {
+      id: 'evasion',
+      name: 'Evasion',
+      description: 'You can nimbly dodge out of the way of certain area effects.',
+      source: 'Monk 7'
+    },
+    {
+      id: 'stillness_of_mind',
+      name: 'Stillness of Mind',
+      description: 'You can use an action to end one effect causing you to be charmed or frightened.',
+      source: 'Monk 7'
+    }
+  ],
+  8: [
+    {
+      id: 'asi_monk_8',
+      name: 'Ability Score Improvement',
+      description: 'You can increase one ability score by 2, or two ability scores by 1 each, or take a feat.',
+      source: 'Monk 8',
+      rulesKey: 'asi'
+    }
+  ],
+  10: [
+    {
+      id: 'purity_of_body',
+      name: 'Purity of Body',
+      description: 'You are immune to disease and poison.',
+      source: 'Monk 10'
+    }
+  ],
+  12: [
+    {
+      id: 'asi_monk_12',
+      name: 'Ability Score Improvement',
+      description: 'You can increase one ability score by 2, or two ability scores by 1 each, or take a feat.',
+      source: 'Monk 12',
+      rulesKey: 'asi'
+    }
+  ],
+  13: [
+    {
+      id: 'tongue_of_sun_and_moon',
+      name: 'Tongue of the Sun and Moon',
+      description: 'You can understand all spoken languages.',
+      source: 'Monk 13'
+    }
+  ],
+  14: [
+    {
+      id: 'diamond_soul',
+      name: 'Diamond Soul',
+      description: 'You have proficiency in all saving throws.',
+      source: 'Monk 14'
+    }
+  ],
+  15: [
+    {
+      id: 'timeless_body',
+      name: 'Timeless Body',
+      description: 'You no longer need food or water.',
+      source: 'Monk 15'
+    }
+  ],
+  16: [
+    {
+      id: 'asi_monk_16',
+      name: 'Ability Score Improvement',
+      description: 'You can increase one ability score by 2, or two ability scores by 1 each, or take a feat.',
+      source: 'Monk 16',
+      rulesKey: 'asi'
+    }
+  ],
+  18: [
+    {
+      id: 'empty_body',
+      name: 'Empty Body',
+      description: 'You can use an action to spend 4 ki points to become invisible.',
+      source: 'Monk 18'
+    }
+  ],
+  19: [
+    {
+      id: 'asi_monk_19',
+      name: 'Ability Score Improvement',
+      description: 'You can increase one ability score by 2, or two ability scores by 1 each, or take a feat.',
+      source: 'Monk 19',
+      rulesKey: 'asi'
+    }
+  ],
+  20: [
+    {
+      id: 'perfect_self',
+      name: 'Perfect Self',
+      description: 'When you roll for initiative and have no ki points, you regain 4 ki points.',
+      source: 'Monk 20'
+    }
+  ]
+}
+
+// Druid Class
+const druidFeatures: Record<number, Feature[]> = {
+  1: [
+    {
+      id: 'druidic',
+      name: 'Druidic',
+      description: 'You know Druidic, the secret language of druids.',
+      source: 'Druid 1'
+    },
+    {
+      id: 'spellcasting_druid',
+      name: 'Spellcasting',
+      description: 'You can cast druid spells.',
+      source: 'Druid 1',
+      rulesKey: 'spellcasting'
+    }
+  ],
+  2: [
+    {
+      id: 'wild_shape',
+      name: 'Wild Shape',
+      description: 'You can use an action to magically assume the shape of a beast.',
+      source: 'Druid 2',
+      rulesKey: 'wild_shape'
+    },
+    {
+      id: 'druid_circle',
+      name: 'Druid Circle',
+      description: 'Choose a circle of druids.',
+      source: 'Druid 2',
+      rulesKey: 'archetype'
+    }
+  ],
+  4: [
+    {
+      id: 'wild_shape_improvement',
+      name: 'Wild Shape Improvement',
+      description: 'You can transform into beasts with CR 1/2 or lower.',
+      source: 'Druid 4'
+    },
+    {
+      id: 'asi_druid_4',
+      name: 'Ability Score Improvement',
+      description: 'You can increase one ability score by 2, or two ability scores by 1 each, or take a feat.',
+      source: 'Druid 4',
+      rulesKey: 'asi'
+    }
+  ],
+  8: [
+    {
+      id: 'wild_shape_improvement_2',
+      name: 'Wild Shape Improvement',
+      description: 'You can transform into beasts with CR 1 or lower.',
+      source: 'Druid 8'
+    },
+    {
+      id: 'asi_druid_8',
+      name: 'Ability Score Improvement',
+      description: 'You can increase one ability score by 2, or two ability scores by 1 each, or take a feat.',
+      source: 'Druid 8',
+      rulesKey: 'asi'
+    }
+  ],
+  12: [
+    {
+      id: 'asi_druid_12',
+      name: 'Ability Score Improvement',
+      description: 'You can increase one ability score by 2, or two ability scores by 1 each, or take a feat.',
+      source: 'Druid 12',
+      rulesKey: 'asi'
+    }
+  ],
+  16: [
+    {
+      id: 'asi_druid_16',
+      name: 'Ability Score Improvement',
+      description: 'You can increase one ability score by 2, or two ability scores by 1 each, or take a feat.',
+      source: 'Druid 16',
+      rulesKey: 'asi'
+    }
+  ],
+  18: [
+    {
+      id: 'timeless_body_druid',
+      name: 'Timeless Body',
+      description: 'You age more slowly. For every 10 years that pass, you age only 1 year.',
+      source: 'Druid 18'
+    },
+    {
+      id: 'beast_spells',
+      name: 'Beast Spells',
+      description: 'You can cast spells in beast form.',
+      source: 'Druid 18'
+    }
+  ],
+  19: [
+    {
+      id: 'asi_druid_19',
+      name: 'Ability Score Improvement',
+      description: 'You can increase one ability score by 2, or two ability scores by 1 each, or take a feat.',
+      source: 'Druid 19',
+      rulesKey: 'asi'
+    }
+  ],
+  20: [
+    {
+      id: 'archdruid',
+      name: 'Archdruid',
+      description: 'You can use Wild Shape an unlimited number of times.',
+      source: 'Druid 20'
+    }
   ]
 }
 
@@ -1087,5 +1760,59 @@ export const classes: Record<string, ClassDefinition> = {
       ['defense', 'dueling', 'great_weapon_fighting', 'protection'].includes(fs.id)
     ),
     fightingStyleLevel: 2
+  },
+  ranger: {
+    id: 'ranger',
+    name: 'Ranger',
+    hitDie: 10,
+    primaryAbilities: ['DEX', 'WIS'],
+    savingThrowProficiencies: ['STR', 'DEX'],
+    skillChoices: ['Animal Handling', 'Athletics', 'Insight', 'Investigation', 'Nature', 'Perception', 'Stealth', 'Survival'],
+    skillChoiceCount: 3,
+    features: rangerFeatures,
+    fightingStyles: Object.values(fightingStyles).filter(fs => 
+      ['archery', 'defense', 'dueling', 'two_weapon_fighting'].includes(fs.id)
+    ),
+    fightingStyleLevel: 2
+  },
+  sorcerer: {
+    id: 'sorcerer',
+    name: 'Sorcerer',
+    hitDie: 6,
+    primaryAbilities: ['CHA'],
+    savingThrowProficiencies: ['CON', 'CHA'],
+    skillChoices: ['Arcana', 'Deception', 'Insight', 'Intimidation', 'Persuasion', 'Religion'],
+    skillChoiceCount: 2,
+    features: sorcererFeatures
+  },
+  warlock: {
+    id: 'warlock',
+    name: 'Warlock',
+    hitDie: 8,
+    primaryAbilities: ['CHA'],
+    savingThrowProficiencies: ['WIS', 'CHA'],
+    skillChoices: ['Arcana', 'Deception', 'History', 'Intimidation', 'Investigation', 'Nature', 'Religion'],
+    skillChoiceCount: 2,
+    features: warlockFeatures
+  },
+  monk: {
+    id: 'monk',
+    name: 'Monk',
+    hitDie: 8,
+    primaryAbilities: ['DEX', 'WIS'],
+    savingThrowProficiencies: ['STR', 'DEX'],
+    skillChoices: ['Acrobatics', 'Athletics', 'History', 'Insight', 'Religion', 'Stealth'],
+    skillChoiceCount: 2,
+    features: monkFeatures
+  },
+  druid: {
+    id: 'druid',
+    name: 'Druid',
+    hitDie: 8,
+    primaryAbilities: ['WIS'],
+    savingThrowProficiencies: ['INT', 'WIS'],
+    skillChoices: ['Arcana', 'Animal Handling', 'Insight', 'Medicine', 'Nature', 'Perception', 'Religion', 'Survival'],
+    skillChoiceCount: 2,
+    features: druidFeatures
   }
 }
