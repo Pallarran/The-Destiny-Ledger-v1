@@ -486,6 +486,10 @@ export function EnhancedLevelTimeline() {
     let type: LevelMilestone['type'] = 'class'
     let description = `Level ${classLevel} ${classData?.name || entry.classId}`
     
+    // Get fighting style and archetype values early
+    const fightingStyle = entry.fightingStyle || (entry as any).fightingStyle
+    const archetype = entry.archetype || (entry as any).archetype
+    
     // Detect special milestones
     const hasASI = features.some(f => f.rulesKey === 'asi')
     const hasArchetype = features.some(f => f.id.includes('archetype'))
@@ -503,8 +507,8 @@ export function EnhancedLevelTimeline() {
       description = `Choose ${classData?.name} archetype`
     } else if (hasFightingStyle) {
       type = 'major_feature'
-      const fightingStyleName = (entry as any).fightingStyle ? 
-        classData?.fightingStyles?.find(fs => fs.id === (entry as any).fightingStyle)?.name : 
+      const fightingStyleName = fightingStyle ? 
+        classData?.fightingStyles?.find(fs => fs.id === fightingStyle)?.name : 
         'Choose Fighting Style'
       description = `Fighting Style: ${fightingStyleName}`
     } else if (hasMajorFeature) {
@@ -514,18 +518,17 @@ export function EnhancedLevelTimeline() {
     
     // Determine completion status
     const needsASIChoice = hasASI && !entry.asiOrFeat
-    const needsFightingStyleChoice = hasFightingStyle && !(entry as any).fightingStyle
-    const needsArchetypeChoice = hasArchetype && !(entry as any).archetype
+    const needsFightingStyleChoice = hasFightingStyle && !fightingStyle
+    const needsArchetypeChoice = hasArchetype && !archetype
     
     console.log(`Level ${entry.level} validation:`, {
       hasASI, hasFightingStyle, hasArchetype,
       needsASIChoice, needsFightingStyleChoice, needsArchetypeChoice,
-      entryFightingStyle: (entry as any).fightingStyle,
-      entryFightingStyleType: typeof (entry as any).fightingStyle,
-      entryKeys: Object.keys(entry),
-      entryArchetype: (entry as any).archetype,
-      entryIsCompleted: entry.isCompleted,
-      fullEntry: entry
+      fightingStyle: fightingStyle,
+      archetype: archetype,
+      entryDirect: entry.fightingStyle,
+      entryTyped: (entry as any).fightingStyle,
+      entryIsCompleted: entry.isCompleted
     })
     
     // A level is complete if all required choices are made
