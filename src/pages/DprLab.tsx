@@ -8,14 +8,24 @@ import {
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import { useDPRWorker } from '../hooks/useDPRWorker'
 import { useDPRStore } from '../stores/dprStore'
-import { useBuilderStore } from '../stores/builderStore'
+import { useVaultStore } from '../stores/vaultStore'
+import { useCharacterBuilderStore } from '../stores/characterBuilderStore'
 import { createDPRConfig } from '../stores/dprStore'
-import { sampleBuilds } from '../utils/sampleBuilds'
+import type { BuildConfiguration } from '../stores/types'
 
 export function DprLab() {
-  const { currentBuild, loadBuild } = useBuilderStore()
+  const { builds: vaultBuilds } = useVaultStore()
+  const { currentBuild: builderCurrentBuild, exportToBuildConfiguration } = useCharacterBuilderStore()
   const { currentResult, currentConfig, setConfiguration, setResult, setCalculating } = useDPRStore()
   const { isInitialized, isCalculating, calculateDPRCurves, calculatePowerAttackBreakpoints } = useDPRWorker()
+  
+  // State for selected build - convert current builder build to BuildConfiguration format
+  const [selectedBuild, setSelectedBuild] = useState<BuildConfiguration | null>(() => {
+    if (builderCurrentBuild) {
+      return exportToBuildConfiguration()
+    }
+    return null
+  })
   
   const [localConfig, setLocalConfig] = useState<{
     acMin: number
@@ -39,17 +49,27 @@ export function DprLab() {
   
   // Initialize config when build changes
   useEffect(() => {
-    if (currentBuild && !currentConfig) {
-      const config = createDPRConfig(currentBuild.id)
+    if (selectedBuild && !currentConfig) {
+      const config = createDPRConfig(selectedBuild.id)
       setConfiguration({ ...config, ...localConfig })
     }
-  }, [currentBuild, currentConfig, localConfig, setConfiguration])
+  }, [selectedBuild, currentConfig, localConfig, setConfiguration])
+  
+  // Update selectedBuild when builderCurrentBuild changes
+  useEffect(() => {
+    if (builderCurrentBuild) {
+      const exportedBuild = exportToBuildConfiguration()
+      if (exportedBuild && exportedBuild.id !== selectedBuild?.id) {
+        setSelectedBuild(exportedBuild)
+      }
+    }
+  }, [builderCurrentBuild, exportToBuildConfiguration, selectedBuild?.id])
   
   const handleCalculate = async () => {
-    if (!currentBuild || !isInitialized) return
+    if (!selectedBuild || !isInitialized) return
     
     const config = {
-      buildId: currentBuild.id,
+      buildId: selectedBuild.id,
       ...localConfig
     }
     
@@ -57,18 +77,18 @@ export function DprLab() {
     
     try {
       // Calculate DPR curves
-      const result = await calculateDPRCurves(currentBuild, config)
+      const result = await calculateDPRCurves(selectedBuild, config)
       if (result) {
         setResult(result)
       }
       
       // Calculate power attack breakpoints if the build has GWM/SS
-      const hasGWMSS = currentBuild.levelTimeline.some(entry => 
+      const hasGWMSS = selectedBuild.levelTimeline?.some(entry => 
         entry.featId === 'great_weapon_master' || entry.featId === 'sharpshooter'
       )
       
       if (hasGWMSS) {
-        const breakpointData = await calculatePowerAttackBreakpoints(currentBuild, localConfig.acMin, localConfig.acMax)
+        const breakpointData = await calculatePowerAttackBreakpoints(selectedBuild, localConfig.acMin, localConfig.acMax)
         if (breakpointData) {
           setBreakpoints(breakpointData)
         }
@@ -115,7 +135,7 @@ export function DprLab() {
                 <div className="mb-6">
                   <button
                     onClick={handleCalculate}
-                    disabled={!currentBuild || !isInitialized || isCalculating}
+                    disabled={!selectedBuild || !isInitialized || isCalculating}
                     className="w-full flex items-center justify-center gap-2 bg-accent hover:bg-accent/90 disabled:opacity-50 disabled:cursor-not-allowed text-white px-4 py-2 rounded font-medium"
                   >
                     {isCalculating ? (
@@ -130,23 +150,30 @@ export function DprLab() {
                       </>
                     )}
                   </button>
-                  {!currentBuild && (
+                  
+                  {/* Build Selection */}
+                  {!selectedBuild && (
                     <div className="mt-2 space-y-2">
-                      <p className="text-sm text-muted">No build selected</p>
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => loadBuild(sampleBuilds.fighter)}
-                          className="text-xs bg-panel hover:bg-border px-2 py-1 rounded"
-                        >
-                          Load Fighter
-                        </button>
-                        <button
-                          onClick={() => loadBuild(sampleBuilds.rogue)}
-                          className="text-xs bg-panel hover:bg-border px-2 py-1 rounded"
-                        >
-                          Load Rogue
-                        </button>
-                      </div>
+                      <p className="text-sm text-muted">Select a build to analyze</p>
+                      {vaultBuilds.length > 0 ? (
+                        <div className="max-h-32 overflow-y-auto space-y-1">
+                          {vaultBuilds.slice(0, 5).map((build) => (
+                            <button
+                              key={build.id}
+                              onClick={() => setSelectedBuild(build)}
+                              className="w-full text-left text-xs bg-panel hover:bg-border px-2 py-1 rounded flex items-center justify-between"
+                            >
+                              <span>{build.name}</span>
+                              <span className="text-muted">Lv.{Math.max(...(build.levelTimeline?.map(l => l.level) || [1]))}</span>
+                            </button>
+                          ))}
+                          {vaultBuilds.length > 5 && (
+                            <div className="text-xs text-muted text-center">+{vaultBuilds.length - 5} more in vault</div>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="text-xs text-muted">No builds in vault. Create a build first!</div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -216,45 +243,74 @@ export function DprLab() {
 
                 {/* Build Status */}
                 <div>
-                  <h4 className="font-medium mb-3">Current Build</h4>
-                  {currentBuild ? (
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="font-medium">Current Build</h4>
+                    {selectedBuild && (
+                      <button
+                        onClick={() => setSelectedBuild(null)}
+                        className="text-xs bg-destructive/10 text-destructive px-2 py-1 rounded hover:bg-destructive/20"
+                      >
+                        Clear
+                      </button>
+                    )}
+                  </div>
+                  {selectedBuild ? (
                     <div className="space-y-2 text-sm">
                       <div className="flex justify-between">
                         <span>Name:</span>
-                        <span className="font-medium">{currentBuild.name}</span>
+                        <span className="font-medium">{selectedBuild.name}</span>
                       </div>
                       <div className="flex justify-between">
                         <span>Level:</span>
-                        <span className="font-medium">{currentBuild.currentLevel}</span>
+                        <span className="font-medium">{Math.max(...(selectedBuild.levelTimeline?.map(l => l.level) || [1]))}</span>
                       </div>
                       <div className="flex justify-between">
                         <span>Race:</span>
-                        <span className="font-medium capitalize">{currentBuild.race.replace('_', ' ')}</span>
+                        <span className="font-medium capitalize">{selectedBuild.race?.replace('_', ' ') || 'Unknown'}</span>
                       </div>
-                      {currentBuild.mainHandWeapon && (
+                      {selectedBuild.mainHandWeapon && (
                         <div className="flex justify-between">
                           <span>Main Weapon:</span>
-                          <span className="font-medium capitalize">{currentBuild.mainHandWeapon.replace('_', ' ')}</span>
+                          <span className="font-medium capitalize">{selectedBuild.mainHandWeapon.replace('_', ' ')}</span>
                         </div>
                       )}
-                      {currentBuild.rangedWeapon && (
+                      {selectedBuild.rangedWeapon && (
                         <div className="flex justify-between">
                           <span>Ranged:</span>
-                          <span className="font-medium capitalize">{currentBuild.rangedWeapon.replace('_', ' ')}</span>
+                          <span className="font-medium capitalize">{selectedBuild.rangedWeapon.replace('_', ' ')}</span>
                         </div>
                       )}
-                      {currentBuild.activeBuffs && currentBuild.activeBuffs.length > 0 && (
+                      {selectedBuild.activeBuffs && selectedBuild.activeBuffs.length > 0 && (
                         <div>
                           <span className="text-muted">Active Buffs:</span>
                           <div className="mt-1 space-y-1">
-                            {currentBuild.activeBuffs.slice(0, 3).map(buffId => (
+                            {selectedBuild.activeBuffs.slice(0, 3).map(buffId => (
                               <div key={buffId} className="text-xs bg-accent/10 text-accent px-2 py-1 rounded">
                                 {buffId.replace('_', ' ')}
                               </div>
                             ))}
-                            {currentBuild.activeBuffs.length > 3 && (
-                              <div className="text-xs text-muted">+{currentBuild.activeBuffs.length - 3} more</div>
+                            {selectedBuild.activeBuffs.length > 3 && (
+                              <div className="text-xs text-muted">+{selectedBuild.activeBuffs.length - 3} more</div>
                             )}
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Class Breakdown */}
+                      {selectedBuild.levelTimeline && selectedBuild.levelTimeline.length > 0 && (
+                        <div>
+                          <span className="text-muted">Classes:</span>
+                          <div className="mt-1 text-xs">
+                            {Object.entries(
+                              selectedBuild.levelTimeline.reduce((acc: Record<string, number>, level) => {
+                                acc[level.classId] = (acc[level.classId] || 0) + 1
+                                return acc
+                              }, {} as Record<string, number>)
+                            ).map(([classId, levels]) => (
+                              <span key={classId} className="mr-2 capitalize">
+                                {classId.replace('_', ' ')} {levels}
+                              </span>
+                            ))}
                           </div>
                         </div>
                       )}
@@ -410,11 +466,11 @@ export function DprLab() {
               </div>
             ) : (
               <div className="text-sm text-muted py-4 text-center">
-                {currentBuild && (currentBuild.levelTimeline.some(entry => 
+                {selectedBuild && (selectedBuild.levelTimeline?.some(entry => 
                   entry.featId === 'great_weapon_master' || entry.featId === 'sharpshooter'
                 )) ? 
                   'Run calculation to see power attack optimization' : 
-                  'No GWM/Sharpshooter feat detected in build'
+                  selectedBuild ? 'No GWM/Sharpshooter feat detected in build' : 'Select a build to analyze'
                 }
               </div>
             )}

@@ -7,7 +7,7 @@ import { buffs } from '../rules/srd/buffs'
 
 // Convert a build configuration to combat state
 export function buildToCombatState(build: BuildConfiguration, level?: number): CombatState {
-  const targetLevel = level || build.currentLevel
+  const targetLevel = level || Math.max(...(build.levelTimeline?.map(l => l.level) || [1]), 1)
   
   // Calculate proficiency bonus
   const proficiencyBonus = Math.ceil(targetLevel / 4) + 1
