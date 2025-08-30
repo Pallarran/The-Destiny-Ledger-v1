@@ -386,6 +386,13 @@ function LevelMilestoneCard({ entry, milestone, classData }: {
   const StatusIcon = milestone.hasIssues ? AlertTriangle : 
                      milestone.isComplete ? CheckCircle : Clock
 
+  console.log(`LevelMilestoneCard for level ${entry.level}:`, {
+    hasIssues: milestone.hasIssues,
+    isComplete: milestone.isComplete,
+    fightingStyle: (entry as any).fightingStyle,
+    milestoneData: milestone
+  })
+
   return (
     <div className="relative">
       {/* Timeline connector */}
@@ -690,8 +697,8 @@ export function EnhancedLevelTimeline() {
                     </div>
                   )}
                   
-                  {/* Show Fighting Style button if not expanded */}
-                  {hasFightingStyle && !(entry as any).fightingStyle && showFightingStyle !== entry.level && (
+                  {/* Show Fighting Style button - allow changing selection */}
+                  {hasFightingStyle && showFightingStyle !== entry.level && (
                     <div className="ml-12 mt-2">
                       <Button
                         variant="outline"
@@ -699,8 +706,17 @@ export function EnhancedLevelTimeline() {
                         onClick={() => setShowFightingStyle(entry.level)}
                         className="text-xs"
                       >
-                        <AlertTriangle className="w-3 h-3 mr-1 text-danger" />
-                        Choose Fighting Style
+                        {(entry as any).fightingStyle ? (
+                          <>
+                            <CheckCircle className="w-3 h-3 mr-1 text-emerald" />
+                            Change Fighting Style: {(entry as any).fightingStyle}
+                          </>
+                        ) : (
+                          <>
+                            <AlertTriangle className="w-3 h-3 mr-1 text-danger" />
+                            Choose Fighting Style
+                          </>
+                        )}
                       </Button>
                     </div>
                   )}
@@ -717,8 +733,8 @@ export function EnhancedLevelTimeline() {
                     </div>
                   )}
                   
-                  {/* Show Archetype button if not expanded */}
-                  {hasArchetype && !(entry as any).archetype && showArchetype !== entry.level && (
+                  {/* Show Archetype button - allow changing selection */}
+                  {hasArchetype && showArchetype !== entry.level && (
                     <div className="ml-12 mt-2">
                       <Button
                         variant="outline"
@@ -726,8 +742,17 @@ export function EnhancedLevelTimeline() {
                         onClick={() => setShowArchetype(entry.level)}
                         className="text-xs"
                       >
-                        <AlertTriangle className="w-3 h-3 mr-1 text-danger" />
-                        Choose Archetype
+                        {(entry as any).archetype ? (
+                          <>
+                            <CheckCircle className="w-3 h-3 mr-1 text-emerald" />
+                            Change Archetype: {(entry as any).archetype}
+                          </>
+                        ) : (
+                          <>
+                            <AlertTriangle className="w-3 h-3 mr-1 text-danger" />
+                            Choose Archetype
+                          </>
+                        )}
                       </Button>
                     </div>
                   )}
