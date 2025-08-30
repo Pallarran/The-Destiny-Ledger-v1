@@ -59,8 +59,12 @@ export function AbilityScoreAssignment() {
     STR: 8, DEX: 8, CON: 8, INT: 8, WIS: 8, CHA: 8
   })
   
-  const [standardArrayAssignment, setStandardArrayAssignment] = useState<Record<AbilityScore, number>>({
-    STR: 0, DEX: 0, CON: 0, INT: 0, WIS: 0, CHA: 0
+  const [standardArrayAssignment, setStandardArrayAssignment] = useState<Record<AbilityScore, number>>(() => {
+    // Initialize from current build if it exists and uses standard array
+    if (currentBuild?.abilityAssignmentMethod === 'standard' && currentBuild?.abilityScores) {
+      return currentBuild.abilityScores as Record<AbilityScore, number>
+    }
+    return { STR: 0, DEX: 0, CON: 0, INT: 0, WIS: 0, CHA: 0 }
   })
   
   const method = currentBuild?.abilityAssignmentMethod || 'pointbuy'
@@ -68,8 +72,13 @@ export function AbilityScoreAssignment() {
   useEffect(() => {
     if (currentBuild?.abilityScores) {
       setLocalScores(currentBuild.abilityScores)
+      
+      // Also update standard array assignment if this is a standard array build
+      if (currentBuild.abilityAssignmentMethod === 'standard') {
+        setStandardArrayAssignment(currentBuild.abilityScores as Record<AbilityScore, number>)
+      }
     }
-  }, [currentBuild?.abilityScores])
+  }, [currentBuild?.abilityScores, currentBuild?.abilityAssignmentMethod])
   
   // Trigger validation when component mounts or scores change
   useEffect(() => {
