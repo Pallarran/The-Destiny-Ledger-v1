@@ -408,6 +408,9 @@ function LevelMilestoneCard({ entry, milestone, classData, onFightingStyleClick,
       
       <Card className={`${colorClass} transition-all hover:shadow-md ${
         hasInteractiveFeatures ? 'cursor-pointer hover:border-accent/50' : ''
+      } ${
+        milestone.hasIssues ? 'border-danger/50 bg-danger/5' : 
+        milestone.isComplete ? 'border-emerald/50 bg-emerald/5' : 'border-border'
       }`} onClick={hasInteractiveFeatures ? handleCardClick : undefined}>
         <CardContent className="p-4">
           <div className="flex items-start gap-3">
@@ -573,6 +576,14 @@ export function EnhancedLevelTimeline() {
       needsFightingStyleChoice || 
       needsArchetypeChoice
     )
+    
+    console.log(`Milestone ${entry.level} status:`, {
+      fightingStyle,
+      archetype,
+      hasASI, hasFightingStyle, hasArchetype,
+      needsASIChoice, needsFightingStyleChoice, needsArchetypeChoice,
+      isComplete, hasIssues
+    })
     
     return {
       level: entry.level,
