@@ -808,21 +808,24 @@ function validateStep(state: any, step: BuilderStep): boolean {
   }
   
   state.stepValidation[step] = isValid
+  updateNavigationState(state)
   return isValid
 }
 
 function validateAbilityScores(build: CharacterBuilder): boolean {
-  const scores = Object.values(build.abilityScores)
+  // Use base scores for validation (without racial bonuses)
+  const baseScores = build.baseAbilityScores || build.abilityScores
+  const scores = Object.values(baseScores)
   const scoresValid = scores.every(score => score >= 8 && score <= 20)
   
   if (!scoresValid) return false
   
-  // Method-specific validation
+  // Method-specific validation using base scores
   if (build.abilityAssignmentMethod === 'pointbuy') {
     // For point buy, D&D 5e rules require EXACTLY 27 points to be spent
     const pointCosts = { 8: 0, 9: 1, 10: 2, 11: 3, 12: 4, 13: 5, 14: 7, 15: 9 }
     
-    // Check all scores are valid for point buy (8-15)
+    // Check all base scores are valid for point buy (8-15)
     const validRange = scores.every(score => score >= 8 && score <= 15)
     if (!validRange) return false
     
