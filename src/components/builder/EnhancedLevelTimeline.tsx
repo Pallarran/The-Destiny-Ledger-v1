@@ -472,16 +472,9 @@ function LevelMilestoneCard({ entry, milestone, classData, classLevel, onFightin
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
                 <Icon className="w-4 h-4" />
-                <div className="flex items-center gap-2">
-                  <span className="font-medium text-sm">
-                    {classData?.name || entry.classId}
-                  </span>
-                  <div className="flex items-center gap-1 text-xs text-muted">
-                    <span>Class Lv {classLevel}</span>
-                    <span>•</span>
-                    <span>Char Lv {entry.level}</span>
-                  </div>
-                </div>
+                <span className="font-medium text-sm">
+                  {classData?.name || entry.classId} {classLevel}
+                </span>
                 {entry.subclassId && (
                   <Badge variant="outline" className="text-xs">
                     {entry.subclassId}
