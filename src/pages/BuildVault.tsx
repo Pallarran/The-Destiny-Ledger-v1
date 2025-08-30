@@ -3,7 +3,7 @@ import { Button } from '../components/ui/button'
 import { Card, CardContent } from '../components/ui/card'
 import { Link } from 'react-router-dom'
 import { useVaultStore, getFilteredBuilds } from '../stores/vaultStore'
-import { useCharacterBuilderStore } from '../stores/characterBuilderStore'
+import { useBuilderStore } from '../stores/builderStore'
 import { formatDistanceToNow } from 'date-fns'
 import { 
   Plus, 
@@ -34,7 +34,7 @@ export function BuildVault() {
     importBuilds
   } = useVaultStore()
   
-  const { loadBuild } = useCharacterBuilderStore()
+  const { loadBuild } = useBuilderStore()
   const builds = useVaultStore(getFilteredBuilds)
 
   const handleLoadBuild = (buildId: string) => {
@@ -56,7 +56,12 @@ export function BuildVault() {
   }
 
   const formatLastEdited = (date: Date) => {
-    return formatDistanceToNow(date, { addSuffix: true })
+    try {
+      return formatDistanceToNow(date, { addSuffix: true })
+    } catch (error) {
+      console.error('Date formatting error:', error)
+      return 'Unknown'
+    }
   }
 
   const handleExportAll = () => {

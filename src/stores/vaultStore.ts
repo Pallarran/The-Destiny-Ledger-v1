@@ -92,8 +92,8 @@ const loadBuildsFromStorage = (): BuildConfiguration[] => {
       const parsed = JSON.parse(stored)
       const builds = parsed.builds?.map((build: any) => ({
         ...build,
-        createdAt: new Date(build.createdAt),
-        updatedAt: new Date(build.updatedAt)
+        createdAt: build.createdAt ? new Date(build.createdAt) : new Date(),
+        updatedAt: build.updatedAt ? new Date(build.updatedAt) : new Date()
       })) || []
       
       // Return stored builds if any exist
@@ -319,8 +319,8 @@ export const useVaultStore = create<VaultStoreState>()(
         // Convert dates and validate each build
         const builds = parsed.builds.map((build: any) => ({
           ...build,
-          createdAt: new Date(build.createdAt),
-          updatedAt: new Date(build.updatedAt),
+          createdAt: build.createdAt ? new Date(build.createdAt) : new Date(),
+          updatedAt: build.updatedAt ? new Date(build.updatedAt) : new Date(),
           // Generate new IDs to avoid conflicts
           id: crypto.randomUUID()
         }))
@@ -356,8 +356,8 @@ export const useVaultStore = create<VaultStoreState>()(
         
         const build: BuildConfiguration = {
           ...buildData,
-          createdAt: new Date(buildData.createdAt),
-          updatedAt: new Date(buildData.updatedAt),
+          createdAt: buildData.createdAt ? new Date(buildData.createdAt) : new Date(),
+          updatedAt: buildData.updatedAt ? new Date(buildData.updatedAt) : new Date(),
           id: crypto.randomUUID() // Generate new ID to avoid conflicts
         }
         
