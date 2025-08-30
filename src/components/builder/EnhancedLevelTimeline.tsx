@@ -469,8 +469,8 @@ export function EnhancedLevelTimeline() {
   const nextLevel = levels.length > 0 ? Math.max(...levels.map(l => l.level)) + 1 : 1
   const availableClasses = Object.values(classes)
   
-  // Generate milestones
-  const milestones: LevelMilestone[] = levels.map(entry => {
+  // Helper function to generate milestone data
+  const generateMilestone = (entry: BuilderLevelEntry): LevelMilestone => {
     const classData = getClass(entry.classId)
     const classLevel = levels.filter(l => l.classId === entry.classId && l.level <= entry.level).length
     const features = classData?.features[classLevel] || []
@@ -538,7 +538,7 @@ export function EnhancedLevelTimeline() {
       isComplete,
       hasIssues
     }
-  })
+  }
 
   const handleAddLevel = () => {
     if (selectedClass && nextLevel <= 20) {
@@ -642,8 +642,8 @@ export function EnhancedLevelTimeline() {
           </h3>
           
           <div className="space-y-4 relative">
-            {levels.map((entry, index) => {
-              const milestone = milestones[index]
+            {levels.map((entry) => {
+              const milestone = generateMilestone(entry) // Generate fresh milestone data
               const classData = getClass(entry.classId)
               const classLevel = levels.filter(l => l.classId === entry.classId && l.level <= entry.level).length
               const features = classData?.features[classLevel] || []
@@ -651,9 +651,21 @@ export function EnhancedLevelTimeline() {
               const hasFightingStyle = features.some(f => f.rulesKey === 'fighting_style')
               const hasArchetype = features.some(f => f.id.includes('archetype'))
               
+              console.log(`Rendering level ${entry.level}:`, {
+                fightingStyle: (entry as any).fightingStyle,
+                archetype: (entry as any).archetype,
+                milestone: milestone,
+                hasFightingStyle,
+                hasArchetype
+              })
+              
+              // Create a unique key that includes the current data state to force re-render when data changes
+              const dataKey = `${entry.level}-${(entry as any).fightingStyle || 'none'}-${(entry as any).archetype || 'none'}-${entry.asiOrFeat || 'none'}`
+              
               return (
-                <div key={entry.level}>
+                <div key={dataKey}>
                   <LevelMilestoneCard 
+                    key={`card-${dataKey}`}
                     entry={entry}
                     milestone={milestone}
                     classData={classData}
@@ -778,22 +790,34 @@ export function EnhancedLevelTimeline() {
               <div className="flex items-center justify-between text-sm">
                 <span>Progression Status:</span>
                 <div className="flex items-center gap-2">
-                  {milestones.filter(m => m.isComplete).length === milestones.length ? (
-                    <>
-                      <CheckCircle className="w-4 h-4 text-emerald" />
-                      <span className="text-emerald">Complete</span>
-                    </>
-                  ) : milestones.some(m => m.hasIssues) ? (
-                    <>
-                      <AlertTriangle className="w-4 h-4 text-danger" />
-                      <span className="text-danger">Issues Found</span>
-                    </>
-                  ) : (
-                    <>
-                      <Clock className="w-4 h-4 text-muted" />
-                      <span className="text-muted">In Progress</span>
-                    </>
-                  )}
+                  {(() => {
+                    const currentMilestones = levels.map(generateMilestone)
+                    const allComplete = currentMilestones.filter(m => m.isComplete).length === currentMilestones.length
+                    const hasIssues = currentMilestones.some(m => m.hasIssues)
+                    
+                    if (allComplete) {
+                      return (
+                        <>
+                          <CheckCircle className="w-4 h-4 text-emerald" />
+                          <span className="text-emerald">Complete</span>
+                        </>
+                      )
+                    } else if (hasIssues) {
+                      return (
+                        <>
+                          <AlertTriangle className="w-4 h-4 text-danger" />
+                          <span className="text-danger">Issues Found</span>
+                        </>
+                      )
+                    } else {
+                      return (
+                        <>
+                          <Clock className="w-4 h-4 text-muted" />
+                          <span className="text-muted">In Progress</span>
+                        </>
+                      )
+                    }
+                  })()}
                 </div>
               </div>
             </div>
