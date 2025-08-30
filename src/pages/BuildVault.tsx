@@ -20,31 +20,40 @@ import {
 } from 'lucide-react'
 
 export function BuildVault() {
-  try {
-    const { 
-      searchQuery, 
-      setSearchQuery, 
-      deleteBuild, 
-      duplicateBuild,
-      setSortBy,
-      sortBy,
-      toggleSortOrder,
-      sortOrder,
-      exportBuilds,
-      exportBuild,
-      importBuilds
-    } = useVaultStore()
-    
-    const { loadBuild } = useBuilderStore()
-    const buildsRaw = useVaultStore((state) => {
-      try {
-        return getFilteredBuilds(state)
-      } catch (error) {
-        console.error('Error in getFilteredBuilds:', error)
-        return []
-      }
-    })
-    const builds = Array.isArray(buildsRaw) ? buildsRaw : []
+  // Simplified approach - get stores separately and safely
+  const vaultState = useVaultStore()
+  const { loadBuild } = useBuilderStore()
+  
+  if (!vaultState) {
+    return (
+      <div className="space-y-6">
+        <Panel>
+          <PanelHeader title="Build Vault" />
+          <div className="text-center py-12">
+            <p className="text-muted">Loading vault...</p>
+          </div>
+        </Panel>
+      </div>
+    )
+  }
+  
+  const {
+    searchQuery, 
+    setSearchQuery, 
+    deleteBuild, 
+    duplicateBuild,
+    setSortBy,
+    sortBy,
+    toggleSortOrder,
+    sortOrder,
+    exportBuilds,
+    exportBuild,
+    importBuilds,
+    builds: rawBuilds = []
+  } = vaultState
+  
+  // Simple builds without filtering for now to isolate issue
+  const builds = Array.isArray(rawBuilds) ? rawBuilds : []
 
   const handleLoadBuild = (buildId: string) => {
     const build = builds.find(b => b.id === buildId)
@@ -215,7 +224,7 @@ export function BuildVault() {
                       className="w-6 h-6"
                       onClick={(e) => {
                         e.stopPropagation()
-                        handleLoadBuild(build.id)
+                        if (build?.id) handleLoadBuild(build.id)
                       }}
                       title="Load build"
                     >
@@ -227,7 +236,7 @@ export function BuildVault() {
                       className="w-6 h-6"
                       onClick={(e) => {
                         e.stopPropagation()
-                        duplicateBuild(build.id)
+                        if (build?.id) duplicateBuild(build.id)
                       }}
                       title="Duplicate build"
                     >
@@ -239,7 +248,7 @@ export function BuildVault() {
                       className="w-6 h-6"
                       onClick={(e) => {
                         e.stopPropagation()
-                        handleExportBuild(build.id)
+                        if (build?.id) handleExportBuild(build.id)
                       }}
                       title="Export build"
                     >
@@ -251,7 +260,7 @@ export function BuildVault() {
                       className="w-6 h-6 text-destructive hover:text-destructive"
                       onClick={(e) => {
                         e.stopPropagation()
-                        if (confirm(`Delete "${build.name}"? This cannot be undone.`)) {
+                        if (build?.id && build?.name && confirm(`Delete "${build.name}"? This cannot be undone.`)) {
                           deleteBuild(build.id)
                         }
                       }}
@@ -296,18 +305,4 @@ export function BuildVault() {
       </Panel>
     </div>
   )
-  } catch (error) {
-    console.error('BuildVault render error:', error)
-    return (
-      <div className="space-y-6">
-        <Panel>
-          <PanelHeader title="Build Vault" />
-          <div className="text-center py-12">
-            <p className="text-danger mb-4">An error occurred loading the Build Vault.</p>
-            <p className="text-sm text-muted">Please refresh the page or try again later.</p>
-          </div>
-        </Panel>
-      </div>
-    )
-  }
 }
