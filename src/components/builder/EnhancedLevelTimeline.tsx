@@ -386,13 +386,6 @@ function LevelMilestoneCard({ entry, milestone, classData }: {
   const StatusIcon = milestone.hasIssues ? AlertTriangle : 
                      milestone.isComplete ? CheckCircle : Clock
 
-  console.log(`LevelMilestoneCard for level ${entry.level}:`, {
-    hasIssues: milestone.hasIssues,
-    isComplete: milestone.isComplete,
-    fightingStyle: (entry as any).fightingStyle,
-    milestoneData: milestone
-  })
-
   return (
     <div className="relative">
       {/* Timeline connector */}
@@ -521,16 +514,6 @@ export function EnhancedLevelTimeline() {
     const needsFightingStyleChoice = hasFightingStyle && !fightingStyle
     const needsArchetypeChoice = hasArchetype && !archetype
     
-    console.log(`Level ${entry.level} validation:`, {
-      hasASI, hasFightingStyle, hasArchetype,
-      needsASIChoice, needsFightingStyleChoice, needsArchetypeChoice,
-      fightingStyle: fightingStyle,
-      archetype: archetype,
-      entryDirect: entry.fightingStyle,
-      entryTyped: (entry as any).fightingStyle,
-      entryIsCompleted: entry.isCompleted
-    })
-    
     // A level is complete if all required choices are made
     const hasAllRequiredChoices = !needsASIChoice && !needsFightingStyleChoice && !needsArchetypeChoice
     const isComplete = hasAllRequiredChoices
@@ -542,8 +525,6 @@ export function EnhancedLevelTimeline() {
       needsFightingStyleChoice || 
       needsArchetypeChoice
     )
-    
-    console.log(`Level ${entry.level} completion:`, { hasAllRequiredChoices, isComplete, hasIssues })
     
     return {
       level: entry.level,
@@ -671,13 +652,6 @@ export function EnhancedLevelTimeline() {
               const hasFightingStyle = features.some(f => f.rulesKey === 'fighting_style')
               const hasArchetype = features.some(f => f.id.includes('archetype'))
               
-              console.log(`Rendering level ${entry.level}:`, {
-                fightingStyle: (entry as any).fightingStyle,
-                archetype: (entry as any).archetype,
-                milestone: milestone,
-                hasFightingStyle,
-                hasArchetype
-              })
               
               // Create a unique key that includes the current data state to force re-render when data changes
               const dataKey = `${entry.level}-${(entry as any).fightingStyle || 'none'}-${(entry as any).archetype || 'none'}-${entry.asiOrFeat || 'none'}-${refreshKey}`
