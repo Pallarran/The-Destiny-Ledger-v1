@@ -180,6 +180,8 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
           completedSteps: BUILDER_STEPS.slice(0, -1), // Mark all but summary complete
           abilityAssignmentMethod: build.abilityMethod as AbilityAssignmentMethod,
           pointBuyConfig: { ...DEFAULT_POINT_BUY_CONFIG, totalPoints: build.pointBuyLimit },
+          finalAbilityScores: { ...build.abilityScores }, // Copy ability scores to finalAbilityScores
+          racialBonuses: {},
           enhancedLevelTimeline: build.levelTimeline.map(entry => ({
             ...entry,
             isCompleted: true,
@@ -283,6 +285,11 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
       set((state) => {
         if (state.currentBuild) {
           state.currentBuild.abilityScores[ability] = value
+          // Also update finalAbilityScores so it gets exported properly
+          if (!state.currentBuild.finalAbilityScores) {
+            state.currentBuild.finalAbilityScores = { ...state.currentBuild.abilityScores }
+          }
+          state.currentBuild.finalAbilityScores[ability] = value
           state.isDirty = true
           validateStep(state, 'ability-scores')
         }
