@@ -30,7 +30,7 @@ import {
 import { BasicInfo } from './BasicInfo'
 import { AbilityScoreAssignment } from './AbilityScoreAssignment'
 import { RaceBackgroundSelection } from './RaceBackgroundSelection' 
-import { LevelTimeline } from './LevelTimeline'
+import { EnhancedLevelTimeline } from './EnhancedLevelTimeline'
 import { EquipmentSelection } from './EquipmentSelection'
 import { BuffSelection } from './BuffSelection'
 import { BuildSummary } from './BuildSummary'
@@ -189,6 +189,31 @@ export function CharacterBuilder({ buildId }: CharacterBuilderProps) {
     if (!currentBuild.race) issues.push('Race not selected')
     if (currentBuild.enhancedLevelTimeline.length === 0) issues.push('No class levels defined')
     if (!buildName.trim()) issues.push('Build name required')
+    
+    // Check for concentration conflicts
+    const { buffs } = require('../../rules/srd/buffs')
+    const activeBuffs = currentBuild.activeBuffs || []
+    const round0Buffs = currentBuild.round0Buffs || []
+    
+    const activeConcentrationBuffs = activeBuffs
+      .map((id: string) => buffs[id])
+      .filter((buff: any) => buff?.concentration)
+    
+    const round0ConcentrationBuffs = round0Buffs
+      .map((id: string) => buffs[id])
+      .filter((buff: any) => buff?.concentration)
+    
+    if (activeConcentrationBuffs.length > 1) {
+      issues.push(`Multiple concentration spells in combat (${activeConcentrationBuffs.map((b: any) => b.name).join(', ')})`)
+    }
+    
+    if (round0ConcentrationBuffs.length > 1) {
+      issues.push(`Multiple concentration spells in round 0 (${round0ConcentrationBuffs.map((b: any) => b.name).join(', ')})`)
+    }
+    
+    if (activeConcentrationBuffs.length > 0 && round0ConcentrationBuffs.length > 0) {
+      issues.push('Round 0 concentration conflicts with combat concentration')
+    }
     
     const isValid = validateAllSteps() && issues.length === 0
     return { isValid, issues }
@@ -387,7 +412,7 @@ export function CharacterBuilder({ buildId }: CharacterBuilderProps) {
               </TabsContent>
               
               <TabsContent value="class-progression" className="mt-0">
-                <LevelTimeline />
+                <EnhancedLevelTimeline />
               </TabsContent>
               
               <TabsContent value="equipment" className="mt-0">

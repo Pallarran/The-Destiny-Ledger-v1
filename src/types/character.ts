@@ -36,6 +36,7 @@ export interface BuilderLevelEntry extends LevelEntry {
   availableFeatures?: string[]
   availableSpells?: string[]
   hitPointRoll?: number
+  fightingStyle?: string
 }
 
 // Extended build configuration for Phase 3

@@ -4,6 +4,7 @@ import { Input } from '../ui/input'
 import { Label } from '../ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card'
 import { Badge } from '../ui/badge'
+import { RuneCorners } from '../ui/rune-corners'
 import { useCharacterBuilderStore } from '../../stores/characterBuilderStore'
 import type { AbilityScore } from '../../rules/types'
 import type { AbilityAssignmentMethod } from '../../types/character'
@@ -276,11 +277,12 @@ export function AbilityScoreAssignment() {
           const modifier = getAbilityModifier(score)
           
           return (
-            <Card key={ability}>
+            <Card key={ability} className="relative overflow-hidden">
+              <RuneCorners opacity={0.35} className="text-gold" />
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
                   <div>
-                    <CardTitle className="text-lg">{ability}</CardTitle>
+                    <CardTitle className="text-lg font-semibold">{ability}</CardTitle>
                     <CardDescription className="text-sm">
                       {label}
                     </CardDescription>

@@ -33,7 +33,17 @@ export function BuffSelection() {
     .map(id => buffs[id])
     .filter(buff => buff?.concentration)
   
+  const round0ConcentrationBuffs = round0Buffs
+    .map(id => buffs[id])
+    .filter(buff => buff?.concentration)
+  
   const hasConcentrationConflict = activeConcentrationBuffs.length > 1
+  const hasRound0ConcentrationConflict = round0ConcentrationBuffs.length > 1
+  const hasCrossRoundConflict = activeConcentrationBuffs.length > 0 && round0ConcentrationBuffs.length > 0
+  
+  const totalConcentrationConflicts = (activeConcentrationBuffs.length > 1 ? 1 : 0) +
+    (round0ConcentrationBuffs.length > 1 ? 1 : 0) +
+    (hasCrossRoundConflict ? 1 : 0)
   
   // Helper to get buff status
   const getBuffStatus = (buffId: string) => {
@@ -63,12 +73,37 @@ export function BuffSelection() {
         <p className="text-muted">
           Select active buffs that affect your combat performance. Concentration spells conflict with each other.
         </p>
-        {hasConcentrationConflict && (
-          <div className="mt-3 p-3 bg-danger/10 border border-danger/20 rounded-lg flex items-center gap-2">
-            <AlertTriangle className="w-4 h-4 text-danger" />
-            <span className="text-sm text-danger">
-              Multiple concentration effects active! Only one can be maintained at a time.
-            </span>
+        {totalConcentrationConflicts > 0 && (
+          <div className="mt-3 space-y-2">
+            {hasConcentrationConflict && (
+              <div className="p-3 bg-danger/10 border border-danger/20 rounded-lg flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 text-danger" />
+                <div className="text-sm text-danger">
+                  <div className="font-medium">Combat Concentration Conflict</div>
+                  <div>Multiple concentration effects in combat: {activeConcentrationBuffs.map(b => b.name).join(', ')}</div>
+                </div>
+              </div>
+            )}
+            
+            {hasRound0ConcentrationConflict && (
+              <div className="p-3 bg-danger/10 border border-danger/20 rounded-lg flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 text-danger" />
+                <div className="text-sm text-danger">
+                  <div className="font-medium">Round 0 Concentration Conflict</div>
+                  <div>Multiple concentration effects in round 0: {round0ConcentrationBuffs.map(b => b.name).join(', ')}</div>
+                </div>
+              </div>
+            )}
+            
+            {hasCrossRoundConflict && (
+              <div className="p-3 bg-danger/10 border border-danger/20 rounded-lg flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 text-danger" />
+                <div className="text-sm text-danger">
+                  <div className="font-medium">Cross-Round Concentration Conflict</div>
+                  <div>Round 0 concentration effect conflicts with combat effect. Only one can be maintained.</div>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -342,9 +377,32 @@ export function BuffSelection() {
                 </div>
               )}
               
-              {hasConcentrationConflict && (
-                <div className="p-2 bg-danger/10 border border-danger/20 rounded text-sm text-danger">
-                  ⚠️ Concentration conflict detected - only one concentration effect can be active
+              {totalConcentrationConflicts > 0 && (
+                <div className="space-y-2">
+                  <div className="p-2 bg-danger/10 border border-danger/20 rounded text-sm text-danger">
+                    <div className="font-medium flex items-center gap-2">
+                      <AlertTriangle className="w-4 h-4" />
+                      {totalConcentrationConflicts} Concentration Conflict{totalConcentrationConflicts > 1 ? 's' : ''} Detected
+                    </div>
+                    <div className="text-xs mt-1">
+                      Only one concentration effect can be maintained at a time. Some spells may fail or end prematurely.
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">
+                    {hasConcentrationConflict && (
+                      <div className="p-2 bg-danger/5 border border-danger/10 rounded">
+                        <div className="font-medium">Combat Conflicts:</div>
+                        <div>{activeConcentrationBuffs.map(b => b.name).join(', ')}</div>
+                      </div>
+                    )}
+                    {hasRound0ConcentrationConflict && (
+                      <div className="p-2 bg-danger/5 border border-danger/10 rounded">
+                        <div className="font-medium">Round 0 Conflicts:</div>
+                        <div>{round0ConcentrationBuffs.map(b => b.name).join(', ')}</div>
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
