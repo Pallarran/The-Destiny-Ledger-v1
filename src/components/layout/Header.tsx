@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { Settings } from 'lucide-react'
+import { VersionWatermark } from '../ui/version-watermark'
 
 export function Header() {
   return (
@@ -14,6 +15,7 @@ export function Header() {
         </Link>
 
         <div className="flex items-center gap-4">
+          <VersionWatermark />
           <Link 
             to="/settings"
             className="p-2 text-muted hover:text-panel transition-colors"
