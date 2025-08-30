@@ -209,7 +209,7 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
             
             // Builder-specific fields
             currentStep: 'summary', // Start at summary for existing builds
-            completedSteps: BUILDER_STEPS.slice(0, -1), // Mark all but summary complete
+            completedSteps: [], // Will be validated after load
             abilityAssignmentMethod: (build.abilityMethod || 'pointbuy') as AbilityAssignmentMethod,
             pointBuyConfig: { ...DEFAULT_POINT_BUY_CONFIG, totalPoints: build.pointBuyLimit || 27 },
             finalAbilityScores: build.abilityScores ? { ...build.abilityScores } : { STR: 8, DEX: 8, CON: 8, INT: 8, WIS: 8, CHA: 8 },
@@ -252,6 +252,12 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
           state.currentBuild = characterBuilder
           state.isDirty = false
           state.currentStep = 'summary'
+          
+          // Re-validate all steps after loading to ensure proper completion state
+          for (const step of BUILDER_STEPS) {
+            validateStep(state, step)
+          }
+          
           updateNavigationState(state)
           
           console.log('Build loaded successfully')

@@ -68,15 +68,31 @@ export function AbilityScoreAssignment() {
     return { STR: 0, DEX: 0, CON: 0, INT: 0, WIS: 0, CHA: 0 }
   })
   
-  // Auto-detect method if scores suggest it's not point-buy or standard array
+  // Auto-detect method only when necessary (no stored method or invalid combination)
   const autoDetectMethod = () => {
     if (!currentBuild) return 'pointbuy'
     
+    const storedMethod = currentBuild.abilityAssignmentMethod
     const scores = Object.values(currentBuild.abilityScores)
+    
+    // If we have a stored method, validate it against the scores
+    if (storedMethod) {
+      const hasScoresAbove15 = scores.some(score => score > 15)
+      const hasScoresBelow8 = scores.some(score => score < 8)
+      
+      // Only override if the stored method is incompatible with the scores
+      if ((storedMethod === 'pointbuy' || storedMethod === 'standard') && (hasScoresAbove15 || hasScoresBelow8)) {
+        return 'custom' // Scores are incompatible with point-buy/standard array
+      }
+      
+      // Return the stored method if compatible
+      return storedMethod
+    }
+    
+    // No stored method - auto-detect based on scores (legacy builds)
     const hasScoresAbove15 = scores.some(score => score > 15)
     const hasScoresBelow8 = scores.some(score => score < 8)
     
-    // If any score is above 15 or below 8, it can't be point-buy or standard array
     if (hasScoresAbove15 || hasScoresBelow8) {
       return 'custom'
     }
@@ -89,8 +105,8 @@ export function AbilityScoreAssignment() {
       return 'standard'
     }
     
-    // Return the stored method or default to point-buy
-    return currentBuild.abilityAssignmentMethod || 'pointbuy'
+    // Default to point-buy for compatible scores
+    return 'pointbuy'
   }
   
   const method = autoDetectMethod()
@@ -99,14 +115,23 @@ export function AbilityScoreAssignment() {
     if (currentBuild?.abilityScores) {
       setLocalScores(currentBuild.abilityScores)
       
-      // Update the method in store if auto-detection changed it
+      // Update the method in store ONLY if auto-detection suggests incompatibility
       const detectedMethod = autoDetectMethod()
       if (currentBuild.abilityAssignmentMethod !== detectedMethod) {
-        setAbilityAssignmentMethod(detectedMethod)
+        // Only update if the stored method is actually incompatible
+        const scores = Object.values(currentBuild.abilityScores)
+        const hasScoresAbove15 = scores.some(score => score > 15)
+        const hasScoresBelow8 = scores.some(score => score < 8)
+        const storedMethod = currentBuild.abilityAssignmentMethod
+        
+        if ((storedMethod === 'pointbuy' || storedMethod === 'standard') && (hasScoresAbove15 || hasScoresBelow8)) {
+          // Only update if truly incompatible
+          setAbilityAssignmentMethod(detectedMethod)
+        }
       }
       
       // Also update standard array assignment if this is a standard array build
-      if (currentBuild.abilityAssignmentMethod === 'standard') {
+      if (method === 'standard') {
         setStandardArrayAssignment(currentBuild.abilityScores as Record<AbilityScore, number>)
       }
     }
