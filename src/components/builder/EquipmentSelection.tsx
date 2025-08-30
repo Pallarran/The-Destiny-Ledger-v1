@@ -153,14 +153,14 @@ export function EquipmentSelection() {
               <div className="space-y-2">
                 <Label htmlFor="mainhand-select">Select Weapon</Label>
                 <Select 
-                  value={currentBuild.selectedMainHand || ''} 
-                  onValueChange={setMainHandWeapon}
+                  value={currentBuild.selectedMainHand || 'none'} 
+                  onValueChange={(value) => setMainHandWeapon(value === 'none' ? '' : value)}
                 >
                   <SelectTrigger id="mainhand-select">
                     <SelectValue placeholder="Choose a weapon..." />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">No weapon</SelectItem>
+                    <SelectItem value="none">No weapon</SelectItem>
                     {Object.entries(groupedWeapons).filter(([type]) => type.includes('Melee')).map(([type, weaponList]) => (
                       weaponList.length > 0 && (
                         <div key={type}>
@@ -236,14 +236,14 @@ export function EquipmentSelection() {
               <div className="space-y-2">
                 <Label htmlFor="ranged-select">Select Weapon</Label>
                 <Select 
-                  value={currentBuild.selectedRanged || ''} 
-                  onValueChange={setRangedWeapon}
+                  value={currentBuild.selectedRanged || 'none'} 
+                  onValueChange={(value) => setRangedWeapon(value === 'none' ? '' : value)}
                 >
                   <SelectTrigger id="ranged-select">
                     <SelectValue placeholder="Choose a weapon..." />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">No weapon</SelectItem>
+                    <SelectItem value="none">No weapon</SelectItem>
                     {Object.entries(groupedWeapons).filter(([type]) => type.includes('Ranged')).map(([type, weaponList]) => (
                       weaponList.length > 0 && (
                         <div key={type}>
@@ -324,14 +324,14 @@ export function EquipmentSelection() {
               <div className="space-y-2">
                 <Label htmlFor="armor-select">Select Armor</Label>
                 <Select 
-                  value={currentBuild.selectedArmor || ''} 
-                  onValueChange={setArmor}
+                  value={currentBuild.selectedArmor || 'none'} 
+                  onValueChange={(value) => setArmor(value === 'none' ? '' : value)}
                 >
                   <SelectTrigger id="armor-select">
                     <SelectValue placeholder="Choose armor..." />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">No armor (unarmored)</SelectItem>
+                    <SelectItem value="none">No armor (unarmored)</SelectItem>
                     {Object.entries(groupedArmor).map(([type, armorList]) => (
                       armorList.length > 0 && (
                         <div key={type}>
