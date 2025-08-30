@@ -460,6 +460,7 @@ export function EnhancedLevelTimeline() {
   const [showASIFeat, setShowASIFeat] = useState<number | null>(null)
   const [showFightingStyle, setShowFightingStyle] = useState<number | null>(null)
   const [showArchetype, setShowArchetype] = useState<number | null>(null)
+  const [refreshKey, setRefreshKey] = useState(0)
   
   if (!currentBuild) {
     return <div className="text-center text-muted">Loading class progression...</div>
@@ -554,6 +555,8 @@ export function EnhancedLevelTimeline() {
       selectASI(level, data.abilityIncreases)
     }
     setShowASIFeat(null)
+    // Force a re-render to update visual feedback
+    setRefreshKey(prev => prev + 1)
   }
 
   const handleFightingStyleChoice = (level: number, styleId: string) => {
@@ -562,12 +565,16 @@ export function EnhancedLevelTimeline() {
     updateLevel(level, { fightingStyle: styleId, isCompleted: true })
     console.log('updateLevel called with:', { level, fightingStyle: styleId, isCompleted: true })
     setShowFightingStyle(null)
+    // Force a re-render to update visual feedback
+    setRefreshKey(prev => prev + 1)
   }
 
   const handleArchetypeChoice = (level: number, archetypeId: string) => {
     // Store the archetype choice in the level entry
     updateLevel(level, { archetype: archetypeId, isCompleted: true })
     setShowArchetype(null)
+    // Force a re-render to update visual feedback
+    setRefreshKey(prev => prev + 1)
   }
 
   // Trigger validation when levels change
@@ -660,7 +667,7 @@ export function EnhancedLevelTimeline() {
               })
               
               // Create a unique key that includes the current data state to force re-render when data changes
-              const dataKey = `${entry.level}-${(entry as any).fightingStyle || 'none'}-${(entry as any).archetype || 'none'}-${entry.asiOrFeat || 'none'}`
+              const dataKey = `${entry.level}-${(entry as any).fightingStyle || 'none'}-${(entry as any).archetype || 'none'}-${entry.asiOrFeat || 'none'}-${refreshKey}`
               
               return (
                 <div key={dataKey}>
