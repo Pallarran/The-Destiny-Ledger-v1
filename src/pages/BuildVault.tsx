@@ -2,7 +2,7 @@ import { Panel, PanelHeader } from '../components/ui/panel'
 import { Button } from '../components/ui/button'
 import { Card, CardContent } from '../components/ui/card'
 import { Link } from 'react-router-dom'
-import { useVaultStore, getFilteredBuilds } from '../stores/vaultStore'
+import { useVaultStore } from '../stores/vaultStore'
 import { useBuilderStore } from '../stores/builderStore'
 import { formatDistanceToNow } from 'date-fns'
 import { 
