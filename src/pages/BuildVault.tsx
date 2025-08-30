@@ -20,22 +20,31 @@ import {
 } from 'lucide-react'
 
 export function BuildVault() {
-  const { 
-    searchQuery, 
-    setSearchQuery, 
-    deleteBuild, 
-    duplicateBuild,
-    setSortBy,
-    sortBy,
-    toggleSortOrder,
-    sortOrder,
-    exportBuilds,
-    exportBuild,
-    importBuilds
-  } = useVaultStore()
-  
-  const { loadBuild } = useBuilderStore()
-  const builds = useVaultStore((state) => getFilteredBuilds(state))
+  try {
+    const { 
+      searchQuery, 
+      setSearchQuery, 
+      deleteBuild, 
+      duplicateBuild,
+      setSortBy,
+      sortBy,
+      toggleSortOrder,
+      sortOrder,
+      exportBuilds,
+      exportBuild,
+      importBuilds
+    } = useVaultStore()
+    
+    const { loadBuild } = useBuilderStore()
+    const buildsRaw = useVaultStore((state) => {
+      try {
+        return getFilteredBuilds(state)
+      } catch (error) {
+        console.error('Error in getFilteredBuilds:', error)
+        return []
+      }
+    })
+    const builds = Array.isArray(buildsRaw) ? buildsRaw : []
 
   const handleLoadBuild = (buildId: string) => {
     const build = builds.find(b => b.id === buildId)
@@ -55,11 +64,20 @@ export function BuildVault() {
       .join(' / ')
   }
 
-  const formatLastEdited = (date: Date) => {
+  const formatLastEdited = (date: Date | string) => {
     try {
-      return formatDistanceToNow(date, { addSuffix: true })
+      // Ensure we have a valid Date object
+      const dateObj = date instanceof Date ? date : new Date(date)
+      
+      // Check if the date is valid
+      if (isNaN(dateObj.getTime())) {
+        console.warn('Invalid date:', date)
+        return 'Unknown'
+      }
+      
+      return formatDistanceToNow(dateObj, { addSuffix: true })
     } catch (error) {
-      console.error('Date formatting error:', error)
+      console.error('Date formatting error:', error, 'Date:', date)
       return 'Unknown'
     }
   }
@@ -182,13 +200,13 @@ export function BuildVault() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {builds.map((build) => (
-            <Card key={build.id} className="p-4 hover:shadow-lg transition-shadow cursor-pointer group">
+          {builds && builds.length > 0 && builds.map((build) => (
+            <Card key={build?.id || Math.random()} className="p-4 hover:shadow-lg transition-shadow cursor-pointer group">
               <CardContent className="p-0">
                 <div className="flex justify-between items-start mb-3">
                   <div className="flex items-center gap-2">
                     <User className="w-5 h-5 text-accent" />
-                    <span className="text-sm text-muted">Level {build.currentLevel}</span>
+                    <span className="text-sm text-muted">Level {build?.currentLevel || 1}</span>
                   </div>
                   <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <Button 
@@ -244,15 +262,15 @@ export function BuildVault() {
                   </div>
                 </div>
                 
-                <div onClick={() => handleLoadBuild(build.id)}>
-                  <h3 className="font-semibold mb-1">{build.name}</h3>
+                <div onClick={() => build?.id && handleLoadBuild(build.id)}>
+                  <h3 className="font-semibold mb-1">{build?.name || 'Unnamed Build'}</h3>
                   <p className="text-sm text-muted mb-3">
-                    {getClassSummary(build) || `${build.race} Character`}
+                    {getClassSummary(build) || `${build?.race || 'Unknown'} Character`}
                   </p>
                   
                   <div className="flex items-center gap-2 text-xs text-muted">
                     <Calendar className="w-3 h-3" />
-                    Last edited {build.updatedAt ? formatLastEdited(build.updatedAt) : 'Unknown'}
+                    Last edited {build?.updatedAt ? formatLastEdited(build.updatedAt) : 'Unknown'}
                   </div>
                 </div>
               </CardContent>
@@ -278,4 +296,18 @@ export function BuildVault() {
       </Panel>
     </div>
   )
+  } catch (error) {
+    console.error('BuildVault render error:', error)
+    return (
+      <div className="space-y-6">
+        <Panel>
+          <PanelHeader title="Build Vault" />
+          <div className="text-center py-12">
+            <p className="text-danger mb-4">An error occurred loading the Build Vault.</p>
+            <p className="text-sm text-muted">Please refresh the page or try again later.</p>
+          </div>
+        </Panel>
+      </div>
+    )
+  }
 }
