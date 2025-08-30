@@ -108,7 +108,7 @@ export function BuildSummary() {
               
               return (
                 <div key={ability} className="p-3 bg-panel/5 rounded-lg">
-                  <div className="font-semibold text-panel">{ability}</div>
+                  <div className="font-semibold">{ability}</div>
                   <div className="text-2xl font-bold text-accent">{finalScore}</div>
                   <div className="text-sm text-muted">{formatModifier(modifier)}</div>
                   {raceBonus > 0 && (
