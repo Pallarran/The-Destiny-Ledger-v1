@@ -369,6 +369,645 @@ const rogueFeatures: Record<number, Feature[]> = {
   ]
 }
 
+// Wizard Class
+const wizardFeatures: Record<number, Feature[]> = {
+  1: [
+    {
+      id: 'spellcasting_wizard',
+      name: 'Spellcasting',
+      description: 'You have learned to cast spells. You know three cantrips and six 1st-level spells.',
+      source: 'Wizard 1',
+      rulesKey: 'spellcasting'
+    },
+    {
+      id: 'arcane_recovery',
+      name: 'Arcane Recovery',
+      description: 'Once per day when you finish a short rest, you can recover some expended spell slots.',
+      source: 'Wizard 1'
+    }
+  ],
+  2: [
+    {
+      id: 'arcane_tradition',
+      name: 'Arcane Tradition',
+      description: 'Choose an Arcane Tradition, which shapes the practice of your magic.',
+      source: 'Wizard 2',
+      rulesKey: 'archetype'
+    }
+  ],
+  4: [
+    {
+      id: 'asi_wizard_4',
+      name: 'Ability Score Improvement',
+      description: 'You can increase one ability score by 2, or two ability scores by 1 each, or take a feat.',
+      source: 'Wizard 4',
+      rulesKey: 'asi'
+    }
+  ],
+  8: [
+    {
+      id: 'asi_wizard_8',
+      name: 'Ability Score Improvement',
+      description: 'You can increase one ability score by 2, or two ability scores by 1 each, or take a feat.',
+      source: 'Wizard 8',
+      rulesKey: 'asi'
+    }
+  ],
+  12: [
+    {
+      id: 'asi_wizard_12',
+      name: 'Ability Score Improvement',
+      description: 'You can increase one ability score by 2, or two ability scores by 1 each, or take a feat.',
+      source: 'Wizard 12',
+      rulesKey: 'asi'
+    }
+  ],
+  16: [
+    {
+      id: 'asi_wizard_16',
+      name: 'Ability Score Improvement',
+      description: 'You can increase one ability score by 2, or two ability scores by 1 each, or take a feat.',
+      source: 'Wizard 16',
+      rulesKey: 'asi'
+    }
+  ],
+  18: [
+    {
+      id: 'spell_mastery',
+      name: 'Spell Mastery',
+      description: 'Choose a 1st-level wizard spell and a 2nd-level wizard spell. You can cast those spells at their lowest level without expending a spell slot.',
+      source: 'Wizard 18'
+    }
+  ],
+  19: [
+    {
+      id: 'asi_wizard_19',
+      name: 'Ability Score Improvement',
+      description: 'You can increase one ability score by 2, or two ability scores by 1 each, or take a feat.',
+      source: 'Wizard 19',
+      rulesKey: 'asi'
+    }
+  ],
+  20: [
+    {
+      id: 'signature_spells',
+      name: 'Signature Spells',
+      description: 'Choose two 3rd-level wizard spells. You always have these spells prepared and can cast each once without expending a spell slot.',
+      source: 'Wizard 20'
+    }
+  ]
+}
+
+// Cleric Class  
+const clericFeatures: Record<number, Feature[]> = {
+  1: [
+    {
+      id: 'spellcasting_cleric',
+      name: 'Spellcasting',
+      description: 'You can cast cleric spells. You know three cantrips and prepare a number of spells equal to your Wisdom modifier + cleric level.',
+      source: 'Cleric 1',
+      rulesKey: 'spellcasting'
+    },
+    {
+      id: 'divine_domain',
+      name: 'Divine Domain',
+      description: 'Choose a domain related to your deity, which grants you domain spells and features.',
+      source: 'Cleric 1',
+      rulesKey: 'archetype'
+    }
+  ],
+  2: [
+    {
+      id: 'channel_divinity',
+      name: 'Channel Divinity',
+      description: 'You can channel divine energy directly from your deity to fuel magical effects.',
+      source: 'Cleric 2'
+    }
+  ],
+  4: [
+    {
+      id: 'asi_cleric_4',
+      name: 'Ability Score Improvement',
+      description: 'You can increase one ability score by 2, or two ability scores by 1 each, or take a feat.',
+      source: 'Cleric 4',
+      rulesKey: 'asi'
+    }
+  ],
+  5: [
+    {
+      id: 'destroy_undead_cr_half',
+      name: 'Destroy Undead (CR 1/2)',
+      description: 'When an undead fails its saving throw against your Turn Undead feature, it is instantly destroyed if its challenge rating is at or below 1/2.',
+      source: 'Cleric 5'
+    }
+  ],
+  8: [
+    {
+      id: 'asi_cleric_8',
+      name: 'Ability Score Improvement',
+      description: 'You can increase one ability score by 2, or two ability scores by 1 each, or take a feat.',
+      source: 'Cleric 8',
+      rulesKey: 'asi'
+    }
+  ],
+  10: [
+    {
+      id: 'divine_intervention',
+      name: 'Divine Intervention',
+      description: 'You can call on your deity to intervene on your behalf when your need is great.',
+      source: 'Cleric 10'
+    }
+  ],
+  12: [
+    {
+      id: 'asi_cleric_12',
+      name: 'Ability Score Improvement',
+      description: 'You can increase one ability score by 2, or two ability scores by 1 each, or take a feat.',
+      source: 'Cleric 12',
+      rulesKey: 'asi'
+    }
+  ],
+  16: [
+    {
+      id: 'asi_cleric_16',
+      name: 'Ability Score Improvement',
+      description: 'You can increase one ability score by 2, or two ability scores by 1 each, or take a feat.',
+      source: 'Cleric 16',
+      rulesKey: 'asi'
+    }
+  ],
+  19: [
+    {
+      id: 'asi_cleric_19',
+      name: 'Ability Score Improvement',
+      description: 'You can increase one ability score by 2, or two ability scores by 1 each, or take a feat.',
+      source: 'Cleric 19',
+      rulesKey: 'asi'
+    }
+  ],
+  20: [
+    {
+      id: 'divine_intervention_improvement',
+      name: 'Divine Intervention Improvement',
+      description: 'Your call for intervention succeeds automatically, no roll required.',
+      source: 'Cleric 20'
+    }
+  ]
+}
+
+// Barbarian Class
+const barbarianFeatures: Record<number, Feature[]> = {
+  1: [
+    {
+      id: 'rage',
+      name: 'Rage',
+      description: 'In battle, you fight with primal ferocity. You can rage a number of times shown on the table.',
+      source: 'Barbarian 1',
+      rulesKey: 'rage'
+    },
+    {
+      id: 'unarmored_defense_barbarian',
+      name: 'Unarmored Defense',
+      description: 'While not wearing armor, your AC equals 10 + Dex modifier + Con modifier.',
+      source: 'Barbarian 1'
+    }
+  ],
+  2: [
+    {
+      id: 'reckless_attack',
+      name: 'Reckless Attack',
+      description: 'You can throw aside all concern for defense to attack with fierce desperation.',
+      source: 'Barbarian 2'
+    },
+    {
+      id: 'danger_sense',
+      name: 'Danger Sense',
+      description: 'You have advantage on Dexterity saving throws against effects you can see.',
+      source: 'Barbarian 2'
+    }
+  ],
+  3: [
+    {
+      id: 'primal_path',
+      name: 'Primal Path',
+      description: 'Choose a path that shapes the nature of your rage.',
+      source: 'Barbarian 3',
+      rulesKey: 'archetype'
+    }
+  ],
+  4: [
+    {
+      id: 'asi_barbarian_4',
+      name: 'Ability Score Improvement',
+      description: 'You can increase one ability score by 2, or two ability scores by 1 each, or take a feat.',
+      source: 'Barbarian 4',
+      rulesKey: 'asi'
+    }
+  ],
+  5: [
+    {
+      id: 'extra_attack_barbarian',
+      name: 'Extra Attack',
+      description: 'You can attack twice whenever you take the Attack action.',
+      source: 'Barbarian 5',
+      rulesKey: 'extra_attack'
+    },
+    {
+      id: 'fast_movement',
+      name: 'Fast Movement',
+      description: 'Your speed increases by 10 feet while not wearing heavy armor.',
+      source: 'Barbarian 5'
+    }
+  ],
+  7: [
+    {
+      id: 'feral_instinct',
+      name: 'Feral Instinct',
+      description: 'Your instincts are so honed that you have advantage on initiative rolls.',
+      source: 'Barbarian 7'
+    }
+  ],
+  8: [
+    {
+      id: 'asi_barbarian_8',
+      name: 'Ability Score Improvement',
+      description: 'You can increase one ability score by 2, or two ability scores by 1 each, or take a feat.',
+      source: 'Barbarian 8',
+      rulesKey: 'asi'
+    }
+  ],
+  9: [
+    {
+      id: 'brutal_critical_1',
+      name: 'Brutal Critical',
+      description: 'You can roll one additional weapon damage die when determining extra damage for a critical hit.',
+      source: 'Barbarian 9'
+    }
+  ],
+  11: [
+    {
+      id: 'relentless_rage',
+      name: 'Relentless Rage',
+      description: 'Your rage can keep you fighting despite grievous wounds.',
+      source: 'Barbarian 11'
+    }
+  ],
+  12: [
+    {
+      id: 'asi_barbarian_12',
+      name: 'Ability Score Improvement',
+      description: 'You can increase one ability score by 2, or two ability scores by 1 each, or take a feat.',
+      source: 'Barbarian 12',
+      rulesKey: 'asi'
+    }
+  ],
+  15: [
+    {
+      id: 'persistent_rage',
+      name: 'Persistent Rage',
+      description: 'Your rage is so fierce that it ends early only if you fall unconscious.',
+      source: 'Barbarian 15'
+    }
+  ],
+  16: [
+    {
+      id: 'asi_barbarian_16',
+      name: 'Ability Score Improvement',
+      description: 'You can increase one ability score by 2, or two ability scores by 1 each, or take a feat.',
+      source: 'Barbarian 16',
+      rulesKey: 'asi'
+    }
+  ],
+  18: [
+    {
+      id: 'indomitable_might',
+      name: 'Indomitable Might',
+      description: 'If your total for a Strength check is less than your Strength score, you can use your Strength score in place of the total.',
+      source: 'Barbarian 18'
+    }
+  ],
+  19: [
+    {
+      id: 'asi_barbarian_19',
+      name: 'Ability Score Improvement',
+      description: 'You can increase one ability score by 2, or two ability scores by 1 each, or take a feat.',
+      source: 'Barbarian 19',
+      rulesKey: 'asi'
+    }
+  ],
+  20: [
+    {
+      id: 'primal_champion',
+      name: 'Primal Champion',
+      description: 'Your Strength and Constitution scores increase by 4. Your maximum for those scores is now 24.',
+      source: 'Barbarian 20'
+    }
+  ]
+}
+
+// Bard Class
+const bardFeatures: Record<number, Feature[]> = {
+  1: [
+    {
+      id: 'spellcasting_bard',
+      name: 'Spellcasting',
+      description: 'You can cast bard spells. You know two cantrips and four 1st-level spells.',
+      source: 'Bard 1',
+      rulesKey: 'spellcasting'
+    },
+    {
+      id: 'bardic_inspiration',
+      name: 'Bardic Inspiration',
+      description: 'You can inspire others through words or music, granting them a Bardic Inspiration die.',
+      source: 'Bard 1'
+    }
+  ],
+  2: [
+    {
+      id: 'jack_of_all_trades',
+      name: 'Jack of All Trades',
+      description: 'You can add half your proficiency bonus to any ability check that doesn\'t already include your proficiency bonus.',
+      source: 'Bard 2'
+    },
+    {
+      id: 'song_of_rest',
+      name: 'Song of Rest',
+      description: 'You can use music to help revitalize your wounded allies during a short rest.',
+      source: 'Bard 2'
+    }
+  ],
+  3: [
+    {
+      id: 'bard_college',
+      name: 'Bard College',
+      description: 'Choose a bard college that you emulate in the adventuring styles and magics.',
+      source: 'Bard 3',
+      rulesKey: 'archetype'
+    },
+    {
+      id: 'expertise_bard',
+      name: 'Expertise',
+      description: 'Choose two of your skill proficiencies. Your proficiency bonus is doubled for any ability check you make that uses either of the chosen proficiencies.',
+      source: 'Bard 3'
+    }
+  ],
+  4: [
+    {
+      id: 'asi_bard_4',
+      name: 'Ability Score Improvement',
+      description: 'You can increase one ability score by 2, or two ability scores by 1 each, or take a feat.',
+      source: 'Bard 4',
+      rulesKey: 'asi'
+    }
+  ],
+  5: [
+    {
+      id: 'bardic_inspiration_d8',
+      name: 'Bardic Inspiration (d8)',
+      description: 'Your Bardic Inspiration die changes to a d8.',
+      source: 'Bard 5'
+    },
+    {
+      id: 'font_of_inspiration',
+      name: 'Font of Inspiration',
+      description: 'You regain all of your expended uses of Bardic Inspiration when you finish a short or long rest.',
+      source: 'Bard 5'
+    }
+  ],
+  6: [
+    {
+      id: 'countercharm',
+      name: 'Countercharm',
+      description: 'You gain the ability to use musical notes or words of power to disrupt mind-influencing effects.',
+      source: 'Bard 6'
+    }
+  ],
+  8: [
+    {
+      id: 'asi_bard_8',
+      name: 'Ability Score Improvement',
+      description: 'You can increase one ability score by 2, or two ability scores by 1 each, or take a feat.',
+      source: 'Bard 8',
+      rulesKey: 'asi'
+    }
+  ],
+  10: [
+    {
+      id: 'bardic_inspiration_d10',
+      name: 'Bardic Inspiration (d10)',
+      description: 'Your Bardic Inspiration die changes to a d10.',
+      source: 'Bard 10'
+    },
+    {
+      id: 'magical_secrets_1',
+      name: 'Magical Secrets',
+      description: 'Choose two spells from any class. The spells count as bard spells for you.',
+      source: 'Bard 10'
+    }
+  ],
+  12: [
+    {
+      id: 'asi_bard_12',
+      name: 'Ability Score Improvement',
+      description: 'You can increase one ability score by 2, or two ability scores by 1 each, or take a feat.',
+      source: 'Bard 12',
+      rulesKey: 'asi'
+    }
+  ],
+  15: [
+    {
+      id: 'bardic_inspiration_d12',
+      name: 'Bardic Inspiration (d12)',
+      description: 'Your Bardic Inspiration die changes to a d12.',
+      source: 'Bard 15'
+    }
+  ],
+  16: [
+    {
+      id: 'asi_bard_16',
+      name: 'Ability Score Improvement',
+      description: 'You can increase one ability score by 2, or two ability scores by 1 each, or take a feat.',
+      source: 'Bard 16',
+      rulesKey: 'asi'
+    }
+  ],
+  18: [
+    {
+      id: 'magical_secrets_2',
+      name: 'Magical Secrets',
+      description: 'Choose two more spells from any class.',
+      source: 'Bard 18'
+    }
+  ],
+  19: [
+    {
+      id: 'asi_bard_19',
+      name: 'Ability Score Improvement',
+      description: 'You can increase one ability score by 2, or two ability scores by 1 each, or take a feat.',
+      source: 'Bard 19',
+      rulesKey: 'asi'
+    }
+  ],
+  20: [
+    {
+      id: 'superior_inspiration',
+      name: 'Superior Inspiration',
+      description: 'When you roll initiative and have no uses of Bardic Inspiration left, you regain one use.',
+      source: 'Bard 20'
+    }
+  ]
+}
+
+// Paladin Class
+const paladinFeatures: Record<number, Feature[]> = {
+  1: [
+    {
+      id: 'divine_sense',
+      name: 'Divine Sense',
+      description: 'You can detect good and evil. You can use this feature a number of times equal to 1 + your Charisma modifier.',
+      source: 'Paladin 1'
+    },
+    {
+      id: 'lay_on_hands',
+      name: 'Lay on Hands',
+      description: 'You can heal wounds through touch. You have a pool of healing power equal to 5 × your paladin level.',
+      source: 'Paladin 1'
+    }
+  ],
+  2: [
+    {
+      id: 'fighting_style_paladin',
+      name: 'Fighting Style',
+      description: 'You adopt a particular style of fighting as your specialty.',
+      source: 'Paladin 2',
+      rulesKey: 'fighting_style'
+    },
+    {
+      id: 'spellcasting_paladin',
+      name: 'Spellcasting',
+      description: 'You can cast paladin spells. You prepare spells equal to half your paladin level + Charisma modifier.',
+      source: 'Paladin 2',
+      rulesKey: 'spellcasting'
+    },
+    {
+      id: 'divine_smite',
+      name: 'Divine Smite',
+      description: 'When you hit with a melee weapon attack, you can expend a spell slot to deal radiant damage.',
+      source: 'Paladin 2',
+      rulesKey: 'divine_smite'
+    }
+  ],
+  3: [
+    {
+      id: 'divine_health',
+      name: 'Divine Health',
+      description: 'The divine magic flowing through you makes you immune to disease.',
+      source: 'Paladin 3'
+    },
+    {
+      id: 'sacred_oath',
+      name: 'Sacred Oath',
+      description: 'You swear the oath that binds you as a paladin forever.',
+      source: 'Paladin 3',
+      rulesKey: 'archetype'
+    }
+  ],
+  4: [
+    {
+      id: 'asi_paladin_4',
+      name: 'Ability Score Improvement',
+      description: 'You can increase one ability score by 2, or two ability scores by 1 each, or take a feat.',
+      source: 'Paladin 4',
+      rulesKey: 'asi'
+    }
+  ],
+  5: [
+    {
+      id: 'extra_attack_paladin',
+      name: 'Extra Attack',
+      description: 'You can attack twice whenever you take the Attack action.',
+      source: 'Paladin 5',
+      rulesKey: 'extra_attack'
+    }
+  ],
+  6: [
+    {
+      id: 'aura_of_protection',
+      name: 'Aura of Protection',
+      description: 'You and friendly creatures within 10 feet gain a bonus to saving throws equal to your Charisma modifier.',
+      source: 'Paladin 6'
+    }
+  ],
+  8: [
+    {
+      id: 'asi_paladin_8',
+      name: 'Ability Score Improvement',
+      description: 'You can increase one ability score by 2, or two ability scores by 1 each, or take a feat.',
+      source: 'Paladin 8',
+      rulesKey: 'asi'
+    }
+  ],
+  10: [
+    {
+      id: 'aura_of_courage',
+      name: 'Aura of Courage',
+      description: 'You and friendly creatures within 10 feet can\'t be frightened while you are conscious.',
+      source: 'Paladin 10'
+    }
+  ],
+  11: [
+    {
+      id: 'improved_divine_smite',
+      name: 'Improved Divine Smite',
+      description: 'All your melee weapon strikes carry divine power with them.',
+      source: 'Paladin 11'
+    }
+  ],
+  12: [
+    {
+      id: 'asi_paladin_12',
+      name: 'Ability Score Improvement',
+      description: 'You can increase one ability score by 2, or two ability scores by 1 each, or take a feat.',
+      source: 'Paladin 12',
+      rulesKey: 'asi'
+    }
+  ],
+  14: [
+    {
+      id: 'cleansing_touch',
+      name: 'Cleansing Touch',
+      description: 'You can use your action to end one spell on yourself or on one willing creature that you touch.',
+      source: 'Paladin 14'
+    }
+  ],
+  16: [
+    {
+      id: 'asi_paladin_16',
+      name: 'Ability Score Improvement',
+      description: 'You can increase one ability score by 2, or two ability scores by 1 each, or take a feat.',
+      source: 'Paladin 16',
+      rulesKey: 'asi'
+    }
+  ],
+  18: [
+    {
+      id: 'aura_improvements',
+      name: 'Aura Improvements',
+      description: 'The range of your Aura of Protection and Aura of Courage increases to 30 feet.',
+      source: 'Paladin 18'
+    }
+  ],
+  19: [
+    {
+      id: 'asi_paladin_19',
+      name: 'Ability Score Improvement',
+      description: 'You can increase one ability score by 2, or two ability scores by 1 each, or take a feat.',
+      source: 'Paladin 19',
+      rulesKey: 'asi'
+    }
+  ]
+}
+
 // Export class definitions
 export const classes: Record<string, ClassDefinition> = {
   fighter: {
@@ -394,5 +1033,59 @@ export const classes: Record<string, ClassDefinition> = {
     skillChoices: ['Acrobatics', 'Athletics', 'Deception', 'Insight', 'Intimidation', 'Investigation', 'Perception', 'Performance', 'Persuasion', 'Sleight of Hand', 'Stealth'],
     skillChoiceCount: 4,
     features: rogueFeatures
+  },
+  wizard: {
+    id: 'wizard',
+    name: 'Wizard',
+    hitDie: 6,
+    primaryAbilities: ['INT'],
+    savingThrowProficiencies: ['INT', 'WIS'],
+    skillChoices: ['Arcana', 'History', 'Insight', 'Investigation', 'Medicine', 'Religion'],
+    skillChoiceCount: 2,
+    features: wizardFeatures
+  },
+  cleric: {
+    id: 'cleric',
+    name: 'Cleric',
+    hitDie: 8,
+    primaryAbilities: ['WIS'],
+    savingThrowProficiencies: ['WIS', 'CHA'],
+    skillChoices: ['History', 'Insight', 'Medicine', 'Persuasion', 'Religion'],
+    skillChoiceCount: 2,
+    features: clericFeatures
+  },
+  barbarian: {
+    id: 'barbarian',
+    name: 'Barbarian',
+    hitDie: 12,
+    primaryAbilities: ['STR'],
+    savingThrowProficiencies: ['STR', 'CON'],
+    skillChoices: ['Animal Handling', 'Athletics', 'Intimidation', 'Nature', 'Perception', 'Survival'],
+    skillChoiceCount: 2,
+    features: barbarianFeatures
+  },
+  bard: {
+    id: 'bard',
+    name: 'Bard',
+    hitDie: 8,
+    primaryAbilities: ['CHA'],
+    savingThrowProficiencies: ['DEX', 'CHA'],
+    skillChoices: ['Deception', 'History', 'Investigation', 'Persuasion', 'Religion', 'Sleight of Hand'],
+    skillChoiceCount: 3,
+    features: bardFeatures
+  },
+  paladin: {
+    id: 'paladin',
+    name: 'Paladin',
+    hitDie: 10,
+    primaryAbilities: ['STR', 'CHA'],
+    savingThrowProficiencies: ['WIS', 'CHA'],
+    skillChoices: ['Athletics', 'Insight', 'Intimidation', 'Medicine', 'Persuasion', 'Religion'],
+    skillChoiceCount: 2,
+    features: paladinFeatures,
+    fightingStyles: Object.values(fightingStyles).filter(fs => 
+      ['defense', 'dueling', 'great_weapon_fighting', 'protection'].includes(fs.id)
+    ),
+    fightingStyleLevel: 2
   }
 }

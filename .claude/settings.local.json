@@ -18,7 +18,9 @@
       "Bash(npm test)",
       "WebSearch",
       "Bash(npm run lint)",
-      "Bash(git rev-parse:*)"
+      "Bash(git rev-parse:*)",
+      "Bash(grep:*)",
+      "Bash(rg:*)"
     ],
     "deny": [],
     "ask": []
