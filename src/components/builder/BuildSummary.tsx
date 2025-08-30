@@ -89,18 +89,15 @@ export function BuildSummary() {
         <CardContent>
           <div className="grid grid-cols-3 md:grid-cols-6 gap-4 text-center">
             {Object.entries(currentBuild.abilityScores).map(([ability, baseScore]) => {
-              // Calculate final score with race bonuses (simplified race bonus logic)
+              // Calculate final score with race bonuses
               const getRaceBonus = (race: string, abilityName: string): number => {
                 const raceBonuses: Record<string, Record<string, number>> = {
-                  'human_variant': { 'STR': 1, 'DEX': 1 }, // Simplified
-                  'elf': { 'DEX': 2 },
-                  'dwarf': { 'CON': 2 },
-                  'halfling': { 'DEX': 2 },
+                  'human_variant': { 'STR': 1, 'DEX': 1 }, // Simplified - variant human gets +1 to two chosen abilities
+                  'elf_high': { 'DEX': 2, 'INT': 1 },
+                  'dwarf_mountain': { 'CON': 2, 'STR': 2 },
+                  'halfling_lightfoot': { 'DEX': 2, 'CHA': 1 },
                   'dragonborn': { 'STR': 2, 'CHA': 1 },
-                  'gnome': { 'INT': 2 },
-                  'half_elf': { 'CHA': 2 },
-                  'half_orc': { 'STR': 2, 'CON': 1 },
-                  'tiefling': { 'INT': 1, 'CHA': 2 }
+                  'tiefling': { 'CHA': 2, 'INT': 1 }
                 }
                 return raceBonuses[race]?.[abilityName] || 0
               }
