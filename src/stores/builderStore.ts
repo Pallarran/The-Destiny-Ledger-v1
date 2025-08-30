@@ -17,6 +17,7 @@ interface BuilderState {
   setActiveBuffs: (buffIds: string[]) => void
   setRound0Buffs: (buffIds: string[]) => void
   clearBuild: () => void
+  clearCurrentBuild: () => void
 }
 
 const createDefaultBuild = (): BuildConfiguration => ({
@@ -142,6 +143,13 @@ export const useBuilderStore = create<BuilderState>()(
     },
     
     clearBuild: () => {
+      set((state) => {
+        state.currentBuild = null
+        state.isDirty = false
+      })
+    },
+    
+    clearCurrentBuild: () => {
       set((state) => {
         state.currentBuild = null
         state.isDirty = false

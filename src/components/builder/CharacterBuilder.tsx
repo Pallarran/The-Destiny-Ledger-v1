@@ -59,7 +59,7 @@ export function CharacterBuilder({ buildId }: CharacterBuilderProps) {
   const navigate = useNavigate()
   const { addBuild } = useVaultStore()
   const { loadFromBuildConfiguration } = useCharacterBuilderStore()
-  const { currentBuild: storedBuild } = useBuilderStore()
+  const { currentBuild: storedBuild, clearCurrentBuild } = useBuilderStore()
   
   const {
     currentBuild,
@@ -83,7 +83,10 @@ export function CharacterBuilder({ buildId }: CharacterBuilderProps) {
   useEffect(() => {
     // Check if there's a build from the builderStore to load
     if (storedBuild && !currentBuild) {
+      console.log('Loading build from vault:', storedBuild.name)
       loadFromBuildConfiguration(storedBuild)
+      // Clear the builderStore after loading to prevent conflicts
+      clearCurrentBuild()
     } else if (!currentBuild) {
       if (buildId) {
         console.warn('Loading build by ID not yet implemented')
@@ -92,7 +95,7 @@ export function CharacterBuilder({ buildId }: CharacterBuilderProps) {
         createNewBuild()
       }
     }
-  }, [buildId, currentBuild, storedBuild, createNewBuild, loadFromBuildConfiguration])
+  }, [buildId, currentBuild, storedBuild, createNewBuild, loadFromBuildConfiguration, clearCurrentBuild])
   
   const handleStepChange = (step: string) => {
     goToStep(step as any)

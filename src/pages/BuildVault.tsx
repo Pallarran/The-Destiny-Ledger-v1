@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { Panel, PanelHeader } from '../components/ui/panel'
 import { Button } from '../components/ui/button'
 import { Card, CardContent } from '../components/ui/card'
@@ -50,6 +51,7 @@ export function BuildVault() {
     exportBuilds,
     exportBuild,
     importBuilds,
+    clearSampleBuilds,
     builds: rawBuilds = []
   } = vaultState
   
@@ -62,6 +64,11 @@ export function BuildVault() {
     builds = Array.isArray(rawBuilds) ? rawBuilds : []
   }
   builds = Array.isArray(builds) ? builds : []
+
+  // Clean up any remaining sample builds on component load
+  useEffect(() => {
+    clearSampleBuilds()
+  }, [clearSampleBuilds])
 
   const handleLoadBuild = (buildId: string) => {
     const build = builds.find(b => b.id === buildId)

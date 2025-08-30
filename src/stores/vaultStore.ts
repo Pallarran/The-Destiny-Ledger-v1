@@ -28,61 +28,15 @@ interface VaultStoreState extends VaultState {
   exportBuild: (id: string) => string | null
   importBuilds: (jsonData: string) => { success: boolean; message: string; imported?: number }
   importBuild: (jsonData: string) => { success: boolean; message: string }
+  
+  // Utility
+  clearSampleBuilds: () => void
 }
 
 // Storage key for localStorage persistence
 const VAULT_STORAGE_KEY = 'destiny-ledger-vault'
 
-// Sample builds to populate empty vault
-const getSampleBuilds = (): BuildConfiguration[] => [
-  {
-    id: 'sample-gwm-fighter',
-    name: 'Great Weapon Fighter',
-    createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // 7 days ago
-    updatedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), // 1 day ago
-    race: 'human_variant',
-    abilityMethod: 'pointbuy',
-    abilityScores: { STR: 16, DEX: 14, CON: 15, INT: 10, WIS: 13, CHA: 8 },
-    pointBuyLimit: 27,
-    levelTimeline: [
-      { level: 1, classId: 'fighter', features: [], featId: 'great_weapon_master' },
-      { level: 2, classId: 'fighter', features: [] },
-      { level: 3, classId: 'fighter', features: [] },
-      { level: 4, classId: 'fighter', features: [], asiOrFeat: 'asi' },
-      { level: 5, classId: 'fighter', features: [] }
-    ],
-    currentLevel: 5,
-    mainHandWeapon: 'greatsword',
-    weaponEnhancements: [],
-    activeBuffs: [],
-    round0Buffs: [],
-    tags: ['Fighter', 'DPS', 'Sample']
-  },
-  {
-    id: 'sample-ss-ranger',
-    name: 'Sharpshooter Ranger',
-    createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000), // 5 days ago
-    updatedAt: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
-    race: 'human_variant', 
-    abilityMethod: 'pointbuy',
-    abilityScores: { STR: 8, DEX: 16, CON: 14, INT: 12, WIS: 15, CHA: 10 },
-    pointBuyLimit: 27,
-    levelTimeline: [
-      { level: 1, classId: 'ranger', features: [], featId: 'sharpshooter' },
-      { level: 2, classId: 'ranger', features: [] },
-      { level: 3, classId: 'ranger', features: [] },
-      { level: 4, classId: 'ranger', features: [], asiOrFeat: 'asi' }
-    ],
-    currentLevel: 4,
-    mainHandWeapon: 'shortsword',
-    rangedWeapon: 'longbow',
-    weaponEnhancements: [],
-    activeBuffs: ['hunters_mark'],
-    round0Buffs: [],
-    tags: ['Ranger', 'Archery', 'Sample'],
-    notes: 'Focused on ranged damage with Hunter\'s Mark'
-  }
-]
+// No sample builds - vault starts empty
 
 // Load builds from localStorage
 const loadBuildsFromStorage = (): BuildConfiguration[] => {
@@ -96,17 +50,15 @@ const loadBuildsFromStorage = (): BuildConfiguration[] => {
         updatedAt: build.updatedAt ? new Date(build.updatedAt) : new Date()
       })) || []
       
-      // Return stored builds if any exist
-      if (builds.length > 0) {
-        return builds
-      }
+      // Return stored builds (even if empty array)
+      return builds
     }
   } catch (error) {
     console.warn('Failed to load builds from localStorage:', error)
   }
   
-  // Return sample builds if no stored builds exist
-  return getSampleBuilds()
+  // Return empty array if no stored builds exist
+  return []
 }
 
 // Save builds to localStorage
@@ -128,20 +80,8 @@ const saveBuildsToStorage = (builds: BuildConfiguration[]) => {
   }
 }
 
-// Initialize store with builds from storage/samples
+// Initialize store with builds from storage
 const initialBuilds = loadBuildsFromStorage()
-
-// Save initial sample builds to localStorage if needed
-if (initialBuilds.length > 0) {
-  try {
-    const stored = localStorage.getItem(VAULT_STORAGE_KEY)
-    if (!stored) {
-      saveBuildsToStorage(initialBuilds)
-    }
-  } catch (error) {
-    console.warn('Failed to save initial builds:', error)
-  }
-}
 
 export const useVaultStore = create<VaultStoreState>()(
   immer((set, get) => ({
@@ -172,8 +112,21 @@ export const useVaultStore = create<VaultStoreState>()(
     
     deleteBuild: (id) => {
       set((state) => {
+        const buildToDelete = state.builds.find(b => b.id === id)
+        if (!buildToDelete) {
+          console.warn(`Build with id ${id} not found for deletion`)
+          return
+        }
+        
+        console.log(`Deleting build: ${buildToDelete.name} (${id})`)
+        const initialCount = state.builds.length
+        
         state.builds = state.builds.filter(b => b.id !== id)
         state.selectedBuildIds = state.selectedBuildIds.filter(bid => bid !== id)
+        
+        const finalCount = state.builds.length
+        console.log(`Builds count: ${initialCount} -> ${finalCount}`)
+        
         saveBuildsToStorage(state.builds)
       })
     },
@@ -380,6 +333,23 @@ export const useVaultStore = create<VaultStoreState>()(
           message: `Failed to import build: ${error instanceof Error ? error.message : 'Unknown error'}` 
         }
       }
+    },
+    
+    clearSampleBuilds: () => {
+      set((state) => {
+        // Remove any builds with "Sample" tag or sample IDs
+        const beforeCount = state.builds.length
+        state.builds = state.builds.filter(build => 
+          !build.tags?.includes('Sample') &&
+          !build.id.startsWith('sample-')
+        )
+        const afterCount = state.builds.length
+        
+        if (beforeCount !== afterCount) {
+          console.log(`Removed ${beforeCount - afterCount} sample builds`)
+          saveBuildsToStorage(state.builds)
+        }
+      })
     }
   }))
 )
