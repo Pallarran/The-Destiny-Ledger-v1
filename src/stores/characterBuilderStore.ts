@@ -173,36 +173,83 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
     
     loadFromBuildConfiguration: (build: BuildConfiguration) => {
       set((state) => {
-        // Convert BuildConfiguration to CharacterBuilder
-        const characterBuilder: CharacterBuilder = {
-          ...build,
-          currentStep: 'summary', // Start at summary for existing builds
-          completedSteps: BUILDER_STEPS.slice(0, -1), // Mark all but summary complete
-          abilityAssignmentMethod: build.abilityMethod as AbilityAssignmentMethod,
-          pointBuyConfig: { ...DEFAULT_POINT_BUY_CONFIG, totalPoints: build.pointBuyLimit },
-          finalAbilityScores: { ...build.abilityScores }, // Copy ability scores to finalAbilityScores
-          racialBonuses: {},
-          // Restore equipment selections
-          selectedMainHand: build.mainHandWeapon,
-          selectedOffHand: build.offHandWeapon,
-          selectedRanged: build.rangedWeapon,
-          selectedArmor: build.armor,
-          hasShield: build.shield || false,
-          weaponEnhancements: build.weaponEnhancements || [],
-          enhancedLevelTimeline: build.levelTimeline.map(entry => ({
-            ...entry,
-            isCompleted: true,
+        try {
+          console.log('Loading build configuration:', build.name, 'ID:', build.id)
+          
+          // Convert BuildConfiguration to CharacterBuilder with defensive programming
+          const characterBuilder: CharacterBuilder = {
+            // Core build data with fallbacks
+            id: build.id || crypto.randomUUID(),
+            name: build.name || 'Unnamed Build',
+            createdAt: build.createdAt || new Date(),
+            updatedAt: build.updatedAt || new Date(),
+            notes: build.notes || '',
+            tags: build.tags || [],
+            
+            // Character basics with fallbacks
+            race: build.race || '',
+            background: build.background || '',
+            
+            // Ability scores with validation
+            abilityMethod: build.abilityMethod || 'pointbuy',
+            abilityScores: build.abilityScores || { STR: 8, DEX: 8, CON: 8, INT: 8, WIS: 8, CHA: 8 },
+            pointBuyLimit: build.pointBuyLimit || 27,
+            
+            // Level progression with validation
+            levelTimeline: build.levelTimeline || [],
+            currentLevel: build.currentLevel || 1,
+            
+            // Builder-specific fields
+            currentStep: 'summary', // Start at summary for existing builds
+            completedSteps: BUILDER_STEPS.slice(0, -1), // Mark all but summary complete
+            abilityAssignmentMethod: (build.abilityMethod || 'pointbuy') as AbilityAssignmentMethod,
+            pointBuyConfig: { ...DEFAULT_POINT_BUY_CONFIG, totalPoints: build.pointBuyLimit || 27 },
+            finalAbilityScores: build.abilityScores ? { ...build.abilityScores } : { STR: 8, DEX: 8, CON: 8, INT: 8, WIS: 8, CHA: 8 },
+            racialBonuses: {},
+            
+            // Restore equipment selections with defaults for legacy builds
+            selectedMainHand: build.mainHandWeapon,
+            selectedOffHand: build.offHandWeapon,
+            selectedRanged: build.rangedWeapon,
+            selectedArmor: build.armor,
+            hasShield: build.shield || false,
+            weaponEnhancements: build.weaponEnhancements || [],
+            mainHandWeapon: build.mainHandWeapon || '',
+            offHandWeapon: build.offHandWeapon || '',
+            rangedWeapon: build.rangedWeapon || '',
+            
+            // Buffs with defaults
+            activeBuffs: build.activeBuffs || [],
+            round0Buffs: build.round0Buffs || [],
+            
+            // Ensure level timeline exists and is valid
+            enhancedLevelTimeline: (build.levelTimeline || []).map(entry => ({
+              ...entry,
+              features: entry.features || [],
+              isCompleted: true,
+              validationErrors: []
+            })),
+            
+            // Builder state
+            maxLevel: 20,
+            isValid: true,
             validationErrors: []
-          })),
-          maxLevel: 20,
-          isValid: true,
-          validationErrors: []
+          }
+          
+          console.log('Successfully created character builder:', characterBuilder.name)
+          console.log('Enhanced level timeline length:', characterBuilder.enhancedLevelTimeline.length)
+          
+          state.currentBuild = characterBuilder
+          state.isDirty = false
+          state.currentStep = 'summary'
+          updateNavigationState(state)
+          
+          console.log('Build loaded successfully')
+        } catch (error) {
+          console.error('Error loading build configuration:', error)
+          console.error('Build data that failed to load:', build)
+          throw error
         }
-        
-        state.currentBuild = characterBuilder
-        state.isDirty = false
-        state.currentStep = 'summary'
-        updateNavigationState(state)
       })
     },
     

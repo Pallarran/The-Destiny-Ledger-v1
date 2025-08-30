@@ -78,16 +78,22 @@ export function BuildVault() {
     console.log('Found build:', build?.name, 'ID:', build?.id)
     
     if (build) {
-      // Clear any existing build first
-      resetBuild()
-      const { clearCurrentBuild } = useBuilderStore.getState()
-      clearCurrentBuild()
-      
-      console.log('Loading build into builderStore:', build.name)
-      loadBuild(build)
-      navigate('/builder')
+      try {
+        // Clear any existing build first
+        resetBuild()
+        const { clearCurrentBuild } = useBuilderStore.getState()
+        clearCurrentBuild()
+        
+        console.log('Loading build into builderStore:', build.name)
+        loadBuild(build)
+        navigate('/builder')
+      } catch (error) {
+        console.error('Error loading build:', error)
+        alert(`Failed to load build "${build.name}": ${error instanceof Error ? error.message : 'Unknown error'}. The build data may be corrupted or incompatible.`)
+      }
     } else {
       console.error('Build not found for ID:', buildId)
+      alert('Build not found')
     }
   }
 
