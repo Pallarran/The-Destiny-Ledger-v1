@@ -283,101 +283,100 @@ export function CharacterBuilder({ buildId }: CharacterBuilderProps) {
           </div>
         </div>
 
-        {/* Validation Status */}
-        {(issues.length > 0 || isValid || globalErrors.length > 0) && (
-          <div className="mb-4">
-            {issues.length > 0 && (
-              <div className="bg-destructive/5 border border-destructive/20 rounded-lg p-3 mb-3">
-                <div className="flex items-center gap-2 text-destructive text-sm font-medium mb-2">
-                  <AlertTriangle className="w-4 h-4" />
-                  Issues to Address
-                </div>
-                <ul className="text-sm text-destructive space-y-1">
-                  {issues.map((issue, index) => (
-                    <li key={index} className="ml-4">• {issue}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            {isValid && issues.length === 0 && globalErrors.length === 0 && (
-              <div className="bg-emerald/5 border border-emerald/20 rounded-lg p-3">
-                <div className="flex items-center gap-2 text-emerald text-sm font-medium">
-                  <CheckCircle className="w-4 h-4" />
-                  Build is valid and ready to save!
-                </div>
-              </div>
-            )}
-
-            {globalErrors.length > 0 && (
-              <div className="bg-destructive/5 border border-destructive/20 rounded-lg p-3">
-                <div className="flex items-center gap-2 text-destructive text-sm font-medium mb-2">
-                  <AlertTriangle className="w-4 h-4" />
-                  Build Validation Errors
-                </div>
-                <ul className="text-sm text-destructive space-y-1">
-                  {globalErrors.map((error, index) => (
-                    <li key={index} className="ml-4">• {error}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
+        {/* Horizontal Steps Navigation */}
+        <div className="mb-6">
+          <div className="flex flex-wrap gap-2 justify-center">
+            {BUILDER_STEPS.map((step, index) => {
+              const Icon = STEP_ICONS[step]
+              const isActive = step === currentStep
+              const isCompleted = stepValidation[step]
+              const isPrevious = index < BUILDER_STEPS.indexOf(currentStep)
+              
+              return (
+                <button
+                  key={step}
+                  onClick={() => handleStepChange(step)}
+                  disabled={!isPrevious && !isActive && !isCompleted}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    isActive 
+                      ? 'bg-accent/10 text-accent border border-accent/20' 
+                      : isCompleted 
+                      ? 'bg-emerald/5 text-emerald hover:bg-emerald/10' 
+                      : 'text-muted hover:bg-panel/5 hover:text-panel'
+                  } ${
+                    !isPrevious && !isActive && !isCompleted 
+                      ? 'opacity-50 cursor-not-allowed' 
+                      : 'cursor-pointer'
+                  }`}
+                >
+                  <div className="flex items-center justify-center w-5 h-5 rounded-full bg-current/10">
+                    {isCompleted ? (
+                      <CheckCircle className="w-3 h-3" />
+                    ) : (
+                      <Icon className="w-3 h-3" />
+                    )}
+                  </div>
+                  <span className="hidden sm:inline">{STEP_LABELS[step]}</span>
+                </button>
+              )
+            })}
           </div>
-        )}
+        </div>
       </Panel>
       
       {/* Main Content */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Step Navigation Sidebar */}
+        {/* Validation Sidebar */}
         <div className="lg:col-span-3">
           <Panel>
-            <h3 className="font-semibold text-panel mb-4">Build Steps</h3>
-            <div className="space-y-2">
-              {BUILDER_STEPS.map((step, index) => {
-                const Icon = STEP_ICONS[step]
-                const isActive = step === currentStep
-                const isCompleted = stepValidation[step]
-                const isPrevious = index < BUILDER_STEPS.indexOf(currentStep)
-                
-                return (
-                  <button
-                    key={step}
-                    onClick={() => handleStepChange(step)}
-                    disabled={!isPrevious && !isActive && !isCompleted}
-                    className={`w-full flex items-center gap-3 p-3 rounded-lg text-left transition-colors ${
-                      isActive 
-                        ? 'bg-accent/10 text-accent border border-accent/20' 
-                        : isCompleted 
-                        ? 'bg-emerald/5 text-emerald hover:bg-emerald/10' 
-                        : 'text-muted hover:bg-panel/5 hover:text-panel'
-                    } ${
-                      !isPrevious && !isActive && !isCompleted 
-                        ? 'opacity-50 cursor-not-allowed' 
-                        : 'cursor-pointer'
-                    }`}
-                  >
-                    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-current/10">
-                      {isCompleted ? (
-                        <CheckCircle className="w-4 h-4" />
-                      ) : (
-                        <Icon className="w-4 h-4" />
-                      )}
+            <h3 className="font-semibold text-foreground mb-4">Build Status</h3>
+            
+            {/* Validation Status */}
+            {(issues.length > 0 || isValid || globalErrors.length > 0) && (
+              <div className="space-y-3">
+                {issues.length > 0 && (
+                  <div className="bg-destructive/5 border border-destructive/20 rounded-lg p-3">
+                    <div className="flex items-center gap-2 text-destructive text-sm font-medium mb-2">
+                      <AlertTriangle className="w-4 h-4" />
+                      Issues to Address
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="font-medium truncate">{STEP_LABELS[step]}</div>
-                      <div className="text-xs opacity-70">
-                        {isCompleted ? 'Complete' : isActive ? 'Current' : 'Pending'}
-                      </div>
+                    <ul className="text-xs text-destructive space-y-1">
+                      {issues.map((issue, index) => (
+                        <li key={index} className="ml-4">• {issue}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {isValid && issues.length === 0 && globalErrors.length === 0 && (
+                  <div className="bg-emerald/5 border border-emerald/20 rounded-lg p-3">
+                    <div className="flex items-center gap-2 text-emerald text-sm font-medium">
+                      <CheckCircle className="w-4 h-4" />
+                      Build is valid and ready to save!
                     </div>
-                  </button>
-                )
-              })}
-            </div>
+                  </div>
+                )}
+
+                {globalErrors.length > 0 && (
+                  <div className="bg-destructive/5 border border-destructive/20 rounded-lg p-3">
+                    <div className="flex items-center gap-2 text-destructive text-sm font-medium mb-2">
+                      <AlertTriangle className="w-4 h-4" />
+                      Build Validation Errors
+                    </div>
+                    <ul className="text-xs text-destructive space-y-1">
+                      {globalErrors.map((error, index) => (
+                        <li key={index} className="ml-4">• {error}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            )}
           </Panel>
         </div>
         
         {/* Step Content */}
-        <div className="lg:col-span-9">
+        <div className="lg:col-span-6">
           <Panel>
             <Tabs value={currentStep} onValueChange={handleStepChange}>
               <TabsList className="hidden" />
@@ -446,6 +445,46 @@ export function CharacterBuilder({ buildId }: CharacterBuilderProps) {
                 <ChevronRight className="w-4 h-4 ml-2" />
               </Button>
             </div>
+          </Panel>
+        </div>
+
+        {/* Level Progression Sidebar */}
+        <div className="lg:col-span-3">
+          <Panel>
+            <h3 className="font-semibold text-foreground mb-4">Level Progression</h3>
+            
+            {currentBuild.enhancedLevelTimeline.length > 0 ? (
+              <div className="space-y-2">
+                {[...currentBuild.enhancedLevelTimeline]
+                  .sort((a, b) => a.level - b.level)
+                  .map(entry => (
+                    <div key={entry.level} className="flex items-center gap-3 p-3 bg-panel/5 rounded-lg">
+                      <div className="flex-shrink-0 w-6 h-6 bg-accent/10 text-accent rounded-full flex items-center justify-center text-xs font-bold">
+                        {entry.level}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium text-sm text-foreground capitalize">
+                          {entry.classId.replace('_', ' ')}
+                        </div>
+                        <div className="text-xs text-muted">
+                          {entry.features.length} features
+                          {entry.asiOrFeat && (
+                            <span className="ml-2 px-1 py-0.5 bg-accent/10 text-accent rounded text-xs">
+                              {entry.asiOrFeat === 'feat' ? 'Feat' : 'ASI'}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                }
+              </div>
+            ) : (
+              <div className="text-center py-8 text-muted">
+                <div className="text-sm">No levels added yet</div>
+                <div className="text-xs">Go to Class Progression to add levels</div>
+              </div>
+            )}
           </Panel>
         </div>
       </div>
