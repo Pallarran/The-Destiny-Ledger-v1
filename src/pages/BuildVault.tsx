@@ -1,8 +1,8 @@
 import { Panel, PanelHeader } from '../components/ui/panel'
 import { Button } from '../components/ui/button'
 import { Card, CardContent } from '../components/ui/card'
-import { Link } from 'react-router-dom'
-import { useVaultStore } from '../stores/vaultStore'
+import { Link, useNavigate } from 'react-router-dom'
+import { useVaultStore, getFilteredBuilds } from '../stores/vaultStore'
 import { useBuilderStore } from '../stores/builderStore'
 import { formatDistanceToNow } from 'date-fns'
 import { 
@@ -23,6 +23,7 @@ export function BuildVault() {
   // Simplified approach - get stores separately and safely
   const vaultState = useVaultStore()
   const { loadBuild } = useBuilderStore()
+  const navigate = useNavigate()
   
   if (!vaultState) {
     return (
@@ -52,13 +53,21 @@ export function BuildVault() {
     builds: rawBuilds = []
   } = vaultState
   
-  // Simple builds without filtering for now to isolate issue
-  const builds = Array.isArray(rawBuilds) ? rawBuilds : []
+  // Apply filtering and sorting
+  let builds = []
+  try {
+    builds = getFilteredBuilds(vaultState)
+  } catch (error) {
+    console.error('Error in getFilteredBuilds:', error)
+    builds = Array.isArray(rawBuilds) ? rawBuilds : []
+  }
+  builds = Array.isArray(builds) ? builds : []
 
   const handleLoadBuild = (buildId: string) => {
     const build = builds.find(b => b.id === buildId)
     if (build) {
       loadBuild(build)
+      navigate('/builder')
     }
   }
 
