@@ -5,6 +5,7 @@ import { Card, CardContent } from '../components/ui/card'
 import { Link, useNavigate } from 'react-router-dom'
 import { useVaultStore, getFilteredBuilds } from '../stores/vaultStore'
 import { useBuilderStore } from '../stores/builderStore'
+import { useCharacterBuilderStore } from '../stores/characterBuilderStore'
 import { formatDistanceToNow } from 'date-fns'
 import { 
   Plus, 
@@ -24,6 +25,7 @@ export function BuildVault() {
   // Simplified approach - get stores separately and safely
   const vaultState = useVaultStore()
   const { loadBuild } = useBuilderStore()
+  const { resetBuild } = useCharacterBuilderStore()
   const navigate = useNavigate()
   
   if (!vaultState) {
@@ -71,10 +73,21 @@ export function BuildVault() {
   }, [clearSampleBuilds])
 
   const handleLoadBuild = (buildId: string) => {
+    console.log('handleLoadBuild called with ID:', buildId)
     const build = builds.find(b => b.id === buildId)
+    console.log('Found build:', build?.name, 'ID:', build?.id)
+    
     if (build) {
+      // Clear any existing build first
+      resetBuild()
+      const { clearCurrentBuild } = useBuilderStore.getState()
+      clearCurrentBuild()
+      
+      console.log('Loading build into builderStore:', build.name)
       loadBuild(build)
       navigate('/builder')
+    } else {
+      console.error('Build not found for ID:', buildId)
     }
   }
 
@@ -218,10 +231,16 @@ export function BuildVault() {
             <Button 
               variant="accent"
               onClick={() => {
-                // Clear any existing build from builderStore before navigating
+                console.log('New Build clicked - clearing all stores')
+                // Clear both stores to ensure clean state
                 const { clearCurrentBuild } = useBuilderStore.getState()
                 clearCurrentBuild()
-                navigate('/builder')
+                resetBuild()
+                
+                // Small delay to ensure state clearing completes
+                setTimeout(() => {
+                  navigate('/builder')
+                }, 10)
               }}
             >
               <Plus className="w-4 h-4 mr-2" />

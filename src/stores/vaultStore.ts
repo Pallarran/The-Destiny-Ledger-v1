@@ -154,15 +154,21 @@ export const useVaultStore = create<VaultStoreState>()(
       set((state) => {
         const build = state.builds.find(b => b.id === id)
         if (build) {
+          const newId = crypto.randomUUID()
           const duplicate: BuildConfiguration = {
             ...build,
-            id: crypto.randomUUID(),
+            id: newId,
             name: `${build.name} (Copy)`,
             createdAt: new Date(),
             updatedAt: new Date()
           }
+          
+          console.log(`Duplicating build "${build.name}" (${id}) -> "${duplicate.name}" (${newId})`)
           state.builds.push(duplicate)
           saveBuildsToStorage(state.builds)
+          console.log('Total builds after duplication:', state.builds.length)
+        } else {
+          console.error(`Build with ID ${id} not found for duplication`)
         }
       })
     },

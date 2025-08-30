@@ -81,19 +81,24 @@ export function CharacterBuilder({ buildId }: CharacterBuilderProps) {
   } = useCharacterBuilderStore()
   
   useEffect(() => {
-    // Check if there's a build from the builderStore to load
+    console.log('CharacterBuilder useEffect - currentBuild:', currentBuild?.name, 'storedBuild:', storedBuild?.name)
+    
+    // If we have a stored build and no current build, load it
     if (storedBuild && !currentBuild) {
       console.log('Loading build from vault:', storedBuild.name)
       loadFromBuildConfiguration(storedBuild)
-      // Clear the builderStore after loading to prevent conflicts
-      clearCurrentBuild()
-    } else if (!currentBuild) {
+      // Clear immediately to prevent reload loops
+      setTimeout(() => clearCurrentBuild(), 0)
+      return // Exit early to prevent creating new build
+    }
+    
+    // Only create new build if we have no current build and no stored build
+    if (!currentBuild && !storedBuild) {
+      console.log('Creating new build - no stored or current build')
       if (buildId) {
         console.warn('Loading build by ID not yet implemented')
-        createNewBuild()
-      } else {
-        createNewBuild()
       }
+      createNewBuild()
     }
   }, [buildId, currentBuild, storedBuild, createNewBuild, loadFromBuildConfiguration, clearCurrentBuild])
   
