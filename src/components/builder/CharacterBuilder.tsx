@@ -477,14 +477,13 @@ export function CharacterBuilder({ buildId }: CharacterBuilderProps) {
                     return (
                       <div key={entry.level} className="flex items-center gap-3 p-3 bg-panel/5 rounded-lg">
                         <div className="flex-shrink-0 w-6 h-6 bg-accent/10 text-accent rounded-full flex items-center justify-center text-xs font-bold">
-                          {classLevel}
+                          {entry.level}
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="font-medium text-sm text-foreground capitalize">
                             {entry.classId.replace('_', ' ')} {classLevel}
                           </div>
                           <div className="text-xs text-muted">
-                            Char Level {entry.level}
                             {/* Class Features */}
                             {entry.features.length > 0 && (
                               <div className="mt-1">
