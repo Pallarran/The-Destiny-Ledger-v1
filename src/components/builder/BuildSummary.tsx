@@ -172,7 +172,7 @@ export function BuildSummary() {
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              {currentBuild.enhancedLevelTimeline
+              {[...currentBuild.enhancedLevelTimeline]
                 .sort((a, b) => a.level - b.level)
                 .map(entry => (
                   <div key={entry.level} className="flex items-center justify-between p-2 bg-panel/5 rounded">
