@@ -227,7 +227,9 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
               ...entry,
               features: entry.features || [],
               isCompleted: true,
-              validationErrors: []
+              validationErrors: [],
+              fightingStyle: (entry as any).fightingStyle,
+              archetype: (entry as any).archetype
             })),
             
             // Builder state
@@ -277,7 +279,9 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
           asiOrFeat: entry.asiOrFeat,
           featId: entry.featId,
           abilityIncreases: entry.abilityIncreases,
-          notes: entry.notes
+          notes: entry.notes,
+          fightingStyle: (entry as any).fightingStyle,
+          archetype: (entry as any).archetype
         })),
         currentLevel: currentBuild.currentLevel,
         mainHandWeapon: currentBuild.selectedMainHand,
@@ -432,7 +436,9 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
               asiOrFeat: entry.asiOrFeat,
               featId: entry.featId,
               abilityIncreases: entry.abilityIncreases,
-              notes: entry.notes
+              notes: entry.notes,
+              fightingStyle: (entry as any).fightingStyle,
+              archetype: (entry as any).archetype
             }))
             
             state.currentBuild.currentLevel = Math.max(state.currentBuild.currentLevel || 1, level)
