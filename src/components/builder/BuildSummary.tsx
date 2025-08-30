@@ -4,15 +4,14 @@ import { useCharacterBuilderStore } from '../../stores/characterBuilderStore'
 import { getRace, getClass } from '../../rules/loaders'
 import type { ClassDefinition } from '../../rules/types'
 import { getAllSkills, getProficiencyBonus } from '../../rules/srd/skills'
+import { armor } from '../../rules/srd/armor'
 import { 
   Dices, 
   Sword,
   Shield,
   Brain,
-  Eye,
   Sparkles,
-  User,
-  Scroll
+  User
 } from 'lucide-react'
 
 export function BuildSummary() {
@@ -54,10 +53,32 @@ export function BuildSummary() {
     }
   })
   
+  // Get background skills (hardcoded for now since backgrounds aren't in a proper data file)
+  const getBackgroundSkills = (background: string): string[] => {
+    const backgroundSkills: Record<string, string[]> = {
+      'acolyte': ['Insight', 'Religion'],
+      'criminal': ['Deception', 'Stealth'],
+      'folk_hero': ['Animal Handling', 'Survival'],
+      'noble': ['History', 'Persuasion'],
+      'sage': ['Arcana', 'History'],
+      'soldier': ['Athletics', 'Intimidation'],
+      'hermit': ['Medicine', 'Religion'],
+      'entertainer': ['Acrobatics', 'Performance'],
+      'guild_artisan': ['Insight', 'Persuasion'],
+      'outlander': ['Athletics', 'Survival']
+    }
+    return backgroundSkills[background] || []
+  }
+  
+  const backgroundSkills = getBackgroundSkills(currentBuild.background || '')
+  
   // Calculate skill bonuses
   const skillBonuses = getAllSkills().map(skill => {
     const abilityMod = getAbilityModifier(abilityScores[skill.ability as keyof typeof abilityScores])
-    const isProficient = currentBuild.skillProficiencies?.includes(skill.name) || false
+    // Check proficiency from class skills OR background skills
+    const isProficient = currentBuild.skillProficiencies?.includes(skill.name) || 
+                        backgroundSkills.includes(skill.name) || 
+                        false
     // TODO: Add expertise tracking
     const hasExpertise = false
     
@@ -74,9 +95,34 @@ export function BuildSummary() {
     }
   })
   
-  // Calculate combat stats
+  // Calculate combat stats with actual equipment
   const dexMod = getAbilityModifier(abilityScores.DEX)
-  const baseAC = 10 + dexMod // Unarmored default
+  const selectedArmor = currentBuild.selectedArmor ? armor[currentBuild.selectedArmor] : null
+  
+  // Calculate AC properly with equipment
+  const calculateAC = () => {
+    let baseAC = 10
+    
+    if (selectedArmor) {
+      baseAC = selectedArmor.ac
+      if (selectedArmor.dexModifier === 'full') {
+        baseAC += dexMod
+      } else if (selectedArmor.dexModifier === 'limited') {
+        baseAC += Math.min(dexMod, selectedArmor.dexMax || 2)
+      }
+      // No dex bonus for heavy armor (dexModifier === 'none')
+    } else {
+      baseAC += dexMod // Unarmored
+    }
+    
+    if (currentBuild.hasShield) {
+      baseAC += 2
+    }
+    
+    return baseAC
+  }
+  
+  const actualAC = calculateAC()
   const initiative = dexMod
   
   // Calculate HP (assuming average HP per level for now)
@@ -135,7 +181,7 @@ export function BuildSummary() {
           <CardContent className="space-y-2">
             <div className="flex justify-between text-sm">
               <span className="text-muted">Armor Class</span>
-              <span className="font-bold text-accent">{baseAC}</span>
+              <span className="font-bold text-accent">{actualAC}</span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-muted">Initiative</span>
@@ -292,69 +338,6 @@ export function BuildSummary() {
         </CardContent>
       </Card>
       
-      {/* Class Features & Feats */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Class Features */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Eye className="w-5 h-5" />
-              Class Features
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              {currentBuild.enhancedLevelTimeline.map((level, idx) => (
-                level.features.length > 0 && (
-                  <div key={idx} className="text-sm">
-                    <div className="font-medium text-muted mb-1">Level {level.level}</div>
-                    <div className="flex flex-wrap gap-1">
-                      {level.features.map((feature, fidx) => (
-                        <Badge key={fidx} variant="outline" className="text-xs">
-                          {feature}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                )
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-        
-        {/* Feats */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Scroll className="w-5 h-5" />
-              Feats & ASIs
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              {currentBuild.enhancedLevelTimeline.filter(l => l.asiOrFeat).map((level, idx) => (
-                <div key={idx} className="flex items-center justify-between p-2 bg-panel/5 rounded">
-                  <span className="text-sm">Level {level.level}</span>
-                  {level.asiOrFeat === 'feat' ? (
-                    <Badge className="text-xs bg-accent text-ink">
-                      {level.featId || 'Feat'}
-                    </Badge>
-                  ) : (
-                    <Badge variant="secondary" className="text-xs">
-                      ASI
-                    </Badge>
-                  )}
-                </div>
-              ))}
-              {currentBuild.enhancedLevelTimeline.filter(l => l.asiOrFeat).length === 0 && (
-                <div className="text-sm text-muted text-center py-4">
-                  No feats or ASIs taken yet
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
     </div>
   )
 }
