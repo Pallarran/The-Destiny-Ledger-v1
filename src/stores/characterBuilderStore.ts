@@ -415,7 +415,8 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
             }
             
             state.currentBuild.enhancedLevelTimeline.push(newEntry)
-            state.currentBuild.enhancedLevelTimeline.sort((a, b) => a.level - b.level)
+            // Sort by creating a new array to avoid readonly property errors
+            state.currentBuild.enhancedLevelTimeline = [...state.currentBuild.enhancedLevelTimeline].sort((a, b) => a.level - b.level)
             
             // Ensure legacy levelTimeline exists for compatibility
             if (!state.currentBuild.levelTimeline) {
