@@ -48,6 +48,13 @@ interface FightingStyleChoiceProps {
   onChoice: (styleId: string) => void
 }
 
+interface ArchetypeChoiceProps {
+  level: number
+  classId: string
+  currentChoice?: string
+  onChoice: (archetypeId: string) => void
+}
+
 function ASIFeatChoice({ level, currentChoice, featId, abilityIncreases, onChoice }: ASIFeatChoiceProps) {
   const [selectedFeat, setSelectedFeat] = useState(featId || '')
   const [asiChoices, setAsiChoices] = useState<Partial<AbilityScoreArray>>(abilityIncreases || {})
@@ -291,6 +298,83 @@ function FightingStyleChoice({ level, classId, currentChoice, onChoice }: Fighti
   )
 }
 
+function ArchetypeChoice({ level, classId, currentChoice, onChoice }: ArchetypeChoiceProps) {
+  const [selectedArchetype, setSelectedArchetype] = useState(currentChoice || '')
+  
+  // For now, provide basic archetype options per class
+  const archetypeOptions = {
+    fighter: [
+      { id: 'champion', name: 'Champion', description: 'Improved critical hit chance and athletic prowess.' },
+      { id: 'battle_master', name: 'Battle Master', description: 'Tactical combat maneuvers and superiority dice.' },
+      { id: 'eldritch_knight', name: 'Eldritch Knight', description: 'Blend of martial prowess and wizard spellcasting.' }
+    ],
+    rogue: [
+      { id: 'thief', name: 'Thief', description: 'Enhanced climbing, stealth, and use of magic items.' },
+      { id: 'assassin', name: 'Assassin', description: 'Deadly surprise attacks and infiltration skills.' },
+      { id: 'arcane_trickster', name: 'Arcane Trickster', description: 'Combines roguish skills with wizard magic.' }
+    ],
+    wizard: [
+      { id: 'evocation', name: 'School of Evocation', description: 'Mastery of destructive magic and sculpted spells.' },
+      { id: 'abjuration', name: 'School of Abjuration', description: 'Protective magic and spell resistance.' }
+    ],
+    cleric: [
+      { id: 'life', name: 'Life Domain', description: 'Enhanced healing and vitality magic.' },
+      { id: 'war', name: 'War Domain', description: 'Divine magic focused on battle and conflict.' }
+    ]
+  } as const
+  
+  const availableArchetypes = archetypeOptions[classId as keyof typeof archetypeOptions] || []
+
+  const handleArchetypeChange = (archetypeId: string) => {
+    setSelectedArchetype(archetypeId)
+    onChoice(archetypeId)
+  }
+
+  return (
+    <Card className="border-accent/20">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-sm flex items-center gap-2">
+          <div className="w-6 h-6 bg-accent/10 text-accent rounded-full flex items-center justify-center text-xs font-bold">
+            {level}
+          </div>
+          Archetype Choice
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="text-sm text-muted mb-3">
+          Choose your {classId} archetype to specialize your abilities:
+        </div>
+        
+        <div className="grid gap-2">
+          {availableArchetypes.map(archetype => (
+            <button
+              key={archetype.id}
+              onClick={() => handleArchetypeChange(archetype.id)}
+              className={`text-left p-3 rounded-lg border transition-colors ${
+                selectedArchetype === archetype.id
+                  ? 'border-accent bg-accent/5'
+                  : 'border-border hover:border-accent/50 hover:bg-accent/5'
+              }`}
+            >
+              <div className="font-medium text-sm">{archetype.name}</div>
+              <div className="text-xs text-muted mt-1">{archetype.description}</div>
+            </button>
+          ))}
+        </div>
+        
+        {selectedArchetype && (
+          <div className="p-3 bg-emerald/5 border border-emerald/20 rounded">
+            <div className="flex items-center gap-2 text-emerald text-sm">
+              <CheckCircle className="w-4 h-4" />
+              Archetype selected successfully!
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  )
+}
+
 function LevelMilestoneCard({ entry, milestone, classData }: {
   entry: BuilderLevelEntry
   milestone: LevelMilestone
@@ -375,6 +459,7 @@ export function EnhancedLevelTimeline() {
   const [selectedClass, setSelectedClass] = useState('')
   const [showASIFeat, setShowASIFeat] = useState<number | null>(null)
   const [showFightingStyle, setShowFightingStyle] = useState<number | null>(null)
+  const [showArchetype, setShowArchetype] = useState<number | null>(null)
   
   if (!currentBuild) {
     return <div className="text-center text-muted">Loading class progression...</div>
@@ -396,23 +481,47 @@ export function EnhancedLevelTimeline() {
     // Detect special milestones
     const hasASI = features.some(f => f.rulesKey === 'asi')
     const hasArchetype = features.some(f => f.id.includes('archetype'))
+    const hasFightingStyle = features.some(f => f.rulesKey === 'fighting_style')
     const hasMajorFeature = features.some(f => 
       f.rulesKey?.includes('extra_attack') || f.rulesKey?.includes('action_surge') || f.rulesKey?.includes('sneak_attack')
     )
     
+    // Determine milestone type and description
     if (hasASI) {
       type = entry.asiOrFeat === 'feat' ? 'feat' : 'asi'
       description = entry.asiOrFeat === 'feat' ? `Feat: ${entry.featId || 'Choose feat'}` : 'Ability Score Improvement'
     } else if (hasArchetype) {
       type = 'archetype'
       description = `Choose ${classData?.name} archetype`
+    } else if (hasFightingStyle) {
+      type = 'major_feature'
+      const fightingStyleName = (entry as any).fightingStyle ? 
+        classData?.fightingStyles?.find(fs => fs.id === (entry as any).fightingStyle)?.name : 
+        'Choose Fighting Style'
+      description = `Fighting Style: ${fightingStyleName}`
     } else if (hasMajorFeature) {
       type = 'major_feature'
       description = features.find(f => f.rulesKey?.includes('extra_attack') || f.rulesKey?.includes('action_surge'))?.name || description
     }
     
-    const isComplete = Boolean(entry.isCompleted && (!hasASI || entry.asiOrFeat !== null))
-    const hasIssues = Boolean((entry.validationErrors?.length || 0) > 0 || (hasASI && !entry.asiOrFeat))
+    // Determine completion status
+    const needsASIChoice = hasASI && !entry.asiOrFeat
+    const needsFightingStyleChoice = hasFightingStyle && !(entry as any).fightingStyle
+    const needsArchetypeChoice = hasArchetype && !(entry as any).archetype
+    
+    const isComplete = Boolean(
+      entry.isCompleted && 
+      !needsASIChoice && 
+      !needsFightingStyleChoice && 
+      !needsArchetypeChoice
+    )
+    
+    const hasIssues = Boolean(
+      (entry.validationErrors?.length || 0) > 0 || 
+      needsASIChoice || 
+      needsFightingStyleChoice || 
+      needsArchetypeChoice
+    )
     
     return {
       level: entry.level,
@@ -443,6 +552,12 @@ export function EnhancedLevelTimeline() {
     // Store the fighting style choice in the level entry
     updateLevel(level, { fightingStyle: styleId })
     setShowFightingStyle(null)
+  }
+
+  const handleArchetypeChoice = (level: number, archetypeId: string) => {
+    // Store the archetype choice in the level entry
+    updateLevel(level, { archetype: archetypeId })
+    setShowArchetype(null)
   }
 
   // Trigger validation when levels change
@@ -524,6 +639,7 @@ export function EnhancedLevelTimeline() {
               const features = classData?.features[classLevel] || []
               const hasASI = features.some(f => f.rulesKey === 'asi')
               const hasFightingStyle = features.some(f => f.rulesKey === 'fighting_style')
+              const hasArchetype = features.some(f => f.id.includes('archetype'))
               
               return (
                 <div key={entry.level}>
@@ -534,7 +650,7 @@ export function EnhancedLevelTimeline() {
                   />
                   
                   {/* Fighting Style Choice */}
-                  {hasFightingStyle && (showFightingStyle === entry.level || (!(entry as any).fightingStyle && !showFightingStyle)) && (
+                  {hasFightingStyle && (showFightingStyle === entry.level || (!(entry as any).fightingStyle && showFightingStyle === null)) && (
                     <div className="ml-12 mt-2">
                       <FightingStyleChoice
                         level={entry.level}
@@ -556,6 +672,33 @@ export function EnhancedLevelTimeline() {
                       >
                         <AlertTriangle className="w-3 h-3 mr-1 text-danger" />
                         Choose Fighting Style
+                      </Button>
+                    </div>
+                  )}
+                  
+                  {/* Archetype Choice */}
+                  {hasArchetype && (showArchetype === entry.level || (!(entry as any).archetype && showArchetype === null)) && (
+                    <div className="ml-12 mt-2">
+                      <ArchetypeChoice
+                        level={entry.level}
+                        classId={entry.classId}
+                        currentChoice={(entry as any).archetype}
+                        onChoice={(archetypeId) => handleArchetypeChoice(entry.level, archetypeId)}
+                      />
+                    </div>
+                  )}
+                  
+                  {/* Show Archetype button if not expanded */}
+                  {hasArchetype && !(entry as any).archetype && showArchetype !== entry.level && (
+                    <div className="ml-12 mt-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setShowArchetype(entry.level)}
+                        className="text-xs"
+                      >
+                        <AlertTriangle className="w-3 h-3 mr-1 text-danger" />
+                        Choose Archetype
                       </Button>
                     </div>
                   )}

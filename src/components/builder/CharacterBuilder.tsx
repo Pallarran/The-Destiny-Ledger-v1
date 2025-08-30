@@ -488,7 +488,17 @@ export function CharacterBuilder({ buildId }: CharacterBuilderProps) {
                           {entry.features.length} features
                           {entry.asiOrFeat && (
                             <span className="ml-2 px-1 py-0.5 bg-accent/10 text-accent rounded text-xs">
-                              {entry.asiOrFeat === 'feat' ? 'Feat' : 'ASI'}
+                              {entry.asiOrFeat === 'feat' ? entry.featId || 'Feat' : 'ASI'}
+                            </span>
+                          )}
+                          {(entry as any).fightingStyle && (
+                            <span className="ml-2 px-1 py-0.5 bg-emerald/10 text-emerald rounded text-xs">
+                              {(entry as any).fightingStyle.replace('_', ' ')}
+                            </span>
+                          )}
+                          {(entry as any).archetype && (
+                            <span className="ml-2 px-1 py-0.5 bg-gold/10 text-gold rounded text-xs">
+                              {(entry as any).archetype.replace('_', ' ')}
                             </span>
                           )}
                         </div>
