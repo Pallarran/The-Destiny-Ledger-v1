@@ -427,9 +427,16 @@ function LevelMilestoneCard({ entry, classData, classLevel, onFightingStyleClick
   const colorClass = classData ? CLASS_COLORS[classData.id as keyof typeof CLASS_COLORS] || '' : ''
 
   // Create feature list with completion status
-  const features = []
+  const features: Array<{
+    id: string
+    name: string
+    type: string
+    isComplete: boolean
+    isRequired: boolean
+    onClick?: () => void
+  }> = []
   
-  // Class features
+  // Class features from actual level data
   if (entry.features && entry.features.length > 0) {
     entry.features.forEach(featureId => {
       features.push({
@@ -442,8 +449,21 @@ function LevelMilestoneCard({ entry, classData, classLevel, onFightingStyleClick
     })
   }
 
-  // Fighting Style choice
+  // Also check for features from class definition
   const classFeatures = classData?.features[classLevel] || []
+  classFeatures.forEach((feature: any) => {
+    if (feature.rulesKey !== 'fighting_style' && feature.rulesKey !== 'asi' && !feature.id.includes('archetype')) {
+      features.push({
+        id: feature.id || feature.name,
+        name: feature.name,
+        type: 'class_feature',
+        isComplete: true,
+        isRequired: false
+      })
+    }
+  })
+
+  // Fighting Style choice
   const hasFightingStyle = classFeatures.some((f: any) => f.rulesKey === 'fighting_style')
   if (hasFightingStyle) {
     features.push({
@@ -804,7 +824,7 @@ export function EnhancedLevelTimeline() {
                   )}
                   
                   {/* Fighting Style Choice */}
-                  {hasFightingStyle && (showFightingStyle === entry.level || (!(entry as any).fightingStyle && showFightingStyle === null)) && (
+                  {hasFightingStyle && showFightingStyle === entry.level && (
                     <div className="ml-12 mt-2">
                       <FightingStyleChoice
                         level={entry.level}
@@ -816,7 +836,7 @@ export function EnhancedLevelTimeline() {
                   )}
                   
                   {/* Archetype Choice */}
-                  {hasArchetype && (showArchetype === entry.level || (!(entry as any).archetype && showArchetype === null)) && (
+                  {hasArchetype && showArchetype === entry.level && (
                     <div className="ml-12 mt-2">
                       <ArchetypeChoice
                         level={entry.level}
@@ -828,7 +848,7 @@ export function EnhancedLevelTimeline() {
                   )}
                   
                   {/* ASI/Feat Choice */}
-                  {hasASI && (showASIFeat === entry.level || (!entry.asiOrFeat && !showASIFeat)) && (
+                  {hasASI && showASIFeat === entry.level && (
                     <div className="ml-12 mt-2">
                       <ASIFeatChoice
                         level={entry.level}
@@ -840,20 +860,6 @@ export function EnhancedLevelTimeline() {
                     </div>
                   )}
                   
-                  {/* Show ASI/Feat button if not expanded */}
-                  {hasASI && !entry.asiOrFeat && showASIFeat !== entry.level && (
-                    <div className="ml-12 mt-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setShowASIFeat(entry.level)}
-                        className="text-xs"
-                      >
-                        <AlertTriangle className="w-3 h-3 mr-1 text-danger" />
-                        Choose ASI or Feat
-                      </Button>
-                    </div>
-                  )}
                 </div>
               )
             })}
