@@ -33,9 +33,6 @@ export function BuildSummary() {
     <div className="space-y-6">
       <div>
         <h2 className="text-xl font-bold text-panel mb-2">Build Summary</h2>
-        <p className="text-muted">
-          Review your completed character build and calculate DPR.
-        </p>
       </div>
       
       {/* Character Overview */}
@@ -164,42 +161,6 @@ export function BuildSummary() {
         </CardContent>
       </Card>
       
-      {/* Level Progression Summary */}
-      {currentBuild.enhancedLevelTimeline.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Level Progression</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              {[...currentBuild.enhancedLevelTimeline]
-                .sort((a, b) => a.level - b.level)
-                .map(entry => (
-                  <div key={entry.level} className="flex items-center justify-between p-2 bg-panel/5 rounded">
-                    <div className="flex items-center gap-3">
-                      <div className="w-6 h-6 bg-accent/10 text-accent rounded-full flex items-center justify-center text-xs font-bold">
-                        {entry.level}
-                      </div>
-                      <span className="font-medium">{entry.classId}</span>
-                    </div>
-                    
-                    <div className="flex items-center gap-2">
-                      {entry.asiOrFeat && (
-                        <Badge variant="outline" className="text-xs">
-                          {entry.asiOrFeat === 'feat' ? 'Feat' : 'ASI'}
-                        </Badge>
-                      )}
-                      <Badge variant="outline" className="text-xs">
-                        {entry.features.length} features
-                      </Badge>
-                    </div>
-                  </div>
-                ))
-              }
-            </div>
-          </CardContent>
-        </Card>
-      )}
     </div>
   )
 }
