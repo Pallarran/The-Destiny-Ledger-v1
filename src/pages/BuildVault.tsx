@@ -35,7 +35,7 @@ export function BuildVault() {
   } = useVaultStore()
   
   const { loadBuild } = useBuilderStore()
-  const builds = useVaultStore(getFilteredBuilds)
+  const builds = useVaultStore((state) => getFilteredBuilds(state))
 
   const handleLoadBuild = (buildId: string) => {
     const build = builds.find(b => b.id === buildId)
@@ -252,7 +252,7 @@ export function BuildVault() {
                   
                   <div className="flex items-center gap-2 text-xs text-muted">
                     <Calendar className="w-3 h-3" />
-                    Last edited {formatLastEdited(build.updatedAt)}
+                    Last edited {build.updatedAt ? formatLastEdited(build.updatedAt) : 'Unknown'}
                   </div>
                 </div>
               </CardContent>

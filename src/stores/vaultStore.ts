@@ -112,8 +112,15 @@ const loadBuildsFromStorage = (): BuildConfiguration[] => {
 // Save builds to localStorage
 const saveBuildsToStorage = (builds: BuildConfiguration[]) => {
   try {
+    // Convert dates to ISO strings for JSON serialization
+    const serializedBuilds = builds.map(build => ({
+      ...build,
+      createdAt: build.createdAt instanceof Date ? build.createdAt.toISOString() : build.createdAt,
+      updatedAt: build.updatedAt instanceof Date ? build.updatedAt.toISOString() : build.updatedAt
+    }))
+    
     localStorage.setItem(VAULT_STORAGE_KEY, JSON.stringify({
-      builds,
+      builds: serializedBuilds,
       lastSaved: new Date().toISOString()
     }))
   } catch (error) {
