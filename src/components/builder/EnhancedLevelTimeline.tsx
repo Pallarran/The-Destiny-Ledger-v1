@@ -509,13 +509,11 @@ export function EnhancedLevelTimeline() {
     const needsFightingStyleChoice = hasFightingStyle && !(entry as any).fightingStyle
     const needsArchetypeChoice = hasArchetype && !(entry as any).archetype
     
-    const isComplete = Boolean(
-      entry.isCompleted && 
-      !needsASIChoice && 
-      !needsFightingStyleChoice && 
-      !needsArchetypeChoice
-    )
+    // A level is complete if all required choices are made
+    const hasAllRequiredChoices = !needsASIChoice && !needsFightingStyleChoice && !needsArchetypeChoice
+    const isComplete = hasAllRequiredChoices
     
+    // Only show issues if there are actual choices needed
     const hasIssues = Boolean(
       (entry.validationErrors?.length || 0) > 0 || 
       needsASIChoice || 
@@ -550,13 +548,13 @@ export function EnhancedLevelTimeline() {
 
   const handleFightingStyleChoice = (level: number, styleId: string) => {
     // Store the fighting style choice in the level entry
-    updateLevel(level, { fightingStyle: styleId })
+    updateLevel(level, { fightingStyle: styleId, isCompleted: true })
     setShowFightingStyle(null)
   }
 
   const handleArchetypeChoice = (level: number, archetypeId: string) => {
     // Store the archetype choice in the level entry
-    updateLevel(level, { archetype: archetypeId })
+    updateLevel(level, { archetype: archetypeId, isCompleted: true })
     setShowArchetype(null)
   }
 

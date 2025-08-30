@@ -11,6 +11,8 @@ export interface LevelEntry {
   featId?: string
   abilityIncreases?: Partial<AbilityScoreArray>
   notes?: string
+  fightingStyle?: string
+  archetype?: string
 }
 
 export interface BuildConfiguration {

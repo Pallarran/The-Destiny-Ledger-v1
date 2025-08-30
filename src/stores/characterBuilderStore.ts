@@ -466,7 +466,10 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
                 asiOrFeat: entry.asiOrFeat,
                 featId: entry.featId,
                 abilityIncreases: entry.abilityIncreases,
-                notes: entry.notes
+                notes: entry.notes,
+                // Include new fields for fighting styles and archetypes
+                ...(entry.fightingStyle && { fightingStyle: entry.fightingStyle }),
+                ...(entry.archetype && { archetype: entry.archetype })
               })
             }
             
