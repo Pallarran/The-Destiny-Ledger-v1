@@ -413,16 +413,20 @@ export const getFilteredBuilds = (state: VaultStoreState): BuildConfiguration[] 
     
     switch (state.sortBy) {
       case 'name':
-        comparison = a.name.localeCompare(b.name)
+        comparison = (a.name || '').localeCompare(b.name || '')
         break
       case 'level':
-        comparison = a.currentLevel - b.currentLevel
+        comparison = (a.currentLevel || 1) - (b.currentLevel || 1)
         break
       case 'createdAt':
-        comparison = a.createdAt.getTime() - b.createdAt.getTime()
+        const aCreated = a.createdAt instanceof Date ? a.createdAt : new Date(a.createdAt || 0)
+        const bCreated = b.createdAt instanceof Date ? b.createdAt : new Date(b.createdAt || 0)
+        comparison = aCreated.getTime() - bCreated.getTime()
         break
       case 'updatedAt':
-        comparison = a.updatedAt.getTime() - b.updatedAt.getTime()
+        const aUpdated = a.updatedAt instanceof Date ? a.updatedAt : new Date(a.updatedAt || 0)
+        const bUpdated = b.updatedAt instanceof Date ? b.updatedAt : new Date(b.updatedAt || 0)
+        comparison = aUpdated.getTime() - bUpdated.getTime()
         break
     }
     
