@@ -182,6 +182,13 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
           pointBuyConfig: { ...DEFAULT_POINT_BUY_CONFIG, totalPoints: build.pointBuyLimit },
           finalAbilityScores: { ...build.abilityScores }, // Copy ability scores to finalAbilityScores
           racialBonuses: {},
+          // Restore equipment selections
+          selectedMainHand: build.mainHandWeapon,
+          selectedOffHand: build.offHandWeapon,
+          selectedRanged: build.rangedWeapon,
+          selectedArmor: build.armor,
+          hasShield: build.shield || false,
+          weaponEnhancements: build.weaponEnhancements || [],
           enhancedLevelTimeline: build.levelTimeline.map(entry => ({
             ...entry,
             isCompleted: true,
@@ -229,6 +236,8 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
         mainHandWeapon: currentBuild.selectedMainHand,
         offHandWeapon: currentBuild.selectedOffHand,
         rangedWeapon: currentBuild.selectedRanged,
+        armor: currentBuild.selectedArmor,
+        shield: currentBuild.hasShield,
         weaponEnhancements: currentBuild.weaponEnhancements,
         activeBuffs: currentBuild.activeBuffs,
         round0Buffs: currentBuild.round0Buffs

@@ -38,6 +38,8 @@ export interface BuildConfiguration {
   mainHandWeapon?: string
   offHandWeapon?: string
   rangedWeapon?: string
+  armor?: string
+  shield?: boolean
   weaponEnhancements: string[]
   
   // Active buffs
