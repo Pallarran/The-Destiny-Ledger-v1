@@ -806,16 +806,19 @@ function validateAbilityScores(build: CharacterBuilder): boolean {
   
   // Method-specific validation
   if (build.abilityAssignmentMethod === 'pointbuy') {
-    // For point buy, all 27 points must be spent
+    // For point buy, check that points are within budget (0-27)
     const pointCosts = { 8: 0, 9: 1, 10: 2, 11: 3, 12: 4, 13: 5, 14: 7, 15: 9 }
     const totalUsed = scores.reduce((sum, score) => sum + (pointCosts[score as keyof typeof pointCosts] || 0), 0)
-    return totalUsed === 27
+    return totalUsed >= 0 && totalUsed <= 27 // Allow any valid point spend, not just exactly 27
   } else if (build.abilityAssignmentMethod === 'standard') {
-    // For standard array, all values (15,14,13,12,10,8) must be used exactly once
+    // For standard array, check if user has made any assignments (not all 8s)
+    const hasAssignments = scores.some(score => score !== 8)
+    if (!hasAssignments) return false
+    
+    // Check if all values are from standard array
     const standardArray = [15, 14, 13, 12, 10, 8]
-    const sortedScores = [...scores].sort((a, b) => b - a)
-    const sortedStandard = [...standardArray].sort((a, b) => b - a)
-    return JSON.stringify(sortedScores) === JSON.stringify(sortedStandard)
+    const validValues = scores.every(score => standardArray.includes(score))
+    return validValues
   } else {
     // For custom/manual, just check bounds (already done above)
     return true

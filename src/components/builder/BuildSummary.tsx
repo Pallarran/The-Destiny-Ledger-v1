@@ -163,12 +163,8 @@ export function BuildSummary() {
               <h4 className="font-medium text-panel mb-3">Weapons</h4>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-muted">Main Hand:</span>
+                  <span className="text-muted">Weapon:</span>
                   <span>{currentBuild.selectedMainHand || 'None'}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted">Ranged:</span>
-                  <span>{currentBuild.selectedRanged || 'None'}</span>
                 </div>
               </div>
             </div>
