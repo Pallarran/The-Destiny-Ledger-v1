@@ -215,11 +215,17 @@ export function BuildVault() {
               <Download className="w-4 h-4 mr-2" />
               Export All
             </Button>
-            <Button asChild variant="accent">
-              <Link to="/builder">
-                <Plus className="w-4 h-4 mr-2" />
-                New Build
-              </Link>
+            <Button 
+              variant="accent"
+              onClick={() => {
+                // Clear any existing build from builderStore before navigating
+                const { clearCurrentBuild } = useBuilderStore.getState()
+                clearCurrentBuild()
+                navigate('/builder')
+              }}
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              New Build
             </Button>
           </div>
         </div>

@@ -94,6 +94,16 @@ export const useVaultStore = create<VaultStoreState>()(
     
     addBuild: (build) => {
       set((state) => {
+        // Check for duplicate IDs
+        const existingBuild = state.builds.find(b => b.id === build.id)
+        if (existingBuild) {
+          console.error(`WARNING: Attempting to add build with duplicate ID ${build.id}. Existing: "${existingBuild.name}", New: "${build.name}"`)
+          // Generate a new ID for the new build to prevent conflicts
+          build.id = crypto.randomUUID()
+          console.log(`Generated new ID for duplicate: ${build.id}`)
+        }
+        
+        console.log(`Adding build: ${build.name} (${build.id})`)
         state.builds.push(build)
         saveBuildsToStorage(state.builds)
       })
@@ -119,13 +129,22 @@ export const useVaultStore = create<VaultStoreState>()(
         }
         
         console.log(`Deleting build: ${buildToDelete.name} (${id})`)
+        console.log(`Before deletion - builds:`, state.builds.map(b => ({ id: b.id, name: b.name })))
+        
         const initialCount = state.builds.length
+        const buildsWithSameId = state.builds.filter(b => b.id === id)
+        
+        if (buildsWithSameId.length > 1) {
+          console.error(`WARNING: Found ${buildsWithSameId.length} builds with same ID ${id}:`, 
+            buildsWithSameId.map(b => b.name))
+        }
         
         state.builds = state.builds.filter(b => b.id !== id)
         state.selectedBuildIds = state.selectedBuildIds.filter(bid => bid !== id)
         
         const finalCount = state.builds.length
         console.log(`Builds count: ${initialCount} -> ${finalCount}`)
+        console.log(`After deletion - builds:`, state.builds.map(b => ({ id: b.id, name: b.name })))
         
         saveBuildsToStorage(state.builds)
       })

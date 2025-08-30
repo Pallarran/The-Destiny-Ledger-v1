@@ -57,7 +57,7 @@ interface CharacterBuilderProps {
 
 export function CharacterBuilder({ buildId }: CharacterBuilderProps) {
   const navigate = useNavigate()
-  const { addBuild } = useVaultStore()
+  const { addBuild, updateBuild, builds } = useVaultStore()
   const { loadFromBuildConfiguration } = useCharacterBuilderStore()
   const { currentBuild: storedBuild, clearCurrentBuild } = useBuilderStore()
   
@@ -121,7 +121,19 @@ export function CharacterBuilder({ buildId }: CharacterBuilderProps) {
     
     const buildConfig = exportToBuildConfiguration()
     if (buildConfig) {
-      addBuild(buildConfig)
+      // Check if this build already exists in the vault
+      const existingBuild = builds.find(b => b.id === buildConfig.id)
+      
+      if (existingBuild) {
+        // Update existing build
+        console.log('Updating existing build:', buildConfig.name)
+        updateBuild(buildConfig.id, buildConfig)
+      } else {
+        // Add new build
+        console.log('Adding new build:', buildConfig.name)
+        addBuild(buildConfig)
+      }
+      
       clearDirty()
       navigate('/vault')
     }
