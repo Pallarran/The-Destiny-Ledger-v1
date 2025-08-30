@@ -449,15 +449,19 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
     },
     
     updateLevel: (level: number, updates: Partial<BuilderLevelEntry>) => {
+      console.log('updateLevel called in store:', { level, updates })
       set((state) => {
         if (state.currentBuild) {
           const entry = state.currentBuild.enhancedLevelTimeline.find(e => e.level === level)
           if (entry) {
+            console.log('Found entry before update:', entry)
             Object.assign(entry, updates)
+            console.log('Entry after update:', entry)
             
             // Update legacy levelTimeline
             const legacyEntry = state.currentBuild.levelTimeline.find(e => e.level === level)
             if (legacyEntry) {
+              console.log('Updating legacy entry from:', legacyEntry)
               Object.assign(legacyEntry, {
                 level: entry.level,
                 classId: entry.classId,
@@ -471,11 +475,18 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
                 ...(entry.fightingStyle && { fightingStyle: entry.fightingStyle }),
                 ...(entry.archetype && { archetype: entry.archetype })
               })
+              console.log('Legacy entry after update:', legacyEntry)
+            } else {
+              console.log('No legacy entry found for level:', level)
             }
             
             state.isDirty = true
             validateStep(state, 'class-progression')
+          } else {
+            console.log('No entry found for level:', level)
           }
+        } else {
+          console.log('No current build found')
         }
       })
     },
