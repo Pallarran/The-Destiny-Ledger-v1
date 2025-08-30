@@ -415,131 +415,165 @@ function ArchetypeChoice({ level, classId, currentChoice, onChoice }: ArchetypeC
   )
 }
 
-function LevelMilestoneCard({ entry, milestone, classData, classLevel, onFightingStyleClick, onArchetypeClick, onASIFeatClick, hasInteractiveFeatures }: {
+function LevelMilestoneCard({ entry, classData, classLevel, onFightingStyleClick, onArchetypeClick, onASIFeatClick }: {
   entry: BuilderLevelEntry
-  milestone: LevelMilestone
   classData?: any
   classLevel: number
   onFightingStyleClick?: () => void
   onArchetypeClick?: () => void
   onASIFeatClick?: () => void
-  hasInteractiveFeatures?: boolean
 }) {
   const Icon = classData ? CLASS_ICONS[classData.id as keyof typeof CLASS_ICONS] || Sword : Clock
   const colorClass = classData ? CLASS_COLORS[classData.id as keyof typeof CLASS_COLORS] || '' : ''
 
-  const StatusIcon = milestone.hasIssues ? AlertTriangle : 
-                     milestone.isComplete ? CheckCircle : Clock
-
-  const handleCardClick = () => {
-    // Priority order for opening selections
-    if (onFightingStyleClick) {
-      onFightingStyleClick()
-    } else if (onArchetypeClick) {
-      onArchetypeClick()
-    } else if (onASIFeatClick) {
-      onASIFeatClick()
-    }
+  // Create feature list with completion status
+  const features = []
+  
+  // Class features
+  if (entry.features && entry.features.length > 0) {
+    entry.features.forEach(featureId => {
+      features.push({
+        id: featureId,
+        name: featureId.replace('_', ' '),
+        type: 'class_feature',
+        isComplete: true, // Class features are automatically gained
+        isRequired: false
+      })
+    })
   }
+
+  // Fighting Style choice
+  const classFeatures = classData?.features[classLevel] || []
+  const hasFightingStyle = classFeatures.some((f: any) => f.rulesKey === 'fighting_style')
+  if (hasFightingStyle) {
+    features.push({
+      id: 'fighting_style',
+      name: entry.fightingStyle ? `Fighting Style: ${entry.fightingStyle.replace('_', ' ')}` : 'Choose Fighting Style',
+      type: 'choice',
+      isComplete: !!entry.fightingStyle,
+      isRequired: true,
+      onClick: onFightingStyleClick
+    })
+  }
+
+  // Archetype choice  
+  const hasArchetype = classFeatures.some((f: any) => f.id.includes('archetype'))
+  if (hasArchetype) {
+    features.push({
+      id: 'archetype',
+      name: entry.archetype ? entry.archetype.replace('_', ' ') : `Choose ${classData?.name} Archetype`,
+      type: 'choice',
+      isComplete: !!entry.archetype,
+      isRequired: true,
+      onClick: onArchetypeClick
+    })
+  }
+
+  // ASI/Feat choice
+  const hasASI = classFeatures.some((f: any) => f.rulesKey === 'asi')
+  if (hasASI) {
+    features.push({
+      id: 'asi_feat',
+      name: entry.asiOrFeat === 'feat' ? `Feat: ${entry.featId}` : 
+            entry.asiOrFeat === 'asi' ? 'Ability Score Improvement' : 
+            'Choose ASI or Feat',
+      type: 'choice',
+      isComplete: !!entry.asiOrFeat,
+      isRequired: true,
+      onClick: onASIFeatClick
+    })
+  }
+
+  // Overall completion status
+  const requiredFeatures = features.filter(f => f.isRequired)
+  const completedRequired = requiredFeatures.filter(f => f.isComplete).length
+  const isLevelComplete = requiredFeatures.length === 0 || completedRequired === requiredFeatures.length
 
   return (
     <div className="relative">
       {/* Timeline connector */}
-      <div className="absolute left-4 top-12 w-px h-full bg-border -z-10" />
+      <div className="absolute left-4 top-6 w-px h-full bg-border/50 -z-10" />
       
-      <Card className={`${colorClass} transition-all hover:shadow-md ${
-        hasInteractiveFeatures ? 'cursor-pointer hover:border-accent/50' : ''
-      } ${
-        milestone.hasIssues ? 'border-red-400 bg-red-50 shadow-red-100' : 
-        milestone.isComplete ? 'border-green-400 bg-green-50 shadow-green-100' : 'border-border bg-card'
-      }`} onClick={hasInteractiveFeatures ? handleCardClick : undefined}>
+      {/* Main Level Card */}
+      <Card className={`${colorClass} border-2 ${
+        isLevelComplete ? 'border-emerald/40 bg-emerald/5' : 'border-border bg-card'
+      }`}>
         <CardContent className="p-4">
-          <div className="flex items-start gap-3">
-            {/* Level Badge */}
-            <div className="relative">
-              <div className="w-8 h-8 bg-accent text-accent-foreground rounded-full flex items-center justify-center text-sm font-bold border-2 border-background shadow-sm">
-                {entry.level}
-              </div>
-              <div className="absolute -bottom-1 -right-1">
-                <StatusIcon className={`w-4 h-4 ${
-                  milestone.hasIssues ? 'text-danger' : 
-                  milestone.isComplete ? 'text-emerald' : 'text-muted'
-                }`} />
-              </div>
+          {/* Level Header */}
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-8 h-8 bg-accent text-accent-foreground rounded-full flex items-center justify-center text-sm font-bold border-2 border-background shadow-sm">
+              {entry.level}
             </div>
-
-            {/* Content */}
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-1">
-                <Icon className="w-4 h-4" />
-                <span className="font-medium text-sm">
-                  {classData?.name || entry.classId} {classLevel}
-                </span>
-                {entry.subclassId && (
-                  <Badge variant="outline" className="text-xs">
-                    {entry.subclassId}
-                  </Badge>
-                )}
-              </div>
-              
-              <p className="text-xs text-muted mb-2">{milestone.description}</p>
-              
-              {/* Features */}
-              {entry.features && entry.features.length > 0 && (
-                <div className="flex flex-wrap gap-1 mb-2">
-                  {entry.features.map((featureId, idx) => (
-                    <Badge key={idx} variant="secondary" className="text-xs">
-                      {featureId}
-                    </Badge>
-                  ))}
-                </div>
-              )}
-
-              {/* Selected Features */}
-              <div className="flex flex-wrap gap-1 mb-2">
-                {(entry as any).fightingStyle && (
-                  <Badge variant="default" className="text-xs bg-emerald/10 text-emerald border-emerald/20">
-                    <Sword className="w-3 h-3 mr-1" />
-                    {classData?.fightingStyles?.find((fs: any) => fs.id === (entry as any).fightingStyle)?.name || (entry as any).fightingStyle}
-                  </Badge>
-                )}
-                {(entry as any).archetype && (
-                  <Badge variant="default" className="text-xs bg-blue/10 text-blue border-blue/20">
-                    <Star className="w-3 h-3 mr-1" />
-                    {(entry as any).archetype}
-                  </Badge>
-                )}
-                {entry.asiOrFeat === 'feat' && entry.featId && (
-                  <Badge variant="default" className="text-xs bg-purple/10 text-purple border-purple/20">
-                    <Plus className="w-3 h-3 mr-1" />
-                    {entry.featId}
-                  </Badge>
-                )}
-                {entry.asiOrFeat === 'asi' && entry.abilityIncreases && (
-                  <Badge variant="default" className="text-xs bg-orange/10 text-orange border-orange/20">
-                    <Plus className="w-3 h-3 mr-1" />
-                    ASI
-                  </Badge>
-                )}
-              </div>
-
-              {/* Validation Issues */}
-              {entry.validationErrors && entry.validationErrors.length > 0 && (
-                <div className="flex items-center gap-1 text-xs text-danger">
-                  <AlertTriangle className="w-3 h-3" />
-                  <span>{entry.validationErrors[0]}</span>
-                </div>
+            <div className="flex items-center gap-2">
+              <Icon className="w-5 h-5" />
+              <span className="font-semibold text-base">
+                {classData?.name || entry.classId} {classLevel}
+              </span>
+              {entry.subclassId && (
+                <Badge variant="outline" className="text-xs">
+                  {entry.subclassId}
+                </Badge>
               )}
             </div>
-
-            {/* Action Button */}
-            {hasInteractiveFeatures && (
-              <div className="flex items-center text-xs text-muted">
-                <span className="mr-1">Click to {milestone.hasIssues ? 'choose' : 'change'}</span>
-                <ChevronRight className="w-3 h-3" />
-              </div>
-            )}
+            <div className="ml-auto">
+              {isLevelComplete ? (
+                <CheckCircle className="w-5 h-5 text-emerald" />
+              ) : (
+                <AlertTriangle className="w-5 h-5 text-amber-500" />
+              )}
+            </div>
           </div>
+
+          {/* Feature Cards */}
+          {features.length > 0 && (
+            <div className="space-y-2">
+              {features.map((feature) => (
+                <Card
+                  key={feature.id}
+                  className={`border transition-all ${
+                    feature.isComplete
+                      ? 'border-emerald/30 bg-emerald/5'
+                      : feature.isRequired
+                      ? 'border-red-300 bg-red-50'
+                      : 'border-border bg-panel/10'
+                  } ${
+                    feature.onClick ? 'cursor-pointer hover:shadow-sm' : ''
+                  }`}
+                  onClick={feature.onClick}
+                >
+                  <CardContent className="p-3">
+                    <div className="flex items-center gap-2">
+                      <div className={`w-4 h-4 rounded-full flex items-center justify-center ${
+                        feature.isComplete ? 'bg-emerald text-white' : 'bg-red-500 text-white'
+                      }`}>
+                        {feature.isComplete ? (
+                          <CheckCircle className="w-3 h-3" />
+                        ) : (
+                          <AlertTriangle className="w-3 h-3" />
+                        )}
+                      </div>
+                      <span className="text-sm font-medium flex-1">
+                        {feature.name}
+                      </span>
+                      {feature.onClick && !feature.isComplete && (
+                        <ChevronRight className="w-4 h-4 text-muted" />
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+
+          {/* Validation Errors */}
+          {entry.validationErrors && entry.validationErrors.length > 0 && (
+            <div className="mt-3 p-2 bg-red-50 border border-red-200 rounded">
+              <div className="flex items-center gap-2 text-xs text-red-600">
+                <AlertTriangle className="w-3 h-3" />
+                <span>{entry.validationErrors[0]}</span>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
@@ -736,7 +770,6 @@ export function EnhancedLevelTimeline() {
           
           <div className="space-y-4 relative">
             {levels.map((entry) => {
-              const milestone = generateMilestone(entry) // Generate fresh milestone data
               const classData = getClass(entry.classId)
               const classLevel = levels.filter(l => l.classId === entry.classId && l.level <= entry.level).length
               const features = classData?.features[classLevel] || []
@@ -753,13 +786,11 @@ export function EnhancedLevelTimeline() {
                   <LevelMilestoneCard 
                     key={`card-${dataKey}`}
                     entry={entry}
-                    milestone={milestone}
                     classData={classData}
                     classLevel={classLevel}
                     onFightingStyleClick={hasFightingStyle ? () => setShowFightingStyle(entry.level) : undefined}
                     onArchetypeClick={hasArchetype ? () => setShowArchetype(entry.level) : undefined}
                     onASIFeatClick={hasASI ? () => setShowASIFeat(entry.level) : undefined}
-                    hasInteractiveFeatures={hasFightingStyle || hasArchetype || hasASI}
                   />
                   
                   {/* Class Skill Selection (Level 1 only) */}
