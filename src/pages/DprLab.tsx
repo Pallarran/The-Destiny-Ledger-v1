@@ -125,13 +125,84 @@ export function DprLab() {
       <Panel>
         <PanelHeader title="DPR LAB" />
         
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* Configuration Panel */}
-          <div className="lg:col-span-5">
-            <Panel className="bg-ink text-panel">
-              <PanelHeader title="Simulation Config" className="text-panel bg-ink border-b border-border/20" />
+        {/* Build Selection Header */}
+        <div className="mb-6">
+          {selectedBuild ? (
+            <div className="flex items-center justify-between p-4 bg-accent/5 border border-accent/20 rounded-lg">
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 bg-accent/10 text-accent rounded-full flex items-center justify-center text-sm font-bold">
+                    {Math.max(...(selectedBuild.levelTimeline?.map(l => l.level) || [1]))}
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-foreground">{selectedBuild.name}</h3>
+                    <p className="text-sm text-muted capitalize">
+                      {selectedBuild.race?.replace('_', ' ') || 'Unknown'} • 
+                      {selectedBuild.levelTimeline && selectedBuild.levelTimeline.length > 0 && (
+                        <span className="ml-1">
+                          {Object.entries(
+                            selectedBuild.levelTimeline.reduce((acc: Record<string, number>, level) => {
+                              acc[level.classId] = (acc[level.classId] || 0) + 1
+                              return acc
+                            }, {} as Record<string, number>)
+                          ).map(([classId, levels]) => `${classId.replace('_', ' ')} ${levels}`).join(', ')}
+                        </span>
+                      )}
+                    </p>
+                  </div>
+                </div>
+                
+                <button
+                  onClick={() => setSelectedBuild(null)}
+                  className="px-3 py-1 text-sm bg-muted/10 hover:bg-muted/20 rounded transition-colors"
+                >
+                  Change Build
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="text-center p-8 border-2 border-dashed border-border rounded-lg">
+              <h3 className="text-lg font-semibold text-foreground mb-2">Select a Build to Analyze</h3>
+              <p className="text-muted mb-4">Choose from your vault or current Character Builder session</p>
               
-              <div className="space-y-6">
+              {vaultBuilds.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-w-4xl mx-auto">
+                  {vaultBuilds.map((build) => (
+                    <button
+                      key={build.id}
+                      onClick={() => setSelectedBuild(build)}
+                      className="flex items-center gap-3 p-3 text-left bg-panel/50 hover:bg-panel border border-border hover:border-accent/50 rounded-lg transition-colors group"
+                    >
+                      <div className="w-10 h-10 bg-accent/10 text-accent rounded-full flex items-center justify-center text-sm font-bold group-hover:bg-accent/20 transition-colors">
+                        {Math.max(...(build.levelTimeline?.map(l => l.level) || [1]))}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-medium text-foreground truncate">{build.name}</h4>
+                        <p className="text-xs text-muted truncate capitalize">
+                          {build.race?.replace('_', ' ') || 'Unknown'}
+                        </p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div>
+                  <p className="text-muted mb-4">No builds found in your vault.</p>
+                  <p className="text-sm text-muted">Create builds in the Character Builder to analyze their DPR performance.</p>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+        
+        {selectedBuild && (
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            {/* Configuration Panel */}
+            <div className="lg:col-span-5">
+              <Panel className="bg-ink text-panel">
+                <PanelHeader title="Simulation Config" className="text-panel bg-ink border-b border-border/20" />
+                
+                <div className="space-y-6">
                 {/* Calculate Button */}
                 <div className="mb-6">
                   <button
@@ -152,31 +223,6 @@ export function DprLab() {
                     )}
                   </button>
                   
-                  {/* Build Selection */}
-                  {!selectedBuild && (
-                    <div className="mt-2 space-y-2">
-                      <p className="text-sm text-muted">Select a build to analyze</p>
-                      {vaultBuilds.length > 0 ? (
-                        <div className="max-h-32 overflow-y-auto space-y-1">
-                          {vaultBuilds.slice(0, 5).map((build) => (
-                            <button
-                              key={build.id}
-                              onClick={() => setSelectedBuild(build)}
-                              className="w-full text-left text-xs bg-panel hover:bg-border px-2 py-1 rounded flex items-center justify-between"
-                            >
-                              <span>{build.name}</span>
-                              <span className="text-muted">Lv.{Math.max(...(build.levelTimeline?.map(l => l.level) || [1]))}</span>
-                            </button>
-                          ))}
-                          {vaultBuilds.length > 5 && (
-                            <div className="text-xs text-muted text-center">+{vaultBuilds.length - 5} more in vault</div>
-                          )}
-                        </div>
-                      ) : (
-                        <div className="text-xs text-muted">No builds in vault. Create a build first!</div>
-                      )}
-                    </div>
-                  )}
                 </div>
 
                 {/* Fixed Parameters Info */}
@@ -198,84 +244,6 @@ export function DprLab() {
                   </div>
                 </div>
 
-                {/* Build Status */}
-                <div>
-                  <div className="flex items-center justify-between mb-3">
-                    <h4 className="font-medium">Current Build</h4>
-                    {selectedBuild && (
-                      <button
-                        onClick={() => setSelectedBuild(null)}
-                        className="text-xs bg-destructive/10 text-destructive px-2 py-1 rounded hover:bg-destructive/20"
-                      >
-                        Clear
-                      </button>
-                    )}
-                  </div>
-                  {selectedBuild ? (
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span>Name:</span>
-                        <span className="font-medium">{selectedBuild.name}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Level:</span>
-                        <span className="font-medium">{Math.max(...(selectedBuild.levelTimeline?.map(l => l.level) || [1]))}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Race:</span>
-                        <span className="font-medium capitalize">{selectedBuild.race?.replace('_', ' ') || 'Unknown'}</span>
-                      </div>
-                      {selectedBuild.mainHandWeapon && (
-                        <div className="flex justify-between">
-                          <span>Main Weapon:</span>
-                          <span className="font-medium capitalize">{selectedBuild.mainHandWeapon.replace('_', ' ')}</span>
-                        </div>
-                      )}
-                      {selectedBuild.rangedWeapon && (
-                        <div className="flex justify-between">
-                          <span>Ranged:</span>
-                          <span className="font-medium capitalize">{selectedBuild.rangedWeapon.replace('_', ' ')}</span>
-                        </div>
-                      )}
-                      {selectedBuild.activeBuffs && selectedBuild.activeBuffs.length > 0 && (
-                        <div>
-                          <span className="text-muted">Active Buffs:</span>
-                          <div className="mt-1 space-y-1">
-                            {selectedBuild.activeBuffs.slice(0, 3).map(buffId => (
-                              <div key={buffId} className="text-xs bg-accent/10 text-accent px-2 py-1 rounded">
-                                {buffId.replace('_', ' ')}
-                              </div>
-                            ))}
-                            {selectedBuild.activeBuffs.length > 3 && (
-                              <div className="text-xs text-muted">+{selectedBuild.activeBuffs.length - 3} more</div>
-                            )}
-                          </div>
-                        </div>
-                      )}
-                      
-                      {/* Class Breakdown */}
-                      {selectedBuild.levelTimeline && selectedBuild.levelTimeline.length > 0 && (
-                        <div>
-                          <span className="text-muted">Classes:</span>
-                          <div className="mt-1 text-xs">
-                            {Object.entries(
-                              selectedBuild.levelTimeline.reduce((acc: Record<string, number>, level) => {
-                                acc[level.classId] = (acc[level.classId] || 0) + 1
-                                return acc
-                              }, {} as Record<string, number>)
-                            ).map(([classId, levels]) => (
-                              <span key={classId} className="mr-2 capitalize">
-                                {classId.replace('_', ' ')} {levels}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="text-sm text-muted">No build selected</div>
-                  )}
-                </div>
 
                 {/* Simulation Options */}
                 <div>
@@ -370,9 +338,11 @@ export function DprLab() {
             </ChartFrame>
           </div>
         </div>
+        )}
 
         {/* Results Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+        {selectedBuild && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
           {/* SS/GWM Breakpoints */}
           <Panel className="bg-ink text-panel">
             <PanelHeader title="GWM/SS Optimization" className="text-panel bg-ink border-b border-border/20" />
@@ -526,7 +496,8 @@ export function DprLab() {
               </div>
             )}
           </Panel>
-        </div>
+          </div>
+        )}
       </Panel>
     </div>
   )
