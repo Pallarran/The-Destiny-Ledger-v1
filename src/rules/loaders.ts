@@ -6,10 +6,14 @@ import type {
   WeaponEnhancement,
   Buff 
 } from './types'
+import type { Race } from './srd/races'
 
 import { classes } from './srd/classes'
+import { subclasses } from './srd/subclasses'
 import { weapons, weaponEnhancements } from './srd/weapons'
 import { feats } from './srd/feats'
+import { races } from './srd/races'
+import { buffs } from './srd/buffs'
 
 // Data loaders with proper typing
 export const loadClasses = (): Record<string, ClassDefinition> => {
@@ -17,8 +21,7 @@ export const loadClasses = (): Record<string, ClassDefinition> => {
 }
 
 export const loadSubclasses = (): Record<string, SubclassDefinition> => {
-  // TODO: Add subclass data
-  return {}
+  return subclasses as unknown as Record<string, SubclassDefinition>
 }
 
 export const loadFeats = (): Record<string, Feat> => {
@@ -34,8 +37,11 @@ export const loadWeaponEnhancements = (): Record<string, WeaponEnhancement> => {
 }
 
 export const loadBuffs = (): Record<string, Buff> => {
-  // TODO: Add buff data
-  return {}
+  return buffs
+}
+
+export const loadRaces = (): Record<string, Race> => {
+  return races
 }
 
 // Convenience functions
@@ -86,6 +92,14 @@ export const getAllWeaponEnhancements = (): WeaponEnhancement[] => {
 
 export const getAllBuffs = (): Buff[] => {
   return Object.values(loadBuffs())
+}
+
+export const getAllRaces = (): Race[] => {
+  return Object.values(loadRaces())
+}
+
+export const getRace = (raceId: string): Race | undefined => {
+  return loadRaces()[raceId]
 }
 
 // Filtered getters

@@ -25,7 +25,10 @@ export interface BuildConfiguration {
   
   // Character basics
   race: string
+  subrace?: string
   background?: string
+  baseAbilityScores?: AbilityScoreArray
+  skillProficiencies?: string[]
   
   // Ability scores
   abilityMethod: AbilityScoreMethod

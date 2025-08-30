@@ -20,7 +20,8 @@
       "Bash(npm run lint)",
       "Bash(git rev-parse:*)",
       "Bash(grep:*)",
-      "Bash(rg:*)"
+      "Bash(rg:*)",
+      "Bash(tree:*)"
     ],
     "deny": [],
     "ask": []

@@ -6,8 +6,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { useCharacterBuilderStore } from '../../stores/characterBuilderStore'
 import { classes } from '../../rules/srd/classes'
 import { feats } from '../../rules/srd/feats'
-import { getSubclassesForClass } from '../../rules/srd/subclasses'
+import { subclasses } from '../../rules/srd/subclasses'
 import { getClass } from '../../rules/loaders'
+import { ClassSkillSelection } from './ClassSkillSelection'
 import { Plus, Sword, BookOpen, Shield, Star, ChevronRight, AlertTriangle, CheckCircle, Clock } from 'lucide-react'
 import type { AbilityScore, AbilityScoreArray } from '../../rules/types'
 import type { BuilderLevelEntry } from '../../types/character'
@@ -302,55 +303,71 @@ function FightingStyleChoice({ level, classId, currentChoice, onChoice }: Fighti
 function ArchetypeChoice({ level, classId, currentChoice, onChoice }: ArchetypeChoiceProps) {
   const [selectedArchetype, setSelectedArchetype] = useState(currentChoice || '')
   
-  // Get available subclasses for this class from the SRD data
-  const availableArchetypes = getSubclassesForClass(classId).map(subclass => ({
-    id: subclass.id,
-    name: subclass.name,
-    description: subclass.description
-  }))
+  // Get subclasses for this class
+  const availableSubclasses = Object.values(subclasses).filter(sub => sub.className === classId)
+  const classData = getClass(classId)
 
   const handleArchetypeChange = (archetypeId: string) => {
     setSelectedArchetype(archetypeId)
     onChoice(archetypeId)
   }
 
+  if (availableSubclasses.length === 0) {
+    return null
+  }
+
   return (
-    <Card className="border-accent/20">
+    <Card className="border-gold/20 bg-gold/5">
       <CardHeader className="pb-3">
         <CardTitle className="text-sm flex items-center gap-2">
-          <div className="w-6 h-6 bg-accent/10 text-accent rounded-full flex items-center justify-center text-xs font-bold">
+          <div className="w-6 h-6 bg-gold/20 text-gold rounded-full flex items-center justify-center text-xs font-bold">
             {level}
           </div>
-          Archetype Choice
+          {classData?.name || 'Class'} Archetype
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="text-sm text-muted mb-3">
-          Choose your {classId} archetype to specialize your abilities:
+          Choose your specialization path:
         </div>
         
         <div className="grid gap-2">
-          {availableArchetypes.map(archetype => (
-            <button
-              key={archetype.id}
-              onClick={() => handleArchetypeChange(archetype.id)}
-              className={`text-left p-3 rounded-lg border transition-colors ${
-                selectedArchetype === archetype.id
-                  ? 'border-accent bg-accent/5'
-                  : 'border-border hover:border-accent/50 hover:bg-accent/5'
-              }`}
-            >
-              <div className="font-medium text-sm">{archetype.name}</div>
-              <div className="text-xs text-muted mt-1">{archetype.description}</div>
-            </button>
-          ))}
+          {availableSubclasses.map(subclass => {
+            const isSelected = selectedArchetype === subclass.id
+            const featuresAtLevel = subclass.features.filter(f => f.level === level)
+            
+            return (
+              <button
+                key={subclass.id}
+                onClick={() => handleArchetypeChange(subclass.id)}
+                className={`text-left p-3 rounded-lg border transition-all ${
+                  isSelected
+                    ? 'border-gold bg-gold/10 shadow-sm'
+                    : 'border-border hover:border-gold/50 hover:bg-gold/5'
+                }`}
+              >
+                <div className="font-medium text-sm mb-1">{subclass.name}</div>
+                <div className="text-xs text-muted mb-2">{subclass.description}</div>
+                {featuresAtLevel.length > 0 && (
+                  <div className="pt-2 border-t border-border/50">
+                    <div className="text-[10px] font-medium text-gold mb-1">Features at level {level}:</div>
+                    {featuresAtLevel.map((feature, idx) => (
+                      <div key={idx} className="text-[10px] text-muted">
+                        • {feature.name}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </button>
+            )
+          })}
         </div>
         
         {selectedArchetype && (
           <div className="p-3 bg-emerald/5 border border-emerald/20 rounded">
             <div className="flex items-center gap-2 text-emerald text-sm">
               <CheckCircle className="w-4 h-4" />
-              Archetype selected successfully!
+              {availableSubclasses.find(s => s.id === selectedArchetype)?.name} selected!
             </div>
           </div>
         )}
@@ -703,6 +720,16 @@ export function EnhancedLevelTimeline() {
                     onASIFeatClick={hasASI ? () => setShowASIFeat(entry.level) : undefined}
                     hasInteractiveFeatures={hasFightingStyle || hasArchetype || hasASI}
                   />
+                  
+                  {/* Class Skill Selection (Level 1 only) */}
+                  {entry.level === 1 && classLevel === 1 && (
+                    <div className="ml-12 mt-2">
+                      <ClassSkillSelection
+                        classId={entry.classId}
+                        level={entry.level}
+                      />
+                    </div>
+                  )}
                   
                   {/* Fighting Style Choice */}
                   {hasFightingStyle && (showFightingStyle === entry.level || (!(entry as any).fightingStyle && showFightingStyle === null)) && (

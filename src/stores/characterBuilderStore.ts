@@ -38,7 +38,10 @@ interface CharacterBuilderStore extends CharacterBuilderState {
   
   // Race & Background actions
   setRace: (raceId: string) => void
+  setSubrace: (subraceId: string) => void
   setBackground: (backgroundId: string) => void
+  updateAbilityScores: (scores: AbilityScoreArray) => void
+  setSkillProficiencies: (skills: string[]) => void
   
   // Level progression actions
   addLevel: (classId: string, level: number) => void
@@ -82,7 +85,10 @@ const createDefaultBuilder = (name: string = 'New Character'): CharacterBuilder 
   updatedAt: new Date(),
   notes: '',
   race: '',
+  subrace: '',
   background: '',
+  baseAbilityScores: { ...DEFAULT_ABILITY_SCORES },
+  skillProficiencies: [],
   abilityMethod: 'pointbuy',
   abilityScores: { ...DEFAULT_ABILITY_SCORES },
   pointBuyLimit: 27,
@@ -388,12 +394,42 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
       })
     },
     
+    setSubrace: (subraceId: string) => {
+      set((state) => {
+        if (state.currentBuild) {
+          state.currentBuild.subrace = subraceId
+          state.isDirty = true
+          validateStep(state, 'race-background')
+        }
+      })
+    },
+    
     setBackground: (backgroundId: string) => {
       set((state) => {
         if (state.currentBuild) {
           state.currentBuild.background = backgroundId
           state.isDirty = true
           validateStep(state, 'race-background')
+        }
+      })
+    },
+    
+    updateAbilityScores: (scores: AbilityScoreArray) => {
+      set((state) => {
+        if (state.currentBuild) {
+          state.currentBuild.abilityScores = scores
+          state.currentBuild.finalAbilityScores = scores
+          state.isDirty = true
+          validateStep(state, 'ability-scores')
+        }
+      })
+    },
+    
+    setSkillProficiencies: (skills: string[]) => {
+      set((state) => {
+        if (state.currentBuild) {
+          state.currentBuild.skillProficiencies = skills
+          state.isDirty = true
         }
       })
     },
