@@ -126,7 +126,7 @@ export function RaceBackgroundSelection() {
   
   // Apply racial ability score increases
   useEffect(() => {
-    if (!selectedRaceData || !currentBuild) return
+    if (!selectedRaceData || !currentBuild || !currentBuild.baseAbilityScores) return
     
     // Calculate total ability score bonuses
     const racialBonuses: Record<string, number> = {}
@@ -143,16 +143,15 @@ export function RaceBackgroundSelection() {
       })
     }
     
-    // Update the store with racial bonuses
-    const updatedScores = { ...currentBuild.abilityScores }
+    // Calculate final scores from base scores + racial bonuses
+    const updatedScores = { ...currentBuild.baseAbilityScores }
     Object.keys(updatedScores).forEach(key => {
       const ability = key as keyof typeof updatedScores
-      const baseScore = currentBuild.baseAbilityScores?.[ability] || updatedScores[ability]
-      updatedScores[ability] = baseScore + (racialBonuses[ability] || 0)
+      updatedScores[ability] = updatedScores[ability] + (racialBonuses[ability] || 0)
     })
     
     updateAbilityScores(updatedScores)
-  }, [selectedRaceData, selectedSubrace])
+  }, [selectedRaceData, selectedSubrace, currentBuild?.baseAbilityScores])
   
   // Trigger validation when selections change
   useEffect(() => {

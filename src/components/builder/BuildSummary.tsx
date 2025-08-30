@@ -128,8 +128,8 @@ export function BuildSummary() {
             <div className="grid grid-cols-3 md:grid-cols-6 gap-4 text-center">
               {Object.entries(currentBuild.finalAbilityScores || currentBuild.abilityScores).map(([ability, score]) => {
                 const modifier = getAbilityModifier(score)
-                const baseScore = currentBuild.baseAbilityScores?.[ability as keyof typeof currentBuild.baseAbilityScores]
-                const hasBonus = baseScore && baseScore !== score
+                const baseScore = currentBuild.baseAbilityScores?.[ability as keyof typeof currentBuild.baseAbilityScores] || score
+                const hasBonus = baseScore !== score
                 
                 return (
                   <div key={ability} className="p-3 bg-panel/5 rounded-lg">

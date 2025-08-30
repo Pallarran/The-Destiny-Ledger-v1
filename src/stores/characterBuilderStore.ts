@@ -200,6 +200,7 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
             
             // Ability scores with validation
             abilityMethod: build.abilityMethod || 'pointbuy',
+            // abilityScores holds the final scores (with racial bonuses)
             abilityScores: build.abilityScores || { STR: 8, DEX: 8, CON: 8, INT: 8, WIS: 8, CHA: 8 },
             pointBuyLimit: build.pointBuyLimit || 27,
             
@@ -361,17 +362,21 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
     setAbilityScore: (ability: AbilityScore, value: number) => {
       set((state) => {
         if (state.currentBuild) {
-          state.currentBuild.abilityScores[ability] = value
-          // Set base scores for tracking racial bonuses later
+          // Always update base scores (without racial bonuses)
           if (!state.currentBuild.baseAbilityScores) {
-            state.currentBuild.baseAbilityScores = { ...state.currentBuild.abilityScores }
+            state.currentBuild.baseAbilityScores = { ...DEFAULT_ABILITY_SCORES }
           }
           state.currentBuild.baseAbilityScores[ability] = value
-          // Also update finalAbilityScores so it gets exported properly
+          
+          // Update working scores to base value (racial bonuses will be applied separately)
+          state.currentBuild.abilityScores[ability] = value
+          
+          // Final scores will be recalculated with racial bonuses
           if (!state.currentBuild.finalAbilityScores) {
             state.currentBuild.finalAbilityScores = { ...state.currentBuild.abilityScores }
           }
           state.currentBuild.finalAbilityScores[ability] = value
+          
           state.isDirty = true
           validateStep(state, 'ability-scores')
         }
@@ -433,8 +438,10 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
     updateAbilityScores: (scores: AbilityScoreArray) => {
       set((state) => {
         if (state.currentBuild) {
-          state.currentBuild.abilityScores = scores
+          // This is called by racial bonus application, so these are final scores
           state.currentBuild.finalAbilityScores = scores
+          // Keep abilityScores synced for compatibility
+          state.currentBuild.abilityScores = scores
           state.isDirty = true
           validateStep(state, 'ability-scores')
         }

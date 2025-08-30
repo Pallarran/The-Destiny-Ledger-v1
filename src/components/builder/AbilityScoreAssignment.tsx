@@ -56,7 +56,7 @@ export function AbilityScoreAssignment() {
     setAbilityScore
   } = useCharacterBuilderStore()
   
-  const [localScores, setLocalScores] = useState(currentBuild?.abilityScores || {
+  const [localScores, setLocalScores] = useState(currentBuild?.baseAbilityScores || currentBuild?.abilityScores || {
     STR: 8, DEX: 8, CON: 8, INT: 8, WIS: 8, CHA: 8
   })
   
@@ -73,7 +73,8 @@ export function AbilityScoreAssignment() {
     if (!currentBuild) return 'pointbuy'
     
     const storedMethod = currentBuild.abilityAssignmentMethod
-    const scores = Object.values(currentBuild.abilityScores)
+    // Check base scores (without racial bonuses) for method detection
+    const scores = Object.values(currentBuild.baseAbilityScores || currentBuild.abilityScores)
     
     // If we have a stored method, validate it against the scores
     if (storedMethod) {
@@ -112,8 +113,9 @@ export function AbilityScoreAssignment() {
   const method = autoDetectMethod()
   
   useEffect(() => {
-    if (currentBuild?.abilityScores) {
-      setLocalScores(currentBuild.abilityScores)
+    if (currentBuild?.baseAbilityScores) {
+      // Use base scores for editing (without racial bonuses)
+      setLocalScores(currentBuild.baseAbilityScores)
       
       // Update the method in store ONLY if auto-detection suggests incompatibility
       const detectedMethod = autoDetectMethod()
