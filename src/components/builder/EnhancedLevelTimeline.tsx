@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { useCharacterBuilderStore } from '../../stores/characterBuilderStore'
 import { classes } from '../../rules/srd/classes'
 import { feats } from '../../rules/srd/feats'
+import { getSubclassesForClass } from '../../rules/srd/subclasses'
 import { getClass } from '../../rules/loaders'
 import { Plus, Sword, BookOpen, Shield, Star, ChevronRight, AlertTriangle, CheckCircle, Clock } from 'lucide-react'
 import type { AbilityScore, AbilityScoreArray } from '../../rules/types'
@@ -301,29 +302,12 @@ function FightingStyleChoice({ level, classId, currentChoice, onChoice }: Fighti
 function ArchetypeChoice({ level, classId, currentChoice, onChoice }: ArchetypeChoiceProps) {
   const [selectedArchetype, setSelectedArchetype] = useState(currentChoice || '')
   
-  // For now, provide basic archetype options per class
-  const archetypeOptions = {
-    fighter: [
-      { id: 'champion', name: 'Champion', description: 'Improved critical hit chance and athletic prowess.' },
-      { id: 'battle_master', name: 'Battle Master', description: 'Tactical combat maneuvers and superiority dice.' },
-      { id: 'eldritch_knight', name: 'Eldritch Knight', description: 'Blend of martial prowess and wizard spellcasting.' }
-    ],
-    rogue: [
-      { id: 'thief', name: 'Thief', description: 'Enhanced climbing, stealth, and use of magic items.' },
-      { id: 'assassin', name: 'Assassin', description: 'Deadly surprise attacks and infiltration skills.' },
-      { id: 'arcane_trickster', name: 'Arcane Trickster', description: 'Combines roguish skills with wizard magic.' }
-    ],
-    wizard: [
-      { id: 'evocation', name: 'School of Evocation', description: 'Mastery of destructive magic and sculpted spells.' },
-      { id: 'abjuration', name: 'School of Abjuration', description: 'Protective magic and spell resistance.' }
-    ],
-    cleric: [
-      { id: 'life', name: 'Life Domain', description: 'Enhanced healing and vitality magic.' },
-      { id: 'war', name: 'War Domain', description: 'Divine magic focused on battle and conflict.' }
-    ]
-  } as const
-  
-  const availableArchetypes = archetypeOptions[classId as keyof typeof archetypeOptions] || []
+  // Get available subclasses for this class from the SRD data
+  const availableArchetypes = getSubclassesForClass(classId).map(subclass => ({
+    id: subclass.id,
+    name: subclass.name,
+    description: subclass.description
+  }))
 
   const handleArchetypeChange = (archetypeId: string) => {
     setSelectedArchetype(archetypeId)
