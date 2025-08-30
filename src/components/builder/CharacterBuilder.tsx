@@ -7,6 +7,7 @@ import { Badge } from '../ui/badge'
 import { Tabs, TabsList, TabsContent, TabsTrigger } from '../ui/tabs'
 import { useCharacterBuilderStore } from '../../stores/characterBuilderStore'
 import { useVaultStore } from '../../stores/vaultStore'
+import { useBuilderStore } from '../../stores/builderStore'
 import { BUILDER_STEPS } from '../../types/character'
 import { 
   ChevronLeft, 
@@ -57,6 +58,8 @@ interface CharacterBuilderProps {
 export function CharacterBuilder({ buildId }: CharacterBuilderProps) {
   const navigate = useNavigate()
   const { addBuild } = useVaultStore()
+  const { loadFromBuildConfiguration } = useCharacterBuilderStore()
+  const { currentBuild: storedBuild } = useBuilderStore()
   
   const {
     currentBuild,
@@ -78,15 +81,18 @@ export function CharacterBuilder({ buildId }: CharacterBuilderProps) {
   } = useCharacterBuilderStore()
   
   useEffect(() => {
-    if (!currentBuild) {
+    // Check if there's a build from the builderStore to load
+    if (storedBuild && !currentBuild) {
+      loadFromBuildConfiguration(storedBuild)
+    } else if (!currentBuild) {
       if (buildId) {
-        console.warn('Loading existing builds not yet implemented')
+        console.warn('Loading build by ID not yet implemented')
         createNewBuild()
       } else {
         createNewBuild()
       }
     }
-  }, [buildId, currentBuild, createNewBuild])
+  }, [buildId, currentBuild, storedBuild, createNewBuild, loadFromBuildConfiguration])
   
   const handleStepChange = (step: string) => {
     goToStep(step as any)
