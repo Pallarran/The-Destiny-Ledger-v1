@@ -1,10 +1,11 @@
-import { useState } from 'react'
-import { Button } from '../ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card'
 import { Badge } from '../ui/badge'
+import { Label } from '../ui/label'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select'
 import { Switch } from '../ui/switch'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs'
 import { useCharacterBuilderStore } from '../../stores/characterBuilderStore'
-import { Sword, Shield } from 'lucide-react'
+import { Sword, Shield, Crosshair, ShieldCheck, Info } from 'lucide-react'
 import { weapons } from '../../rules/srd/weapons'
 import { armor } from '../../rules/srd/armor'
 
@@ -19,11 +20,60 @@ const formatWeaponDamage = (damageRolls: any[]) => {
 const formatArmorAC = (armorData: any) => {
   let acString = armorData.ac.toString()
   if (armorData.dexModifier === 'full') {
-    acString += ' + Dex mod'
+    acString += ' + Dex'
   } else if (armorData.dexModifier === 'limited') {
-    acString += ` + Dex mod (max ${armorData.dexMax})`
+    acString += ` + Dex (max ${armorData.dexMax})`
   }
   return acString
+}
+
+// Group weapons by type
+const groupWeaponsByType = (weaponList: typeof weapons) => {
+  const grouped: Record<string, typeof weapons[string][]> = {
+    'Simple Melee': [],
+    'Martial Melee': [],
+    'Simple Ranged': [],
+    'Martial Ranged': []
+  }
+  
+  Object.values(weaponList).forEach(weapon => {
+    if (weapon.category === 'melee') {
+      if (weapon.type === 'martial') {
+        grouped['Martial Melee'].push(weapon)
+      } else {
+        grouped['Simple Melee'].push(weapon)
+      }
+    } else {
+      if (weapon.type === 'martial') {
+        grouped['Martial Ranged'].push(weapon)
+      } else {
+        grouped['Simple Ranged'].push(weapon)
+      }
+    }
+  })
+  
+  return grouped
+}
+
+// Group armor by type
+const groupArmorByType = (armorList: typeof armor) => {
+  const grouped: Record<string, typeof armor[string][]> = {
+    'Light Armor': [],
+    'Medium Armor': [],
+    'Heavy Armor': []
+  }
+  
+  Object.values(armorList).forEach(armorItem => {
+    if (armorItem.type === 'light') {
+      grouped['Light Armor'].push(armorItem)
+    } else if (armorItem.type === 'medium') {
+      grouped['Medium Armor'].push(armorItem)
+    } else if (armorItem.type === 'heavy') {
+      grouped['Heavy Armor'].push(armorItem)
+    }
+  })
+  
+  return grouped
 }
 
 export function EquipmentSelection() {
@@ -35,8 +85,6 @@ export function EquipmentSelection() {
     toggleShield
   } = useCharacterBuilderStore()
   
-  const [activeTab, setActiveTab] = useState<'weapons' | 'armor'>('weapons')
-  
   if (!currentBuild) {
     return <div className="text-center text-muted">Loading equipment options...</div>
   }
@@ -45,263 +93,398 @@ export function EquipmentSelection() {
   const selectedRanged = currentBuild.selectedRanged ? weapons[currentBuild.selectedRanged] : null
   const selectedArmor = currentBuild.selectedArmor ? armor[currentBuild.selectedArmor] : null
   
-  // Filter weapons by category
-  const meleeWeapons = Object.values(weapons).filter(w => w.category === 'melee')
-  const rangedWeapons = Object.values(weapons).filter(w => w.category === 'ranged')
-  const armorOptions = Object.values(armor)
+  const groupedWeapons = groupWeaponsByType(weapons)
+  const groupedArmor = groupArmorByType(armor)
+  
+  // Calculate AC with current equipment
+  const calculateAC = () => {
+    let baseAC = 10
+    const dexMod = Math.floor((currentBuild.abilityScores.DEX - 10) / 2)
+    
+    if (selectedArmor) {
+      baseAC = selectedArmor.ac
+      if (selectedArmor.dexModifier === 'full') {
+        baseAC += dexMod
+      } else if (selectedArmor.dexModifier === 'limited') {
+        baseAC += Math.min(dexMod, selectedArmor.dexMax || 2)
+      }
+    } else {
+      baseAC += dexMod // Unarmored
+    }
+    
+    if (currentBuild.hasShield) {
+      baseAC += 2
+    }
+    
+    return baseAC
+  }
   
   return (
     <div className="space-y-6">
       <div>
         <h2 className="text-xl font-bold text-panel mb-2">Equipment Selection</h2>
         <p className="text-muted">
-          Choose your weapons and armor. Equipment affects your combat effectiveness and AC.
+          Choose your weapons and armor. Your current AC is <span className="font-bold text-accent">{calculateAC()}</span>.
         </p>
       </div>
       
-      {/* Equipment Tabs */}
-      <div className="flex border-b border-border/20">
-        <Button
-          variant={activeTab === 'weapons' ? "accent" : "ghost"}
-          onClick={() => setActiveTab('weapons')}
-          className="rounded-none border-b-2 border-transparent"
-        >
-          <Sword className="w-4 h-4 mr-2" />
-          Weapons
-        </Button>
-        <Button
-          variant={activeTab === 'armor' ? "accent" : "ghost"}
-          onClick={() => setActiveTab('armor')}
-          className="rounded-none border-b-2 border-transparent"
-        >
-          <Shield className="w-4 h-4 mr-2" />
-          Armor
-        </Button>
-      </div>
-      
-      {/* Weapons Tab */}
-      {activeTab === 'weapons' && (
-        <div className="space-y-6">
-          <div>
-            <h3 className="text-lg font-semibold text-panel mb-3">Main Hand Weapon</h3>
-            {selectedMainHand && (
-              <Card className="mb-3 border-accent/20 bg-accent/5">
-                <CardContent className="p-3">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="font-medium">{selectedMainHand.name}</div>
-                      <div className="text-sm text-muted">{formatWeaponDamage(selectedMainHand.damage)}</div>
-                      {selectedMainHand.properties.length > 0 && (
-                        <div className="text-xs text-muted mt-1">
-                          {selectedMainHand.properties.join(', ')}
-                        </div>
-                      )}
-                    </div>
-                    <Badge className="bg-accent/10 text-accent border-accent/20">Selected</Badge>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-            
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {meleeWeapons.map((weapon) => (
-                <Card
-                  key={weapon.id}
-                  className={`cursor-pointer transition-all ${
-                    selectedMainHand?.id === weapon.id 
-                      ? 'ring-2 ring-accent border-accent/20 bg-accent/5' 
-                      : 'hover:border-accent/30'
-                  }`}
-                  onClick={() => setMainHandWeapon(weapon.id)}
+      <Tabs defaultValue="weapons" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="weapons" className="flex items-center gap-2">
+            <Sword className="w-4 h-4" />
+            Weapons
+          </TabsTrigger>
+          <TabsTrigger value="armor" className="flex items-center gap-2">
+            <Shield className="w-4 h-4" />
+            Armor & Shield
+          </TabsTrigger>
+        </TabsList>
+        
+        {/* Weapons Tab */}
+        <TabsContent value="weapons" className="space-y-6 mt-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Main Hand Weapon */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-panel flex items-center gap-2">
+                <Sword className="w-5 h-5 text-accent" />
+                Main Hand Weapon
+              </h3>
+              
+              <div className="space-y-2">
+                <Label htmlFor="mainhand-select">Select Weapon</Label>
+                <Select 
+                  value={currentBuild.selectedMainHand || ''} 
+                  onValueChange={setMainHandWeapon}
                 >
-                  <CardContent className="p-3">
-                    <div className="font-medium">{weapon.name}</div>
-                    <div className="text-sm text-muted">{formatWeaponDamage(weapon.damage)}</div>
-                    <div className="flex gap-1 mt-1">
-                      <Badge variant="outline" className="text-xs">
-                        {weapon.type}
-                      </Badge>
-                      {weapon.properties.slice(0, 2).map(prop => (
-                        <Badge key={prop} variant="outline" className="text-xs">
-                          {prop}
-                        </Badge>
-                      ))}
+                  <SelectTrigger id="mainhand-select">
+                    <SelectValue placeholder="Choose a weapon..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">No weapon</SelectItem>
+                    {Object.entries(groupedWeapons).filter(([type]) => type.includes('Melee')).map(([type, weaponList]) => (
+                      weaponList.length > 0 && (
+                        <div key={type}>
+                          <div className="px-2 py-1.5 text-xs font-semibold text-muted">{type}</div>
+                          {weaponList.map(weapon => (
+                            <SelectItem key={weapon.id} value={weapon.id}>
+                              <div className="flex items-center justify-between w-full">
+                                <span>{weapon.name}</span>
+                                <span className="text-xs text-muted ml-2">
+                                  {formatWeaponDamage(weapon.damage)}
+                                </span>
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </div>
+                      )
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              {selectedMainHand && (
+                <Card className="border-accent/20 bg-accent/5">
+                  <CardContent className="p-4 space-y-3">
+                    <div>
+                      <div className="font-semibold text-panel">{selectedMainHand.name}</div>
+                      <div className="text-sm text-muted mt-1">
+                        {selectedMainHand.type === 'martial' ? 'Martial' : 'Simple'} {selectedMainHand.category} weapon
+                      </div>
                     </div>
+                    
+                    <div className="grid grid-cols-2 gap-3 text-sm">
+                      <div>
+                        <div className="text-xs font-medium text-muted mb-1">Damage</div>
+                        <Badge variant="outline" className="text-xs">
+                          {formatWeaponDamage(selectedMainHand.damage)}
+                        </Badge>
+                      </div>
+                      <div>
+                        <div className="text-xs font-medium text-muted mb-1">Range</div>
+                        <Badge variant="secondary" className="text-xs">
+                          {typeof selectedMainHand.range === 'object' 
+                            ? `${selectedMainHand.range.normal}/${selectedMainHand.range.long}` 
+                            : selectedMainHand.range || 'Melee'}
+                        </Badge>
+                      </div>
+                    </div>
+                    
+                    {selectedMainHand.properties.length > 0 && (
+                      <div>
+                        <div className="text-xs font-medium text-muted mb-1">Properties</div>
+                        <div className="flex flex-wrap gap-1">
+                          {selectedMainHand.properties.map((prop, idx) => (
+                            <Badge key={idx} variant="outline" className="text-xs">
+                              {prop}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
-              ))}
+              )}
             </div>
-          </div>
-          
-          <div>
-            <h3 className="text-lg font-semibold text-panel mb-3">Ranged Weapon</h3>
-            {selectedRanged && (
-              <Card className="mb-3 border-emerald/20 bg-emerald/5">
-                <CardContent className="p-3">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="font-medium">{selectedRanged.name}</div>
-                      <div className="text-sm text-muted">{formatWeaponDamage(selectedRanged.damage)}</div>
-                      {selectedRanged.properties.length > 0 && (
-                        <div className="text-xs text-muted mt-1">
-                          {selectedRanged.properties.join(', ')}
-                        </div>
-                      )}
-                    </div>
-                    <Badge variant="secondary" className="bg-emerald/10 text-emerald border-emerald/20">
-                      Selected
-                    </Badge>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
             
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {rangedWeapons.map((weapon) => (
-                <Card
-                  key={weapon.id}
-                  className={`cursor-pointer transition-all ${
-                    selectedRanged?.id === weapon.id 
-                      ? 'ring-2 ring-emerald border-emerald/20 bg-emerald/5' 
-                      : 'hover:border-emerald/30'
-                  }`}
-                  onClick={() => setRangedWeapon(weapon.id)}
+            {/* Ranged Weapon */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-panel flex items-center gap-2">
+                <Crosshair className="w-5 h-5 text-accent" />
+                Ranged Weapon
+              </h3>
+              
+              <div className="space-y-2">
+                <Label htmlFor="ranged-select">Select Weapon</Label>
+                <Select 
+                  value={currentBuild.selectedRanged || ''} 
+                  onValueChange={setRangedWeapon}
                 >
-                  <CardContent className="p-3">
-                    <div className="font-medium">{weapon.name}</div>
-                    <div className="text-sm text-muted">{formatWeaponDamage(weapon.damage)}</div>
-                    <div className="flex gap-1 mt-1">
-                      <Badge variant="outline" className="text-xs">
-                        {weapon.type}
-                      </Badge>
-                      {weapon.properties.slice(0, 2).map(prop => (
-                        <Badge key={prop} variant="outline" className="text-xs">
-                          {prop}
-                        </Badge>
-                      ))}
+                  <SelectTrigger id="ranged-select">
+                    <SelectValue placeholder="Choose a weapon..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">No weapon</SelectItem>
+                    {Object.entries(groupedWeapons).filter(([type]) => type.includes('Ranged')).map(([type, weaponList]) => (
+                      weaponList.length > 0 && (
+                        <div key={type}>
+                          <div className="px-2 py-1.5 text-xs font-semibold text-muted">{type}</div>
+                          {weaponList.map(weapon => (
+                            <SelectItem key={weapon.id} value={weapon.id}>
+                              <div className="flex items-center justify-between w-full">
+                                <span>{weapon.name}</span>
+                                <span className="text-xs text-muted ml-2">
+                                  {formatWeaponDamage(weapon.damage)}
+                                </span>
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </div>
+                      )
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              {selectedRanged && (
+                <Card className="border-accent/20 bg-accent/5">
+                  <CardContent className="p-4 space-y-3">
+                    <div>
+                      <div className="font-semibold text-panel">{selectedRanged.name}</div>
+                      <div className="text-sm text-muted mt-1">
+                        {selectedRanged.type === 'martial' ? 'Martial' : 'Simple'} ranged weapon
+                      </div>
                     </div>
+                    
+                    <div className="grid grid-cols-2 gap-3 text-sm">
+                      <div>
+                        <div className="text-xs font-medium text-muted mb-1">Damage</div>
+                        <Badge variant="outline" className="text-xs">
+                          {formatWeaponDamage(selectedRanged.damage)}
+                        </Badge>
+                      </div>
+                      <div>
+                        <div className="text-xs font-medium text-muted mb-1">Range</div>
+                        <Badge variant="secondary" className="text-xs">
+                          {typeof selectedRanged.range === 'object' 
+                            ? `${selectedRanged.range.normal}/${selectedRanged.range.long}` 
+                            : selectedRanged.range || 'Ranged'}
+                        </Badge>
+                      </div>
+                    </div>
+                    
+                    {selectedRanged.properties.length > 0 && (
+                      <div>
+                        <div className="text-xs font-medium text-muted mb-1">Properties</div>
+                        <div className="flex flex-wrap gap-1">
+                          {selectedRanged.properties.map((prop, idx) => (
+                            <Badge key={idx} variant="outline" className="text-xs">
+                              {prop}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
-              ))}
+              )}
             </div>
           </div>
-        </div>
-      )}
-      
-      {/* Armor Tab */}
-      {activeTab === 'armor' && (
-        <div className="space-y-6">
-          <div>
-            <h3 className="text-lg font-semibold text-panel mb-3">Armor</h3>
-            {selectedArmor && (
-              <Card className="mb-3 border-gold/20 bg-gold/5">
-                <CardContent className="p-3">
-                  <div className="flex items-center justify-between">
+        </TabsContent>
+        
+        {/* Armor Tab */}
+        <TabsContent value="armor" className="space-y-6 mt-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Armor Selection */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-panel flex items-center gap-2">
+                <Shield className="w-5 h-5 text-gold" />
+                Armor
+              </h3>
+              
+              <div className="space-y-2">
+                <Label htmlFor="armor-select">Select Armor</Label>
+                <Select 
+                  value={currentBuild.selectedArmor || ''} 
+                  onValueChange={setArmor}
+                >
+                  <SelectTrigger id="armor-select">
+                    <SelectValue placeholder="Choose armor..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">No armor (unarmored)</SelectItem>
+                    {Object.entries(groupedArmor).map(([type, armorList]) => (
+                      armorList.length > 0 && (
+                        <div key={type}>
+                          <div className="px-2 py-1.5 text-xs font-semibold text-muted">{type}</div>
+                          {armorList.map(armorItem => (
+                            <SelectItem key={armorItem.id} value={armorItem.id}>
+                              <div className="flex items-center justify-between w-full">
+                                <span>{armorItem.name}</span>
+                                <span className="text-xs text-muted ml-2">
+                                  AC {formatArmorAC(armorItem)}
+                                </span>
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </div>
+                      )
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              {selectedArmor && (
+                <Card className="border-gold/20 bg-gold/5">
+                  <CardContent className="p-4 space-y-3">
                     <div>
-                      <div className="font-medium">{selectedArmor.name}</div>
-                      <div className="text-sm text-muted">AC {formatArmorAC(selectedArmor)} • {selectedArmor.type} Armor</div>
+                      <div className="font-semibold text-panel">{selectedArmor.name}</div>
+                      <div className="text-sm text-muted mt-1">
+                        {selectedArmor.type.charAt(0).toUpperCase() + selectedArmor.type.slice(1)} armor
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-3 text-sm">
+                      <div>
+                        <div className="text-xs font-medium text-muted mb-1">Base AC</div>
+                        <Badge variant="outline" className="text-xs">
+                          {formatArmorAC(selectedArmor)}
+                        </Badge>
+                      </div>
                       {selectedArmor.strengthRequirement && (
-                        <div className="text-xs text-muted mt-1">
-                          Requires STR {selectedArmor.strengthRequirement}
+                        <div>
+                          <div className="text-xs font-medium text-muted mb-1">Str Required</div>
+                          <Badge variant="secondary" className="text-xs">
+                            {selectedArmor.strengthRequirement}
+                          </Badge>
                         </div>
                       )}
                     </div>
-                    <Badge variant="secondary" className="bg-gold/10 text-gold border-gold/20">
-                      Selected
-                    </Badge>
+                    
+                    {selectedArmor.stealthDisadvantage && (
+                      <div className="p-2 bg-danger/10 border border-danger/20 rounded">
+                        <div className="text-xs text-danger font-medium">
+                          Disadvantage on Stealth checks
+                        </div>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+            
+            {/* Shield & AC Summary */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-panel flex items-center gap-2">
+                <ShieldCheck className="w-5 h-5 text-gold" />
+                Shield & AC Summary
+              </h3>
+              
+              {/* Shield Toggle */}
+              <Card className="border-gold/20">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label htmlFor="shield-toggle" className="text-sm font-medium">
+                        Use Shield
+                      </Label>
+                      <div className="text-xs text-muted mt-1">
+                        Adds +2 to AC when equipped
+                      </div>
+                    </div>
+                    <Switch
+                      id="shield-toggle"
+                      checked={currentBuild.hasShield}
+                      onCheckedChange={toggleShield}
+                    />
                   </div>
                 </CardContent>
               </Card>
-            )}
-            
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {armorOptions.map((armorItem) => (
-                <Card
-                  key={armorItem.id}
-                  className={`cursor-pointer transition-all ${
-                    selectedArmor?.id === armorItem.id 
-                      ? 'ring-2 ring-gold border-gold/20 bg-gold/5' 
-                      : 'hover:border-gold/30'
-                  }`}
-                  onClick={() => setArmor(armorItem.id)}
-                >
-                  <CardContent className="p-3">
-                    <div className="font-medium">{armorItem.name}</div>
-                    <div className="text-sm text-muted">AC {formatArmorAC(armorItem)}</div>
-                    <div className="flex gap-1 mt-1">
-                      <Badge variant="outline" className="text-xs">
-                        {armorItem.type} Armor
-                      </Badge>
-                      {armorItem.stealthDisadvantage && (
-                        <Badge variant="outline" className="text-xs text-danger">
-                          Stealth Disadv.
-                        </Badge>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
-          
-          {/* Shield */}
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <Shield className="w-6 h-6 text-accent" />
-                  <div>
-                    <div className="font-medium">Shield</div>
-                    <div className="text-sm text-muted">+2 AC (requires free hand)</div>
+              
+              {/* AC Calculation Breakdown */}
+              <Card className="border-emerald/20 bg-emerald/5">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Info className="w-4 h-4 text-emerald" />
+                    AC Calculation
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  <div className="text-2xl font-bold text-emerald text-center mb-3">
+                    AC: {calculateAC()}
                   </div>
-                </div>
-                <Switch
-                  checked={currentBuild.hasShield || false}
-                  onCheckedChange={toggleShield}
-                />
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
-      
-      {/* Equipment Summary */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Equipment Summary</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <h4 className="font-semibold text-panel mb-3">Weapons</h4>
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-muted">Main Hand:</span>
-                  <span>{selectedMainHand?.name || 'None'}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted">Ranged:</span>
-                  <span>{selectedRanged?.name || 'None'}</span>
-                </div>
-              </div>
-            </div>
-            
-            <div>
-              <h4 className="font-semibold text-panel mb-3">Protection</h4>
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-muted">Armor:</span>
-                  <span>{selectedArmor?.name || 'None'}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted">Shield:</span>
-                  <span>{currentBuild.hasShield ? 'Yes (+2 AC)' : 'No'}</span>
-                </div>
-              </div>
+                  
+                  <div className="space-y-1 text-xs">
+                    {selectedArmor ? (
+                      <>
+                        <div className="flex justify-between">
+                          <span>Base ({selectedArmor.name})</span>
+                          <span className="font-medium">{selectedArmor.ac}</span>
+                        </div>
+                        {selectedArmor.dexModifier !== 'none' && (
+                          <div className="flex justify-between">
+                            <span>Dex Modifier</span>
+                            <span className="font-medium">
+                              {selectedArmor.dexModifier === 'limited' 
+                                ? `+${Math.min(Math.floor((currentBuild.abilityScores.DEX - 10) / 2), selectedArmor.dexMax || 2)}`
+                                : `+${Math.floor((currentBuild.abilityScores.DEX - 10) / 2)}`
+                              }
+                            </span>
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      <>
+                        <div className="flex justify-between">
+                          <span>Base (Unarmored)</span>
+                          <span className="font-medium">10</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Dex Modifier</span>
+                          <span className="font-medium">
+                            +{Math.floor((currentBuild.abilityScores.DEX - 10) / 2)}
+                          </span>
+                        </div>
+                      </>
+                    )}
+                    {currentBuild.hasShield && (
+                      <div className="flex justify-between">
+                        <span>Shield</span>
+                        <span className="font-medium">+2</span>
+                      </div>
+                    )}
+                    <div className="border-t pt-1 mt-1">
+                      <div className="flex justify-between font-semibold">
+                        <span>Total AC</span>
+                        <span className="text-emerald">{calculateAC()}</span>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }

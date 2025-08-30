@@ -1,8 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card'
+import { Badge } from '../ui/badge'
 import { useCharacterBuilderStore } from '../../stores/characterBuilderStore'
+import { getRace } from '../../rules/loaders'
 import { 
   Dices, 
-  Sword
+  Sword,
+  Info
 } from 'lucide-react'
 
 export function BuildSummary() {
@@ -44,7 +47,10 @@ export function BuildSummary() {
             <div className="space-y-3">
               <div className="flex justify-between items-center p-3 bg-panel/5 rounded-lg">
                 <span className="text-sm font-medium">Race</span>
-                <span className="text-sm capitalize">{(currentBuild.race || 'None').replace('_', ' ')}</span>
+                <span className="text-sm capitalize">
+                  {currentBuild.race ? getRace(currentBuild.race)?.name || currentBuild.race : 'None'}
+                  {currentBuild.subrace && ` (${currentBuild.subrace.replace('_', ' ')})`}
+                </span>
               </div>
               <div className="flex justify-between items-center p-3 bg-panel/5 rounded-lg">
                 <span className="text-sm font-medium">Background</span>
@@ -83,38 +89,62 @@ export function BuildSummary() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-3 md:grid-cols-6 gap-4 text-center">
-            {Object.entries(currentBuild.abilityScores).map(([ability, baseScore]) => {
-              // Calculate final score with race bonuses
-              const getRaceBonus = (race: string, abilityName: string): number => {
-                const raceBonuses: Record<string, Record<string, number>> = {
-                  'human_variant': { 'STR': 1, 'DEX': 1 }, // Simplified - variant human gets +1 to two chosen abilities
-                  'elf_high': { 'DEX': 2, 'INT': 1 },
-                  'dwarf_mountain': { 'CON': 2, 'STR': 2 },
-                  'halfling_lightfoot': { 'DEX': 2, 'CHA': 1 },
-                  'dragonborn': { 'STR': 2, 'CHA': 1 },
-                  'tiefling': { 'CHA': 2, 'INT': 1 }
-                }
-                return raceBonuses[race]?.[abilityName] || 0
-              }
-              
-              const raceBonus = getRaceBonus(currentBuild.race || '', ability)
-              const finalScore = baseScore + raceBonus
-              const modifier = getAbilityModifier(finalScore)
-              
-              return (
-                <div key={ability} className="p-3 bg-panel/5 rounded-lg">
-                  <div className="font-semibold">{ability}</div>
-                  <div className="text-2xl font-bold text-accent">{finalScore}</div>
-                  <div className="text-sm text-muted">{formatModifier(modifier)}</div>
-                  {raceBonus > 0 && (
-                    <div className="text-xs text-muted">
-                      ({baseScore} + {raceBonus} race)
-                    </div>
-                  )}
+          <div className="space-y-4">
+            {/* Show racial bonuses if any */}
+            {currentBuild.race && (
+              <div className="p-3 bg-accent/5 border border-accent/20 rounded-lg">
+                <div className="flex items-center gap-2 mb-2">
+                  <Info className="w-4 h-4 text-accent" />
+                  <span className="text-sm font-medium">Racial Ability Bonuses Applied</span>
                 </div>
-              )
-            })}
+                <div className="flex flex-wrap gap-2">
+                  {(() => {
+                    const race = getRace(currentBuild.race)
+                    const racialBonuses: Record<string, number> = {}
+                    
+                    // Base race bonuses
+                    race?.abilityScoreIncrease?.forEach(asi => {
+                      racialBonuses[asi.ability] = (racialBonuses[asi.ability] || 0) + asi.bonus
+                    })
+                    
+                    // Subrace bonuses
+                    if (currentBuild.subrace && race?.subraces) {
+                      const subrace = race.subraces.find(s => s.id === currentBuild.subrace)
+                      subrace?.abilityScoreIncrease?.forEach(asi => {
+                        racialBonuses[asi.ability] = (racialBonuses[asi.ability] || 0) + asi.bonus
+                      })
+                    }
+                    
+                    return Object.entries(racialBonuses).map(([ability, bonus]) => (
+                      <Badge key={ability} variant="outline" className="text-xs">
+                        {ability} +{bonus}
+                      </Badge>
+                    ))
+                  })()}
+                </div>
+              </div>
+            )}
+            
+            <div className="grid grid-cols-3 md:grid-cols-6 gap-4 text-center">
+              {Object.entries(currentBuild.finalAbilityScores || currentBuild.abilityScores).map(([ability, score]) => {
+                const modifier = getAbilityModifier(score)
+                const baseScore = currentBuild.baseAbilityScores?.[ability as keyof typeof currentBuild.baseAbilityScores]
+                const hasBonus = baseScore && baseScore !== score
+                
+                return (
+                  <div key={ability} className="p-3 bg-panel/5 rounded-lg">
+                    <div className="font-semibold">{ability}</div>
+                    <div className="text-2xl font-bold text-accent">{score}</div>
+                    <div className="text-sm text-muted">{formatModifier(modifier)}</div>
+                    {hasBonus && (
+                      <div className="text-xs text-emerald">
+                        (base: {baseScore})
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
           </div>
         </CardContent>
       </Card>

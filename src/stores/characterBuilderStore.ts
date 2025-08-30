@@ -194,7 +194,10 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
             
             // Character basics with fallbacks
             race: build.race || '',
+            subrace: build.subrace || '',
             background: build.background || '',
+            baseAbilityScores: build.baseAbilityScores || { ...DEFAULT_ABILITY_SCORES },
+            skillProficiencies: build.skillProficiencies || [],
             
             // Ability scores with validation
             abilityMethod: build.abilityMethod || 'pointbuy',
@@ -273,7 +276,10 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
         updatedAt: new Date(),
         notes: currentBuild.notes,
         race: currentBuild.race,
+        subrace: currentBuild.subrace,
         background: currentBuild.background,
+        baseAbilityScores: currentBuild.baseAbilityScores,
+        skillProficiencies: currentBuild.skillProficiencies,
         abilityMethod: currentBuild.abilityAssignmentMethod as any,
         abilityScores: currentBuild.finalAbilityScores || currentBuild.abilityScores,
         pointBuyLimit: currentBuild.pointBuyConfig.totalPoints,
