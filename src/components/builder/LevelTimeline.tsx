@@ -20,7 +20,7 @@ export function LevelTimeline() {
     return <div className="text-center text-muted">Loading class progression...</div>
   }
   
-  const levels = currentBuild.enhancedLevelTimeline.sort((a, b) => a.level - b.level)
+  const levels = [...(currentBuild.enhancedLevelTimeline || [])].sort((a, b) => a.level - b.level)
   const nextLevel = levels.length > 0 ? Math.max(...levels.map(l => l.level)) + 1 : 1
   
   // Trigger validation when levels change
@@ -34,11 +34,15 @@ export function LevelTimeline() {
   const handleAddLevel = () => {
     if (selectedClass && nextLevel <= 20) {
       try {
+        console.log('Attempting to add level:', nextLevel, 'for class:', selectedClass)
         addLevel(selectedClass, nextLevel)
         setSelectedClass('')
       } catch (error) {
         console.error('Error adding level:', error)
+        alert(`Error adding level: ${error instanceof Error ? error.message : 'Unknown error'}`)
       }
+    } else {
+      console.log('Cannot add level - selectedClass:', selectedClass, 'nextLevel:', nextLevel)
     }
   }
   

@@ -341,33 +341,52 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
     // Level progression actions
     addLevel: (classId: string, level: number) => {
       set((state) => {
-        if (state.currentBuild) {
-          const newEntry: BuilderLevelEntry = {
-            level,
-            classId,
-            features: [],
-            isCompleted: false,
-            validationErrors: []
+        try {
+          if (state.currentBuild) {
+            console.log('Adding level:', level, 'class:', classId)
+            
+            // Ensure enhancedLevelTimeline exists
+            if (!state.currentBuild.enhancedLevelTimeline) {
+              state.currentBuild.enhancedLevelTimeline = []
+            }
+            
+            const newEntry: BuilderLevelEntry = {
+              level,
+              classId,
+              features: [],
+              isCompleted: false,
+              validationErrors: []
+            }
+            
+            state.currentBuild.enhancedLevelTimeline.push(newEntry)
+            state.currentBuild.enhancedLevelTimeline.sort((a, b) => a.level - b.level)
+            
+            // Ensure legacy levelTimeline exists for compatibility
+            if (!state.currentBuild.levelTimeline) {
+              state.currentBuild.levelTimeline = []
+            }
+            
+            // Update legacy levelTimeline for compatibility
+            state.currentBuild.levelTimeline = state.currentBuild.enhancedLevelTimeline.map(entry => ({
+              level: entry.level,
+              classId: entry.classId,
+              subclassId: entry.subclassId,
+              features: entry.features || [],
+              asiOrFeat: entry.asiOrFeat,
+              featId: entry.featId,
+              abilityIncreases: entry.abilityIncreases,
+              notes: entry.notes
+            }))
+            
+            state.currentBuild.currentLevel = Math.max(state.currentBuild.currentLevel || 1, level)
+            state.isDirty = true
+            validateStep(state, 'class-progression')
+            
+            console.log('Successfully added level. Total levels:', state.currentBuild.enhancedLevelTimeline.length)
           }
-          
-          state.currentBuild.enhancedLevelTimeline.push(newEntry)
-          state.currentBuild.enhancedLevelTimeline.sort((a, b) => a.level - b.level)
-          
-          // Update legacy levelTimeline for compatibility
-          state.currentBuild.levelTimeline = state.currentBuild.enhancedLevelTimeline.map(entry => ({
-            level: entry.level,
-            classId: entry.classId,
-            subclassId: entry.subclassId,
-            features: entry.features,
-            asiOrFeat: entry.asiOrFeat,
-            featId: entry.featId,
-            abilityIncreases: entry.abilityIncreases,
-            notes: entry.notes
-          }))
-          
-          state.currentBuild.currentLevel = Math.max(state.currentBuild.currentLevel, level)
-          state.isDirty = true
-          validateStep(state, 'class-progression')
+        } catch (error) {
+          console.error('Error in addLevel:', error)
+          throw error
         }
       })
     },
