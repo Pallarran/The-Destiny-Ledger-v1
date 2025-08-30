@@ -223,14 +223,17 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
             round0Buffs: build.round0Buffs || [],
             
             // Ensure level timeline exists and is valid
-            enhancedLevelTimeline: (build.levelTimeline || []).map(entry => ({
-              ...entry,
-              features: entry.features || [],
-              isCompleted: true,
-              validationErrors: [],
-              fightingStyle: (entry as any).fightingStyle,
-              archetype: (entry as any).archetype
-            })),
+            enhancedLevelTimeline: (build.levelTimeline || []).map(entry => {
+              console.log('Loading level entry:', entry.level, 'fightingStyle:', (entry as any).fightingStyle, 'full entry:', entry)
+              return {
+                ...entry,
+                features: entry.features || [],
+                isCompleted: true,
+                validationErrors: [],
+                fightingStyle: (entry as any).fightingStyle,
+                archetype: (entry as any).archetype
+              }
+            }),
             
             // Builder state
             maxLevel: 20,
