@@ -806,21 +806,23 @@ function validateAbilityScores(build: CharacterBuilder): boolean {
   
   // Method-specific validation
   if (build.abilityAssignmentMethod === 'pointbuy') {
-    // For point buy, check that points are within budget (0-27)
+    // For point buy, D&D 5e rules require EXACTLY 27 points to be spent
     const pointCosts = { 8: 0, 9: 1, 10: 2, 11: 3, 12: 4, 13: 5, 14: 7, 15: 9 }
-    const totalUsed = scores.reduce((sum, score) => sum + (pointCosts[score as keyof typeof pointCosts] || 0), 0)
-    return totalUsed >= 0 && totalUsed <= 27 // Allow any valid point spend, not just exactly 27
-  } else if (build.abilityAssignmentMethod === 'standard') {
-    // For standard array, check if user has made any assignments (not all 8s)
-    const hasAssignments = scores.some(score => score !== 8)
-    if (!hasAssignments) return false
     
-    // Check if all values are from standard array
+    // Check all scores are valid for point buy (8-15)
+    const validRange = scores.every(score => score >= 8 && score <= 15)
+    if (!validRange) return false
+    
+    const totalUsed = scores.reduce((sum, score) => sum + (pointCosts[score as keyof typeof pointCosts] || 0), 0)
+    return totalUsed === 27 // Must spend exactly 27 points per D&D rules
+  } else if (build.abilityAssignmentMethod === 'standard') {
+    // For standard array, each value must be used exactly once
     const standardArray = [15, 14, 13, 12, 10, 8]
-    const validValues = scores.every(score => standardArray.includes(score))
-    return validValues
+    const sortedScores = [...scores].sort((a, b) => b - a)
+    const sortedStandard = [...standardArray].sort((a, b) => b - a)
+    return JSON.stringify(sortedScores) === JSON.stringify(sortedStandard)
   } else {
-    // For custom/manual, just check bounds (already done above)
+    // For custom/manual (rolled stats), just check bounds (already done above)
     return true
   }
 }

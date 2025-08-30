@@ -68,16 +68,25 @@ export function AbilityScoreAssignment() {
     return { STR: 0, DEX: 0, CON: 0, INT: 0, WIS: 0, CHA: 0 }
   })
   
-  // Auto-detect method if scores suggest it's not point-buy
+  // Auto-detect method if scores suggest it's not point-buy or standard array
   const autoDetectMethod = () => {
     if (!currentBuild) return 'pointbuy'
     
     const scores = Object.values(currentBuild.abilityScores)
     const hasScoresAbove15 = scores.some(score => score > 15)
+    const hasScoresBelow8 = scores.some(score => score < 8)
     
-    // If any score is above 15, it can't be point-buy, so assume custom
-    if (hasScoresAbove15) {
+    // If any score is above 15 or below 8, it can't be point-buy or standard array
+    if (hasScoresAbove15 || hasScoresBelow8) {
       return 'custom'
+    }
+    
+    // Check if it matches standard array exactly
+    const standardArray = [15, 14, 13, 12, 10, 8]
+    const sortedScores = [...scores].sort((a, b) => b - a)
+    const sortedStandard = [...standardArray].sort((a, b) => b - a)
+    if (JSON.stringify(sortedScores) === JSON.stringify(sortedStandard)) {
+      return 'standard'
     }
     
     // Return the stored method or default to point-buy
@@ -226,13 +235,13 @@ export function AbilityScoreAssignment() {
         {/* Method Description */}
         <div className="text-sm text-muted bg-panel/5 rounded-lg p-3">
           {method === 'pointbuy' && (
-            <span><strong>Point Buy:</strong> Purchase ability scores with 27 points. Balanced approach, costs increase exponentially, max starting score: 15.</span>
+            <span><strong>Point Buy:</strong> Spend exactly 27 points to purchase ability scores (8-15 range). Must use all points per D&D 5e rules.</span>
           )}
           {method === 'standard' && (
-            <span><strong>Standard Array:</strong> Assign predetermined scores (15, 14, 13, 12, 10, 8) to your abilities. Quick and consistent.</span>
+            <span><strong>Standard Array:</strong> Assign each predetermined score (15, 14, 13, 12, 10, 8) to exactly one ability. Each value must be used once.</span>
           )}
           {method === 'custom' && (
-            <span><strong>Manual Entry:</strong> Enter any ability scores manually (8-20 range). Use for rolled stats or variant rules.</span>
+            <span><strong>Manual Entry:</strong> Enter ability scores manually (8-20 range). Use for rolled stats, variant rules, or homebrew campaigns.</span>
           )}
         </div>
       </div>
@@ -252,12 +261,14 @@ export function AbilityScoreAssignment() {
               <Badge 
                 variant={remainingPoints === 0 ? "default" : remainingPoints > 0 ? "secondary" : "destructive"}
               >
-                {remainingPoints} remaining
+                {remainingPoints === 0 ? "Complete" : `${Math.abs(remainingPoints)} ${remainingPoints > 0 ? "remaining" : "over budget"}`}
               </Badge>
-              {remainingPoints < 0 && (
-                <div className="flex items-center gap-1 text-destructive text-sm">
-                  <AlertTriangle className="w-4 h-4" />
-                  Over budget
+              {remainingPoints !== 0 && (
+                <div className="flex items-center gap-1 text-sm">
+                  <AlertTriangle className={`w-4 h-4 ${remainingPoints > 0 ? 'text-amber-500' : 'text-destructive'}`} />
+                  <span className={remainingPoints > 0 ? 'text-amber-600' : 'text-destructive'}>
+                    {remainingPoints > 0 ? 'Must spend all 27 points' : 'Over 27 point limit'}
+                  </span>
                 </div>
               )}
             </div>
