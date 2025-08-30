@@ -68,11 +68,33 @@ export function AbilityScoreAssignment() {
     return { STR: 0, DEX: 0, CON: 0, INT: 0, WIS: 0, CHA: 0 }
   })
   
-  const method = currentBuild?.abilityAssignmentMethod || 'pointbuy'
+  // Auto-detect method if scores suggest it's not point-buy
+  const autoDetectMethod = () => {
+    if (!currentBuild) return 'pointbuy'
+    
+    const scores = Object.values(currentBuild.abilityScores)
+    const hasScoresAbove15 = scores.some(score => score > 15)
+    
+    // If any score is above 15, it can't be point-buy, so assume custom
+    if (hasScoresAbove15) {
+      return 'custom'
+    }
+    
+    // Return the stored method or default to point-buy
+    return currentBuild.abilityAssignmentMethod || 'pointbuy'
+  }
+  
+  const method = autoDetectMethod()
   
   useEffect(() => {
     if (currentBuild?.abilityScores) {
       setLocalScores(currentBuild.abilityScores)
+      
+      // Update the method in store if auto-detection changed it
+      const detectedMethod = autoDetectMethod()
+      if (currentBuild.abilityAssignmentMethod !== detectedMethod) {
+        setAbilityAssignmentMethod(detectedMethod)
+      }
       
       // Also update standard array assignment if this is a standard array build
       if (currentBuild.abilityAssignmentMethod === 'standard') {
