@@ -1,36 +1,19 @@
-import { useState } from 'react'
-import { Button } from '../ui/button'
-import { Input } from '../ui/input'
-import { Label } from '../ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card'
 import { Badge } from '../ui/badge'
 import { useCharacterBuilderStore } from '../../stores/characterBuilderStore'
-import { Link } from 'react-router-dom'
 import { 
   Dices, 
-  Sword, 
-  CheckCircle,
-  AlertTriangle,
-  Save,
-  Archive
+  Sword
 } from 'lucide-react'
 
 export function BuildSummary() {
   const { 
-    currentBuild,
-    validateAllSteps,
-    updateBuild,
-    saveBuild
+    currentBuild
   } = useCharacterBuilderStore()
-  
-  const [buildName, setBuildName] = useState(currentBuild?.name || '')
-  const [buildNotes, setBuildNotes] = useState(currentBuild?.notes || '')
   
   if (!currentBuild) {
     return <div className="text-center text-muted">Loading build summary...</div>
   }
-  
-  const isValid = validateAllSteps()
   
   // Calculate basic stats
   const totalLevel = Math.max(...currentBuild.enhancedLevelTimeline.map(l => l.level), 1)
@@ -46,99 +29,14 @@ export function BuildSummary() {
   const getAbilityModifier = (score: number) => Math.floor((score - 10) / 2)
   const formatModifier = (mod: number) => mod >= 0 ? `+${mod}` : `${mod}`
   
-  const handleNameChange = (name: string) => {
-    setBuildName(name)
-    updateBuild({ name })
-  }
-  
-  const handleNotesChange = (notes: string) => {
-    setBuildNotes(notes)
-    updateBuild({ notes })
-  }
-  
-  const validationIssues = []
-  if (!currentBuild.race) validationIssues.push('Race not selected')
-  if (currentBuild.enhancedLevelTimeline.length === 0) validationIssues.push('No class levels defined')
-  if (!buildName.trim()) validationIssues.push('Build name required')
-  
   return (
     <div className="space-y-6">
       <div>
         <h2 className="text-xl font-bold text-panel mb-2">Build Summary</h2>
         <p className="text-muted">
-          Review your completed character build, calculate DPR, and save to your vault.
+          Review your completed character build and calculate DPR.
         </p>
       </div>
-      
-      {/* Validation Issues Only */}
-      {(validationIssues.length > 0 || isValid) && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              {validationIssues.length > 0 ? (
-                <><AlertTriangle className="w-5 h-5" /> Build Validation</>
-              ) : (
-                <><CheckCircle className="w-5 h-5" /> Build Ready</>
-              )}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {validationIssues.length > 0 && (
-              <div className="bg-destructive/5 border border-destructive/20 rounded-lg p-3">
-                <div className="flex items-center gap-2 text-destructive text-sm font-medium mb-2">
-                  <AlertTriangle className="w-4 h-4" />
-                  Issues to Address
-                </div>
-                <ul className="text-sm text-destructive space-y-1">
-                  {validationIssues.map((issue, index) => (
-                    <li key={index} className="ml-4">• {issue}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
-            
-            {isValid && validationIssues.length === 0 && (
-              <div className="bg-emerald/5 border border-emerald/20 rounded-lg p-3">
-                <div className="flex items-center gap-2 text-emerald text-sm font-medium">
-                  <CheckCircle className="w-4 h-4" />
-                  Build is valid and ready to save!
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
-      
-      {/* Build Details */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Build Details</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="buildName">Build Name *</Label>
-                <Input
-                  id="buildName"
-                  value={buildName}
-                  onChange={(e) => handleNameChange(e.target.value)}
-                  placeholder="Enter build name"
-                />
-              </div>
-              <div>
-                <Label htmlFor="buildNotes">Notes (Optional)</Label>
-                <Input
-                  id="buildNotes"
-                  value={buildNotes}
-                  onChange={(e) => handleNotesChange(e.target.value)}
-                  placeholder="Build notes or description"
-                />
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
       
       {/* Character Overview */}
       <Card>
@@ -265,47 +163,6 @@ export function BuildSummary() {
                 </div>
               </div>
             </div>
-          </div>
-        </CardContent>
-      </Card>
-      
-      
-      {/* Save to Vault */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Archive className="w-5 h-5" />
-            Save Build
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-6">
-            <Archive className="w-12 h-12 text-accent mx-auto mb-4" />
-            <p className="text-muted mb-4">
-              Save this build to your vault for future reference and comparison.
-            </p>
-            <div className="flex gap-3 justify-center">
-              <Button 
-                onClick={saveBuild}
-                disabled={!isValid || !buildName.trim()}
-                variant="accent"
-                className="min-w-[120px]"
-              >
-                <Save className="w-4 h-4 mr-2" />
-                Save Build
-              </Button>
-              <Button asChild variant="outline">
-                <Link to="/vault">
-                  <Archive className="w-4 h-4 mr-2" />
-                  View Vault
-                </Link>
-              </Button>
-            </div>
-            {(!isValid || !buildName.trim()) && (
-              <p className="text-destructive text-sm mt-2">
-                {!buildName.trim() ? 'Build name is required' : 'Complete the build to save'}
-              </p>
-            )}
           </div>
         </CardContent>
       </Card>

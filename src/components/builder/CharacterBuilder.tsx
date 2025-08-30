@@ -1,9 +1,11 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Panel } from '../ui/panel'
 import { Button } from '../ui/button'
 import { Progress } from '../ui/progress'
 import { Badge } from '../ui/badge'
+import { Input } from '../ui/input'
+import { Label } from '../ui/label'
 import { Tabs, TabsList, TabsContent, TabsTrigger } from '../ui/tabs'
 import { useCharacterBuilderStore } from '../../stores/characterBuilderStore'
 import { useVaultStore } from '../../stores/vaultStore'
@@ -77,8 +79,13 @@ export function CharacterBuilder({ buildId }: CharacterBuilderProps) {
     validateCurrentStep,
     validateAllSteps,
     resetBuild,
-    clearDirty
+    clearDirty,
+    updateBuild
   } = useCharacterBuilderStore()
+
+  // Build info state
+  const [buildName, setBuildName] = useState(currentBuild?.name || '')
+  const [buildNotes, setBuildNotes] = useState(currentBuild?.notes || '')
   
   useEffect(() => {
     console.log('CharacterBuilder useEffect - currentBuild:', currentBuild?.name, 'storedBuild:', storedBuild?.name)
@@ -101,9 +108,27 @@ export function CharacterBuilder({ buildId }: CharacterBuilderProps) {
       createNewBuild()
     }
   }, [buildId, currentBuild, storedBuild, createNewBuild, loadFromBuildConfiguration, clearCurrentBuild])
+
+  // Update build info state when current build changes
+  useEffect(() => {
+    if (currentBuild) {
+      setBuildName(currentBuild.name || '')
+      setBuildNotes(currentBuild.notes || '')
+    }
+  }, [currentBuild?.name, currentBuild?.notes])
   
   const handleStepChange = (step: string) => {
     goToStep(step as any)
+  }
+
+  const handleNameChange = (name: string) => {
+    setBuildName(name)
+    updateBuild({ name })
+  }
+
+  const handleNotesChange = (notes: string) => {
+    setBuildNotes(notes)
+    updateBuild({ notes })
   }
   
   const handleNextStep = () => {
@@ -155,6 +180,19 @@ export function CharacterBuilder({ buildId }: CharacterBuilderProps) {
     const completedSteps = BUILDER_STEPS.filter(step => stepValidation[step]).length
     return (completedSteps / BUILDER_STEPS.length) * 100
   }
+
+  // Validation logic for top box
+  const getValidationStatus = () => {
+    if (!currentBuild) return { isValid: false, issues: [] }
+    
+    const issues = []
+    if (!currentBuild.race) issues.push('Race not selected')
+    if (currentBuild.enhancedLevelTimeline.length === 0) issues.push('No class levels defined')
+    if (!buildName.trim()) issues.push('Build name required')
+    
+    const isValid = validateAllSteps() && issues.length === 0
+    return { isValid, issues }
+  }
   
   // Show loading state instead of early return to avoid hooks issues
   if (!currentBuild) {
@@ -170,69 +208,120 @@ export function CharacterBuilder({ buildId }: CharacterBuilderProps) {
     )
   }
   
+  const { isValid, issues } = getValidationStatus()
+
   return (
     <div className="space-y-6">
       {/* Header */}
       <Panel>
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h1 className="text-2xl font-bold text-panel mb-1">{currentBuild.name}</h1>
-            <p className="text-sm text-muted">
-              Step {BUILDER_STEPS.indexOf(currentStep) + 1} of {BUILDER_STEPS.length}: {STEP_LABELS[currentStep]}
-            </p>
-          </div>
-          
-          <div className="flex items-center gap-2">
-            {isDirty && (
-              <Badge variant="secondary" className="bg-orange/10 text-orange border-orange/20">
-                <AlertTriangle className="w-3 h-3 mr-1" />
-                Unsaved Changes
-              </Badge>
-            )}
-            
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleReset}
-              className="text-destructive hover:bg-destructive/5"
-            >
-              <RotateCcw className="w-4 h-4 mr-2" />
-              Reset
-            </Button>
-            
-            <Button
-              variant="accent"
-              size="sm"
-              onClick={handleSave}
-              disabled={!currentBuild}
-            >
-              <Save className="w-4 h-4 mr-2" />
-              Save Build
-            </Button>
-          </div>
-        </div>
-        
-        {/* Progress Bar */}
-        <div className="mb-4">
-          <div className="flex items-center justify-between text-xs text-muted mb-2">
-            <span>Overall Progress</span>
-            <span>{Math.round(getStepProgress())}% Complete</span>
-          </div>
-          <Progress value={getStepProgress()} className="h-2" />
-        </div>
-        
-        {/* Global Errors */}
-        {globalErrors.length > 0 && (
-          <div className="bg-destructive/5 border border-destructive/20 rounded-lg p-3 mb-4">
-            <div className="flex items-center gap-2 text-destructive text-sm font-medium mb-2">
-              <AlertTriangle className="w-4 h-4" />
-              Build Validation Errors
+        {/* Top Section: Build Info and Actions */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+          {/* Build Info */}
+          <div className="lg:col-span-2 space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="buildName">Build Name *</Label>
+                <Input
+                  id="buildName"
+                  value={buildName}
+                  onChange={(e) => handleNameChange(e.target.value)}
+                  placeholder="Enter build name"
+                />
+              </div>
+              <div>
+                <Label htmlFor="buildNotes">Notes (Optional)</Label>
+                <Input
+                  id="buildNotes"
+                  value={buildNotes}
+                  onChange={(e) => handleNotesChange(e.target.value)}
+                  placeholder="Build notes or description"
+                />
+              </div>
             </div>
-            <ul className="text-sm text-destructive space-y-1">
-              {globalErrors.map((error, index) => (
-                <li key={index} className="ml-4">• {error}</li>
-              ))}
-            </ul>
+          </div>
+
+          {/* Actions */}
+          <div className="flex flex-col gap-2 lg:items-end">
+            <div className="flex items-center gap-2">
+              {isDirty && (
+                <Badge variant="secondary" className="bg-orange/10 text-orange border-orange/20">
+                  <AlertTriangle className="w-3 h-3 mr-1" />
+                  Unsaved Changes
+                </Badge>
+              )}
+              
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleReset}
+                className="text-destructive hover:bg-destructive/5"
+              >
+                <RotateCcw className="w-4 h-4 mr-2" />
+                Reset
+              </Button>
+              
+              <Button
+                variant="accent"
+                size="sm"
+                onClick={handleSave}
+                disabled={!currentBuild}
+              >
+                <Save className="w-4 h-4 mr-2" />
+                Save Build
+              </Button>
+            </div>
+
+            {/* Condensed Progress */}
+            <div className="text-right">
+              <div className="flex items-center gap-2 text-xs text-muted mb-1">
+                <span>Step {BUILDER_STEPS.indexOf(currentStep) + 1} of {BUILDER_STEPS.length}: {STEP_LABELS[currentStep]}</span>
+                <span>•</span>
+                <span>{Math.round(getStepProgress())}% Complete</span>
+              </div>
+              <Progress value={getStepProgress()} className="h-1 w-48" />
+            </div>
+          </div>
+        </div>
+
+        {/* Validation Status */}
+        {(issues.length > 0 || isValid || globalErrors.length > 0) && (
+          <div className="mb-4">
+            {issues.length > 0 && (
+              <div className="bg-destructive/5 border border-destructive/20 rounded-lg p-3 mb-3">
+                <div className="flex items-center gap-2 text-destructive text-sm font-medium mb-2">
+                  <AlertTriangle className="w-4 h-4" />
+                  Issues to Address
+                </div>
+                <ul className="text-sm text-destructive space-y-1">
+                  {issues.map((issue, index) => (
+                    <li key={index} className="ml-4">• {issue}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {isValid && issues.length === 0 && globalErrors.length === 0 && (
+              <div className="bg-emerald/5 border border-emerald/20 rounded-lg p-3">
+                <div className="flex items-center gap-2 text-emerald text-sm font-medium">
+                  <CheckCircle className="w-4 h-4" />
+                  Build is valid and ready to save!
+                </div>
+              </div>
+            )}
+
+            {globalErrors.length > 0 && (
+              <div className="bg-destructive/5 border border-destructive/20 rounded-lg p-3">
+                <div className="flex items-center gap-2 text-destructive text-sm font-medium mb-2">
+                  <AlertTriangle className="w-4 h-4" />
+                  Build Validation Errors
+                </div>
+                <ul className="text-sm text-destructive space-y-1">
+                  {globalErrors.map((error, index) => (
+                    <li key={index} className="ml-4">• {error}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
         )}
       </Panel>
