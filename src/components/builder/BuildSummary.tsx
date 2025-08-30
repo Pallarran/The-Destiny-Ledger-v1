@@ -42,7 +42,7 @@ export function BuildSummary() {
   
   // Calculate saving throw bonuses
   const savingThrows = ['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA'].map(ability => {
-    const isProficient = mainClassData?.savingThrowProficiencies?.includes(ability as any) || false
+    const isProficient = mainClassData?.savingThrowProficiencies?.includes(ability as keyof typeof abilityScores) || false
     const abilityMod = getAbilityModifier(abilityScores[ability as keyof typeof abilityScores])
     const bonus = abilityMod + (isProficient ? proficiencyBonus : 0)
     return {
@@ -235,19 +235,12 @@ export function BuildSummary() {
           <div className="grid grid-cols-3 md:grid-cols-6 gap-3">
             {Object.entries(abilityScores).map(([ability, score]) => {
               const modifier = getAbilityModifier(score)
-              const baseScore = currentBuild.baseAbilityScores?.[ability as keyof typeof currentBuild.baseAbilityScores] || score
-              const hasBonus = baseScore !== score
               
               return (
                 <div key={ability} className="text-center p-3 bg-panel/5 rounded-lg">
                   <div className="text-xs font-medium text-muted mb-1">{ability}</div>
                   <div className="text-2xl font-bold text-accent">{score}</div>
                   <div className="text-sm font-medium">{formatModifier(modifier)}</div>
-                  {hasBonus && (
-                    <div className="text-xs text-emerald mt-1">
-                      base: {baseScore}
-                    </div>
-                  )}
                 </div>
               )
             })}
@@ -264,10 +257,10 @@ export function BuildSummary() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+          <div className="grid grid-cols-6 gap-3">
             {savingThrows.map(save => (
-              <div key={save.ability} className="flex items-center justify-between p-2 bg-panel/5 rounded">
-                <div className="flex items-center gap-2">
+              <div key={save.ability} className="text-center p-2 bg-panel/5 rounded">
+                <div className="flex items-center justify-center gap-1 mb-1">
                   <div className={`w-2 h-2 rounded-full ${save.isProficient ? 'bg-emerald' : 'bg-muted'}`} />
                   <span className="text-sm font-medium">{save.ability}</span>
                 </div>
@@ -297,21 +290,19 @@ export function BuildSummary() {
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
             {skillBonuses.map(skill => (
-              <div key={skill.name} className="flex items-center justify-between p-2 bg-panel/5 rounded hover:bg-panel/10 transition-colors">
-                <div className="flex items-center gap-2">
-                  <div className={`w-2 h-2 rounded-full ${
-                    skill.hasExpertise ? 'bg-gold' : 
-                    skill.isProficient ? 'bg-emerald' : 
-                    'bg-muted'
-                  }`} />
-                  <div>
-                    <div className="text-sm font-medium">{skill.name}</div>
-                    <div className="text-xs text-muted">({skill.ability})</div>
-                  </div>
+              <div key={skill.name} className="flex items-center gap-3 p-2 bg-panel/5 rounded hover:bg-panel/10 transition-colors">
+                <div className={`w-2 h-2 rounded-full ${
+                  skill.hasExpertise ? 'bg-gold' : 
+                  skill.isProficient ? 'bg-emerald' : 
+                  'bg-muted'
+                }`} />
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-medium">{skill.name}</div>
+                  <div className="text-xs text-muted">({skill.ability})</div>
                 </div>
                 <Badge 
                   variant={skill.isProficient ? "default" : "secondary"} 
-                  className={`text-xs ${skill.hasExpertise ? 'bg-gold text-ink' : ''}`}
+                  className={`text-xs shrink-0 ${skill.hasExpertise ? 'bg-gold text-ink' : ''}`}
                 >
                   {skill.modifier}
                 </Badge>
