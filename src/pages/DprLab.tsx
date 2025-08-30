@@ -28,22 +28,22 @@ export function DprLab() {
   })
   
   const [localConfig, setLocalConfig] = useState<{
-    acMin: number
-    acMax: number
-    acStep: number
-    advantageState: 'normal' | 'advantage' | 'disadvantage'
     round0BuffsEnabled: boolean
     greedyResourceUse: boolean
     autoGWMSS: boolean
   }>({
-    acMin: 10,
-    acMax: 30,
-    acStep: 1,
-    advantageState: 'normal',
     round0BuffsEnabled: true,
     greedyResourceUse: true,
     autoGWMSS: true
   })
+  
+  // Fixed config per specification
+  const fixedConfig = {
+    acMin: 10,
+    acMax: 30,
+    acStep: 1,
+    advantageState: 'normal' as const // Always calculate all three curves
+  }
   
   const [breakpoints, setBreakpoints] = useState<any[]>([])
   
@@ -51,9 +51,9 @@ export function DprLab() {
   useEffect(() => {
     if (selectedBuild && !currentConfig) {
       const config = createDPRConfig(selectedBuild.id)
-      setConfiguration({ ...config, ...localConfig })
+      setConfiguration({ ...config, ...fixedConfig, ...localConfig })
     }
-  }, [selectedBuild, currentConfig, localConfig, setConfiguration])
+  }, [selectedBuild, currentConfig, fixedConfig, localConfig, setConfiguration])
   
   // Update selectedBuild when builderCurrentBuild changes
   useEffect(() => {
@@ -70,6 +70,7 @@ export function DprLab() {
     
     const config = {
       buildId: selectedBuild.id,
+      ...fixedConfig,
       ...localConfig
     }
     
@@ -88,7 +89,7 @@ export function DprLab() {
       )
       
       if (hasGWMSS) {
-        const breakpointData = await calculatePowerAttackBreakpoints(selectedBuild, localConfig.acMin, localConfig.acMax)
+        const breakpointData = await calculatePowerAttackBreakpoints(selectedBuild, fixedConfig.acMin, fixedConfig.acMax)
         if (breakpointData) {
           setBreakpoints(breakpointData)
         }
@@ -126,7 +127,7 @@ export function DprLab() {
         
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* Configuration Panel */}
-          <div className="lg:col-span-4">
+          <div className="lg:col-span-5">
             <Panel className="bg-ink text-panel">
               <PanelHeader title="Simulation Config" className="text-panel bg-ink border-b border-border/20" />
               
@@ -178,65 +179,21 @@ export function DprLab() {
                   )}
                 </div>
 
-                {/* Advantage Settings */}
+                {/* Fixed Parameters Info */}
                 <div>
-                  <h4 className="font-medium mb-3">Advantage State</h4>
-                  <div className="space-y-2">
-                    <label className="flex items-center gap-2">
-                      <input 
-                        type="radio" 
-                        name="advantage" 
-                        checked={localConfig.advantageState === 'normal'}
-                        onChange={() => setLocalConfig(prev => ({ ...prev, advantageState: 'normal' }))}
-                      />
-                      <span>Normal</span>
-                    </label>
-                    <label className="flex items-center gap-2">
-                      <input 
-                        type="radio" 
-                        name="advantage" 
-                        checked={localConfig.advantageState === 'advantage'}
-                        onChange={() => setLocalConfig(prev => ({ ...prev, advantageState: 'advantage' }))}
-                      />
-                      <span>Advantage</span>
-                    </label>
-                    <label className="flex items-center gap-2">
-                      <input 
-                        type="radio" 
-                        name="advantage" 
-                        checked={localConfig.advantageState === 'disadvantage'}
-                        onChange={() => setLocalConfig(prev => ({ ...prev, advantageState: 'disadvantage' }))}
-                      />
-                      <span>Disadvantage</span>
-                    </label>
-                  </div>
-                </div>
-
-                {/* AC Range */}
-                <div>
-                  <h4 className="font-medium mb-3">AC Range ({localConfig.acMin}-{localConfig.acMax})</h4>
-                  <div className="space-y-3">
-                    <div>
-                      <label className="block text-sm mb-1">Min AC</label>
-                      <input 
-                        type="number" 
-                        min="1" 
-                        max="25" 
-                        value={localConfig.acMin}
-                        onChange={(e) => setLocalConfig(prev => ({ ...prev, acMin: parseInt(e.target.value) || 10 }))}
-                        className="w-full px-2 py-1 bg-panel border border-border rounded text-sm"
-                      />
+                  <h4 className="font-medium mb-3">Analysis Parameters</h4>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-muted">AC Range:</span>
+                      <span>10-30 (fixed)</span>
                     </div>
-                    <div>
-                      <label className="block text-sm mb-1">Max AC</label>
-                      <input 
-                        type="number" 
-                        min="15" 
-                        max="35" 
-                        value={localConfig.acMax}
-                        onChange={(e) => setLocalConfig(prev => ({ ...prev, acMax: parseInt(e.target.value) || 30 }))}
-                        className="w-full px-2 py-1 bg-panel border border-border rounded text-sm"
-                      />
+                    <div className="flex justify-between">
+                      <span className="text-muted">Curves:</span>
+                      <span>Normal/Advantage/Disadvantage</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted">Combat Duration:</span>
+                      <span>3 Rounds (nova)</span>
                     </div>
                   </div>
                 </div>
@@ -320,42 +277,45 @@ export function DprLab() {
                   )}
                 </div>
 
-                {/* Additional Options */}
-                <div className="space-y-3">
-                  <label className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Greedy Resource Use</span>
-                    <input 
-                      type="checkbox" 
-                      checked={localConfig.greedyResourceUse}
-                      onChange={(e) => setLocalConfig(prev => ({ ...prev, greedyResourceUse: e.target.checked }))}
-                      className="rounded"
-                    />
-                  </label>
-                  <label className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Auto GWM/SS</span>
-                    <input 
-                      type="checkbox" 
-                      checked={localConfig.autoGWMSS}
-                      onChange={(e) => setLocalConfig(prev => ({ ...prev, autoGWMSS: e.target.checked }))}
-                      className="rounded"
-                    />
-                  </label>
-                  <label className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Round 0 Buffs</span>
-                    <input 
-                      type="checkbox" 
-                      checked={localConfig.round0BuffsEnabled}
-                      onChange={(e) => setLocalConfig(prev => ({ ...prev, round0BuffsEnabled: e.target.checked }))}
-                      className="rounded"
-                    />
-                  </label>
+                {/* Simulation Options */}
+                <div>
+                  <h4 className="font-medium mb-3">Options</h4>
+                  <div className="space-y-3">
+                    <label className="flex items-center justify-between">
+                      <span className="text-sm font-medium">Round 0 Buffs</span>
+                      <input 
+                        type="checkbox" 
+                        checked={localConfig.round0BuffsEnabled}
+                        onChange={(e) => setLocalConfig(prev => ({ ...prev, round0BuffsEnabled: e.target.checked }))}
+                        className="rounded"
+                      />
+                    </label>
+                    <label className="flex items-center justify-between">
+                      <span className="text-sm font-medium">Greedy Resource Use</span>
+                      <input 
+                        type="checkbox" 
+                        checked={localConfig.greedyResourceUse}
+                        onChange={(e) => setLocalConfig(prev => ({ ...prev, greedyResourceUse: e.target.checked }))}
+                        className="rounded"
+                      />
+                    </label>
+                    <label className="flex items-center justify-between">
+                      <span className="text-sm font-medium">Auto GWM/SS Optimization</span>
+                      <input 
+                        type="checkbox" 
+                        checked={localConfig.autoGWMSS}
+                        onChange={(e) => setLocalConfig(prev => ({ ...prev, autoGWMSS: e.target.checked }))}
+                        className="rounded"
+                      />
+                    </label>
+                  </div>
                 </div>
               </div>
             </Panel>
           </div>
 
           {/* Chart Panel */}
-          <div className="lg:col-span-8">
+          <div className="lg:col-span-7">
             <ChartFrame title="Expected Damage Per Round (DPR)">
               <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={displayData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
@@ -365,13 +325,13 @@ export function DprLab() {
                     axisLine={false}
                     tickLine={false}
                     tick={{ fontSize: 12, fill: 'var(--muted)' }}
-                    label={{ value: 'Target AC (10-30)', position: 'insideBottom', offset: -10, style: { textAnchor: 'middle', fill: 'var(--muted)' } }}
+                    label={{ value: 'Target AC', position: 'insideBottom', offset: -10, style: { textAnchor: 'middle', fill: 'var(--muted)' } }}
                   />
                   <YAxis 
                     axisLine={false}
                     tickLine={false}
                     tick={{ fontSize: 12, fill: 'var(--muted)' }}
-                    label={{ value: 'Damage', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fill: 'var(--muted)' } }}
+                    label={{ value: 'DPR', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fill: 'var(--muted)' } }}
                   />
                   <Tooltip 
                     contentStyle={{
@@ -387,7 +347,7 @@ export function DprLab() {
                     stroke="var(--ink)" 
                     strokeWidth={3}
                     name="Normal"
-                    dot={{ fill: 'var(--ink)', strokeWidth: 0, r: 4 }}
+                    dot={{ fill: 'var(--ink)', strokeWidth: 0, r: 3 }}
                   />
                   <Line 
                     type="monotone" 
@@ -395,15 +355,15 @@ export function DprLab() {
                     stroke="var(--accent)" 
                     strokeWidth={3}
                     name="Advantage"
-                    dot={{ fill: 'var(--accent)', strokeWidth: 0, r: 4 }}
+                    dot={{ fill: 'var(--accent)', strokeWidth: 0, r: 3 }}
                   />
                   <Line 
                     type="monotone" 
                     dataKey="disadvantage" 
-                    stroke="#ef4444" 
+                    stroke="var(--danger)" 
                     strokeWidth={3}
                     name="Disadvantage"
-                    dot={{ fill: '#ef4444', strokeWidth: 0, r: 4 }}
+                    dot={{ fill: 'var(--danger)', strokeWidth: 0, r: 3 }}
                   />
                 </LineChart>
               </ResponsiveContainer>
