@@ -19,7 +19,6 @@ import {
   RotateCcw, 
   AlertTriangle,
   CheckCircle,
-  User,
   Dices,
   Zap,
   Sword,
@@ -28,7 +27,6 @@ import {
 } from 'lucide-react'
 
 // Step components
-import { BasicInfo } from './BasicInfo'
 import { AbilityScoreAssignment } from './AbilityScoreAssignment'
 import { RaceBackgroundSelection } from './RaceBackgroundSelection' 
 import { EnhancedLevelTimeline } from './EnhancedLevelTimeline'
@@ -37,7 +35,6 @@ import { BuffSelection } from './BuffSelection'
 import { BuildSummary } from './BuildSummary'
 
 const STEP_ICONS = {
-  'basic-info': User,
   'ability-scores': Dices,
   'race-background': Users,
   'class-progression': Zap,
@@ -46,7 +43,6 @@ const STEP_ICONS = {
 }
 
 const STEP_LABELS = {
-  'basic-info': 'Build Info',
   'ability-scores': 'Ability Scores',
   'race-background': 'Race & Background',
   'class-progression': 'Class Progression',
@@ -350,8 +346,9 @@ export function CharacterBuilder({ buildId }: CharacterBuilderProps) {
           </div>
         </div>
 
+        
         {/* Horizontal Steps Navigation */}
-        <div className="mb-6">
+        <div className="border-t border-border/20 pt-6">
           <div className="flex flex-wrap gap-2 justify-center">
             {BUILDER_STEPS.map((step, index) => {
               const Icon = STEP_ICONS[step]
@@ -398,10 +395,6 @@ export function CharacterBuilder({ buildId }: CharacterBuilderProps) {
           <Panel>
             <Tabs value={currentStep} onValueChange={handleStepChange}>
               <TabsList className="hidden" />
-              
-              <TabsContent value="basic-info" className="mt-0">
-                <BasicInfo />
-              </TabsContent>
               
               <TabsContent value="ability-scores" className="mt-0">
                 <AbilityScoreAssignment />
