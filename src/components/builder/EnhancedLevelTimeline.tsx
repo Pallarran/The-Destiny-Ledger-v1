@@ -266,26 +266,42 @@ function FightingStyleChoice({ level, classId, currentChoice, onChoice }: Fighti
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="text-sm text-muted mb-3">
-          Choose a fighting style to specialize in:
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Choose Fighting Style:</label>
+          <Select value={selectedStyle} onValueChange={handleStyleChange}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Choose a fighting style..." />
+            </SelectTrigger>
+            <SelectContent>
+              {availableStyles.map(style => (
+                <SelectItem key={style.id} value={style.id}>
+                  <div className="w-full">
+                    <div className="font-medium text-sm">{style.name}</div>
+                    <div className="text-xs text-muted truncate max-w-60 mt-1">{style.description}</div>
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
-        
-        <div className="grid gap-2">
-          {availableStyles.map(style => (
-            <button
-              key={style.id}
-              onClick={() => handleStyleChange(style.id)}
-              className={`text-left p-3 rounded-lg border transition-colors ${
-                selectedStyle === style.id
-                  ? 'border-accent bg-accent/5'
-                  : 'border-border hover:border-accent/50 hover:bg-accent/5'
-              }`}
-            >
-              <div className="font-medium text-sm">{style.name}</div>
-              <div className="text-xs text-muted mt-1">{style.description}</div>
-            </button>
-          ))}
-        </div>
+
+        {/* Selected Fighting Style Details */}
+        {selectedStyle && availableStyles.find(s => s.id === selectedStyle) && (
+          <div className="p-3 bg-panel/5 border border-border/20 rounded">
+            <div className="text-sm font-medium mb-2">Fighting Style Details:</div>
+            <div className="space-y-2">
+              {(() => {
+                const style = availableStyles.find(s => s.id === selectedStyle)!
+                return (
+                  <div className="text-xs">
+                    <div className="font-medium text-accent">{style.name}</div>
+                    <div className="text-muted">{style.description}</div>
+                  </div>
+                )
+              })()}
+            </div>
+          </div>
+        )}
         
         {selectedStyle && (
           <div className="p-3 bg-emerald/5 border border-emerald/20 rounded">
@@ -327,41 +343,64 @@ function ArchetypeChoice({ level, classId, currentChoice, onChoice }: ArchetypeC
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="text-sm text-muted mb-3">
-          Choose your specialization path:
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Choose {classData?.name} Archetype:</label>
+          <Select value={selectedArchetype} onValueChange={handleArchetypeChange}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Choose your specialization..." />
+            </SelectTrigger>
+            <SelectContent>
+              {availableSubclasses.map(subclass => {
+                const featuresAtLevel = subclass.features.filter(f => f.level === level)
+                
+                return (
+                  <SelectItem key={subclass.id} value={subclass.id}>
+                    <div className="w-full">
+                      <div className="font-medium text-sm">{subclass.name}</div>
+                      <div className="text-xs text-muted truncate max-w-60 mt-1">{subclass.description}</div>
+                      {featuresAtLevel.length > 0 && (
+                        <div className="text-xs text-gold mt-1">
+                          Features: {featuresAtLevel.map(f => f.name).join(', ')}
+                        </div>
+                      )}
+                    </div>
+                  </SelectItem>
+                )
+              })}
+            </SelectContent>
+          </Select>
         </div>
-        
-        <div className="grid gap-2">
-          {availableSubclasses.map(subclass => {
-            const isSelected = selectedArchetype === subclass.id
-            const featuresAtLevel = subclass.features.filter(f => f.level === level)
-            
-            return (
-              <button
-                key={subclass.id}
-                onClick={() => handleArchetypeChange(subclass.id)}
-                className={`text-left p-3 rounded-lg border transition-all ${
-                  isSelected
-                    ? 'border-gold bg-gold/10 shadow-sm'
-                    : 'border-border hover:border-gold/50 hover:bg-gold/5'
-                }`}
-              >
-                <div className="font-medium text-sm mb-1">{subclass.name}</div>
-                <div className="text-xs text-muted mb-2">{subclass.description}</div>
-                {featuresAtLevel.length > 0 && (
-                  <div className="pt-2 border-t border-border/50">
-                    <div className="text-[10px] font-medium text-gold mb-1">Features at level {level}:</div>
-                    {featuresAtLevel.map((feature, idx) => (
-                      <div key={idx} className="text-[10px] text-muted">
-                        • {feature.name}
+
+        {/* Selected Archetype Details */}
+        {selectedArchetype && availableSubclasses.find(s => s.id === selectedArchetype) && (
+          <div className="p-3 bg-panel/5 border border-border/20 rounded">
+            <div className="text-sm font-medium mb-2">Archetype Details:</div>
+            <div className="space-y-2">
+              {(() => {
+                const subclass = availableSubclasses.find(s => s.id === selectedArchetype)!
+                const featuresAtLevel = subclass.features.filter(f => f.level === level)
+                
+                return (
+                  <div className="text-xs">
+                    <div className="font-medium text-accent">{subclass.name}</div>
+                    <div className="text-muted mb-2">{subclass.description}</div>
+                    {featuresAtLevel.length > 0 && (
+                      <div>
+                        <div className="font-medium text-gold mb-1">Features gained at this level:</div>
+                        {featuresAtLevel.map((feature, idx) => (
+                          <div key={idx} className="text-muted">
+                            • <span className="font-medium">{feature.name}</span>
+                            {feature.description && `: ${feature.description}`}
+                          </div>
+                        ))}
                       </div>
-                    ))}
+                    )}
                   </div>
-                )}
-              </button>
-            )
-          })}
-        </div>
+                )
+              })()}
+            </div>
+          </div>
+        )}
         
         {selectedArchetype && (
           <div className="p-3 bg-emerald/5 border border-emerald/20 rounded">
@@ -376,10 +415,11 @@ function ArchetypeChoice({ level, classId, currentChoice, onChoice }: ArchetypeC
   )
 }
 
-function LevelMilestoneCard({ entry, milestone, classData, onFightingStyleClick, onArchetypeClick, onASIFeatClick, hasInteractiveFeatures }: {
+function LevelMilestoneCard({ entry, milestone, classData, classLevel, onFightingStyleClick, onArchetypeClick, onASIFeatClick, hasInteractiveFeatures }: {
   entry: BuilderLevelEntry
   milestone: LevelMilestone
   classData?: any
+  classLevel: number
   onFightingStyleClick?: () => void
   onArchetypeClick?: () => void
   onASIFeatClick?: () => void
@@ -432,9 +472,16 @@ function LevelMilestoneCard({ entry, milestone, classData, onFightingStyleClick,
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
                 <Icon className="w-4 h-4" />
-                <span className="font-medium text-sm">
-                  {classData?.name || entry.classId} {entry.level}
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="font-medium text-sm">
+                    {classData?.name || entry.classId}
+                  </span>
+                  <div className="flex items-center gap-1 text-xs text-muted">
+                    <span>Class Lv {classLevel}</span>
+                    <span>•</span>
+                    <span>Char Lv {entry.level}</span>
+                  </div>
+                </div>
                 {entry.subclassId && (
                   <Badge variant="outline" className="text-xs">
                     {entry.subclassId}
@@ -529,7 +576,7 @@ export function EnhancedLevelTimeline() {
     const features = classData?.features[classLevel] || []
     
     let type: LevelMilestone['type'] = 'class'
-    let description = `Level ${classLevel} ${classData?.name || entry.classId}`
+    let description = `${classData?.name || entry.classId} class features`
     
     // Get fighting style and archetype values early
     const fightingStyle = entry.fightingStyle || (entry as any).fightingStyle
@@ -715,6 +762,7 @@ export function EnhancedLevelTimeline() {
                     entry={entry}
                     milestone={milestone}
                     classData={classData}
+                    classLevel={classLevel}
                     onFightingStyleClick={hasFightingStyle ? () => setShowFightingStyle(entry.level) : undefined}
                     onArchetypeClick={hasArchetype ? () => setShowArchetype(entry.level) : undefined}
                     onASIFeatClick={hasASI ? () => setShowASIFeat(entry.level) : undefined}

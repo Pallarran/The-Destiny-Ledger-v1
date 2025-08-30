@@ -468,36 +468,66 @@ export function CharacterBuilder({ buildId }: CharacterBuilderProps) {
               <div className="space-y-2">
                 {[...currentBuild.enhancedLevelTimeline]
                   .sort((a, b) => a.level - b.level)
-                  .map(entry => (
-                    <div key={entry.level} className="flex items-center gap-3 p-3 bg-panel/5 rounded-lg">
-                      <div className="flex-shrink-0 w-6 h-6 bg-accent/10 text-accent rounded-full flex items-center justify-center text-xs font-bold">
-                        {entry.level}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="font-medium text-sm text-foreground capitalize">
-                          {entry.classId.replace('_', ' ')}
+                  .map(entry => {
+                    // Calculate class level for this entry
+                    const classLevel = currentBuild.enhancedLevelTimeline
+                      .filter(e => e.classId === entry.classId && e.level <= entry.level)
+                      .length
+                    
+                    return (
+                      <div key={entry.level} className="flex items-center gap-3 p-3 bg-panel/5 rounded-lg">
+                        <div className="flex-shrink-0 w-6 h-6 bg-accent/10 text-accent rounded-full flex items-center justify-center text-xs font-bold">
+                          {classLevel}
                         </div>
-                        <div className="text-xs text-muted">
-                          {entry.features.length} features
-                          {entry.asiOrFeat && (
-                            <span className="ml-2 px-1 py-0.5 bg-accent/10 text-accent rounded text-xs">
-                              {entry.asiOrFeat === 'feat' ? entry.featId || 'Feat' : 'ASI'}
-                            </span>
-                          )}
-                          {(entry as any).fightingStyle && (
-                            <span className="ml-2 px-1 py-0.5 bg-emerald/10 text-emerald rounded text-xs">
-                              {(entry as any).fightingStyle.replace('_', ' ')}
-                            </span>
-                          )}
-                          {(entry as any).archetype && (
-                            <span className="ml-2 px-1 py-0.5 bg-gold/10 text-gold rounded text-xs">
-                              {(entry as any).archetype.replace('_', ' ')}
-                            </span>
-                          )}
+                        <div className="flex-1 min-w-0">
+                          <div className="font-medium text-sm text-foreground capitalize">
+                            {entry.classId.replace('_', ' ')} {classLevel}
+                          </div>
+                          <div className="text-xs text-muted">
+                            Char Level {entry.level}
+                            {/* Class Features */}
+                            {entry.features.length > 0 && (
+                              <div className="mt-1">
+                                {entry.features.map((feature, idx) => (
+                                  <div key={idx} className="text-xs text-panel">
+                                    • {feature.replace('_', ' ')}
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                            
+                            {/* Special Choices */}
+                            <div className="mt-1 flex flex-wrap gap-1">
+                              {entry.asiOrFeat && (
+                                <span className="px-1 py-0.5 bg-accent/10 text-accent rounded text-xs">
+                                  {entry.asiOrFeat === 'feat' ? `Feat: ${entry.featId || 'Chosen'}` : 'ASI'}
+                                </span>
+                              )}
+                              {entry.fightingStyle && (
+                                <span className="px-1 py-0.5 bg-emerald/10 text-emerald rounded text-xs">
+                                  Style: {entry.fightingStyle.replace('_', ' ')}
+                                </span>
+                              )}
+                              {entry.archetype && (
+                                <span className="px-1 py-0.5 bg-gold/10 text-gold rounded text-xs">
+                                  {entry.archetype.replace('_', ' ')}
+                                </span>
+                              )}
+                            </div>
+
+                            {/* Skills from Class (Level 1 only) */}
+                            {entry.level === 1 && currentBuild.skillProficiencies && currentBuild.skillProficiencies.length > 0 && (
+                              <div className="mt-1">
+                                <span className="text-xs text-blue-500">
+                                  Skills: {currentBuild.skillProficiencies.join(', ')}
+                                </span>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))
+                    )
+                  })
                 }
               </div>
             ) : (
