@@ -11,6 +11,7 @@ import { useCharacterBuilderStore } from '../../stores/characterBuilderStore'
 import { useVaultStore } from '../../stores/vaultStore'
 import { useBuilderStore } from '../../stores/builderStore'
 import { BUILDER_STEPS } from '../../types/character'
+import { buffs } from '../../rules/srd/buffs'
 import { 
   ChevronLeft, 
   ChevronRight, 
@@ -191,7 +192,6 @@ export function CharacterBuilder({ buildId }: CharacterBuilderProps) {
     if (!buildName.trim()) issues.push('Build name required')
     
     // Check for concentration conflicts
-    const { buffs } = require('../../rules/srd/buffs')
     const activeBuffs = currentBuild.activeBuffs || []
     const round0Buffs = currentBuild.round0Buffs || []
     
