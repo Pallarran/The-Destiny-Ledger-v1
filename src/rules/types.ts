@@ -131,6 +131,21 @@ export interface WeaponEnhancement {
   additionalDamage?: DamageRoll[]
 }
 
+export type ArmorType = 'light' | 'medium' | 'heavy' | 'shield'
+
+export interface Armor {
+  id: string
+  name: string
+  type: ArmorType
+  ac: number
+  dexModifier: 'full' | 'limited' | 'none'
+  dexMax?: number // For medium armor (max +2)
+  stealthDisadvantage: boolean
+  strengthRequirement?: number // For heavy armor
+  cost: number
+  weight: number
+}
+
 export interface Buff {
   id: string
   name: string

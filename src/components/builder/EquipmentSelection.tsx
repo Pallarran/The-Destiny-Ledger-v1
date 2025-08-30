@@ -5,20 +5,26 @@ import { Badge } from '../ui/badge'
 import { Switch } from '../ui/switch'
 import { useCharacterBuilderStore } from '../../stores/characterBuilderStore'
 import { Sword, Shield } from 'lucide-react'
+import { weapons } from '../../rules/srd/weapons'
+import { armor } from '../../rules/srd/armor'
 
-const MOCK_WEAPONS = [
-  { id: 'longsword', name: 'Longsword', damage: '1d8 slashing', type: 'melee' },
-  { id: 'greatsword', name: 'Greatsword', damage: '2d6 slashing', type: 'melee' },
-  { id: 'dagger', name: 'Dagger', damage: '1d4 piercing', type: 'melee' },
-  { id: 'longbow', name: 'Longbow', damage: '1d8 piercing', type: 'ranged' },
-  { id: 'crossbow', name: 'Light Crossbow', damage: '1d8 piercing', type: 'ranged' }
-]
+// Helper function to format weapon damage
+const formatWeaponDamage = (damageRolls: any[]) => {
+  return damageRolls.map(roll => 
+    `${roll.count}d${roll.die}${roll.bonus > 0 ? `+${roll.bonus}` : ''} ${roll.type}`
+  ).join(' + ')
+}
 
-const MOCK_ARMOR = [
-  { id: 'leather', name: 'Leather Armor', ac: '11 + Dex mod', type: 'Light' },
-  { id: 'chain_shirt', name: 'Chain Shirt', ac: '13 + Dex mod (max 2)', type: 'Medium' },
-  { id: 'plate', name: 'Plate Armor', ac: '18', type: 'Heavy' }
-]
+// Helper function to format armor AC
+const formatArmorAC = (armorData: any) => {
+  let acString = armorData.ac.toString()
+  if (armorData.dexModifier === 'full') {
+    acString += ' + Dex mod'
+  } else if (armorData.dexModifier === 'limited') {
+    acString += ` + Dex mod (max ${armorData.dexMax})`
+  }
+  return acString
+}
 
 export function EquipmentSelection() {
   const {
@@ -35,9 +41,14 @@ export function EquipmentSelection() {
     return <div className="text-center text-muted">Loading equipment options...</div>
   }
   
-  const selectedMainHand = MOCK_WEAPONS.find(w => w.id === currentBuild.selectedMainHand)
-  const selectedRanged = MOCK_WEAPONS.find(w => w.id === currentBuild.selectedRanged)
-  const selectedArmor = MOCK_ARMOR.find(a => a.id === currentBuild.selectedArmor)
+  const selectedMainHand = currentBuild.selectedMainHand ? weapons[currentBuild.selectedMainHand] : null
+  const selectedRanged = currentBuild.selectedRanged ? weapons[currentBuild.selectedRanged] : null
+  const selectedArmor = currentBuild.selectedArmor ? armor[currentBuild.selectedArmor] : null
+  
+  // Filter weapons by category
+  const meleeWeapons = Object.values(weapons).filter(w => w.category === 'melee')
+  const rangedWeapons = Object.values(weapons).filter(w => w.category === 'ranged')
+  const armorOptions = Object.values(armor)
   
   return (
     <div className="space-y-6">
@@ -79,7 +90,12 @@ export function EquipmentSelection() {
                   <div className="flex items-center justify-between">
                     <div>
                       <div className="font-medium">{selectedMainHand.name}</div>
-                      <div className="text-sm text-muted">{selectedMainHand.damage}</div>
+                      <div className="text-sm text-muted">{formatWeaponDamage(selectedMainHand.damage)}</div>
+                      {selectedMainHand.properties.length > 0 && (
+                        <div className="text-xs text-muted mt-1">
+                          {selectedMainHand.properties.join(', ')}
+                        </div>
+                      )}
                     </div>
                     <Badge className="bg-accent/10 text-accent border-accent/20">Selected</Badge>
                   </div>
@@ -88,7 +104,7 @@ export function EquipmentSelection() {
             )}
             
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {MOCK_WEAPONS.filter(w => w.type === 'melee').map((weapon) => (
+              {meleeWeapons.map((weapon) => (
                 <Card
                   key={weapon.id}
                   className={`cursor-pointer transition-all ${
@@ -100,7 +116,17 @@ export function EquipmentSelection() {
                 >
                   <CardContent className="p-3">
                     <div className="font-medium">{weapon.name}</div>
-                    <div className="text-sm text-muted">{weapon.damage}</div>
+                    <div className="text-sm text-muted">{formatWeaponDamage(weapon.damage)}</div>
+                    <div className="flex gap-1 mt-1">
+                      <Badge variant="outline" className="text-xs">
+                        {weapon.type}
+                      </Badge>
+                      {weapon.properties.slice(0, 2).map(prop => (
+                        <Badge key={prop} variant="outline" className="text-xs">
+                          {prop}
+                        </Badge>
+                      ))}
+                    </div>
                   </CardContent>
                 </Card>
               ))}
@@ -115,7 +141,12 @@ export function EquipmentSelection() {
                   <div className="flex items-center justify-between">
                     <div>
                       <div className="font-medium">{selectedRanged.name}</div>
-                      <div className="text-sm text-muted">{selectedRanged.damage}</div>
+                      <div className="text-sm text-muted">{formatWeaponDamage(selectedRanged.damage)}</div>
+                      {selectedRanged.properties.length > 0 && (
+                        <div className="text-xs text-muted mt-1">
+                          {selectedRanged.properties.join(', ')}
+                        </div>
+                      )}
                     </div>
                     <Badge variant="secondary" className="bg-emerald/10 text-emerald border-emerald/20">
                       Selected
@@ -126,7 +157,7 @@ export function EquipmentSelection() {
             )}
             
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {MOCK_WEAPONS.filter(w => w.type === 'ranged').map((weapon) => (
+              {rangedWeapons.map((weapon) => (
                 <Card
                   key={weapon.id}
                   className={`cursor-pointer transition-all ${
@@ -138,7 +169,17 @@ export function EquipmentSelection() {
                 >
                   <CardContent className="p-3">
                     <div className="font-medium">{weapon.name}</div>
-                    <div className="text-sm text-muted">{weapon.damage}</div>
+                    <div className="text-sm text-muted">{formatWeaponDamage(weapon.damage)}</div>
+                    <div className="flex gap-1 mt-1">
+                      <Badge variant="outline" className="text-xs">
+                        {weapon.type}
+                      </Badge>
+                      {weapon.properties.slice(0, 2).map(prop => (
+                        <Badge key={prop} variant="outline" className="text-xs">
+                          {prop}
+                        </Badge>
+                      ))}
+                    </div>
                   </CardContent>
                 </Card>
               ))}
@@ -158,7 +199,12 @@ export function EquipmentSelection() {
                   <div className="flex items-center justify-between">
                     <div>
                       <div className="font-medium">{selectedArmor.name}</div>
-                      <div className="text-sm text-muted">AC {selectedArmor.ac} • {selectedArmor.type} Armor</div>
+                      <div className="text-sm text-muted">AC {formatArmorAC(selectedArmor)} • {selectedArmor.type} Armor</div>
+                      {selectedArmor.strengthRequirement && (
+                        <div className="text-xs text-muted mt-1">
+                          Requires STR {selectedArmor.strengthRequirement}
+                        </div>
+                      )}
                     </div>
                     <Badge variant="secondary" className="bg-gold/10 text-gold border-gold/20">
                       Selected
@@ -169,22 +215,29 @@ export function EquipmentSelection() {
             )}
             
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {MOCK_ARMOR.map((armor) => (
+              {armorOptions.map((armorItem) => (
                 <Card
-                  key={armor.id}
+                  key={armorItem.id}
                   className={`cursor-pointer transition-all ${
-                    selectedArmor?.id === armor.id 
+                    selectedArmor?.id === armorItem.id 
                       ? 'ring-2 ring-gold border-gold/20 bg-gold/5' 
                       : 'hover:border-gold/30'
                   }`}
-                  onClick={() => setArmor(armor.id)}
+                  onClick={() => setArmor(armorItem.id)}
                 >
                   <CardContent className="p-3">
-                    <div className="font-medium">{armor.name}</div>
-                    <div className="text-sm text-muted">AC {armor.ac}</div>
-                    <Badge variant="outline" className="text-xs mt-1">
-                      {armor.type} Armor
-                    </Badge>
+                    <div className="font-medium">{armorItem.name}</div>
+                    <div className="text-sm text-muted">AC {formatArmorAC(armorItem)}</div>
+                    <div className="flex gap-1 mt-1">
+                      <Badge variant="outline" className="text-xs">
+                        {armorItem.type} Armor
+                      </Badge>
+                      {armorItem.stealthDisadvantage && (
+                        <Badge variant="outline" className="text-xs text-danger">
+                          Stealth Disadv.
+                        </Badge>
+                      )}
+                    </div>
                   </CardContent>
                 </Card>
               ))}

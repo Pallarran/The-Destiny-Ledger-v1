@@ -4,7 +4,7 @@ import { Panel } from '../ui/panel'
 import { Button } from '../ui/button'
 import { Progress } from '../ui/progress'
 import { Badge } from '../ui/badge'
-import { Tabs, TabsList, TabsContent } from '../ui/tabs'
+import { Tabs, TabsList, TabsContent, TabsTrigger } from '../ui/tabs'
 import { useCharacterBuilderStore } from '../../stores/characterBuilderStore'
 import { useVaultStore } from '../../stores/vaultStore'
 import { BUILDER_STEPS } from '../../types/character'
@@ -29,6 +29,7 @@ import { AbilityScoreAssignment } from './AbilityScoreAssignment'
 import { RaceBackgroundSelection } from './RaceBackgroundSelection' 
 import { LevelTimeline } from './LevelTimeline'
 import { EquipmentSelection } from './EquipmentSelection'
+import { BuffSelection } from './BuffSelection'
 import { BuildSummary } from './BuildSummary'
 
 const STEP_ICONS = {
@@ -283,7 +284,20 @@ export function CharacterBuilder({ buildId }: CharacterBuilderProps) {
               </TabsContent>
               
               <TabsContent value="equipment" className="mt-0">
-                <EquipmentSelection />
+                <Tabs defaultValue="gear" className="w-full">
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="gear">Equipment</TabsTrigger>
+                    <TabsTrigger value="buffs">Buffs & Spells</TabsTrigger>
+                  </TabsList>
+                  
+                  <TabsContent value="gear" className="mt-4">
+                    <EquipmentSelection />
+                  </TabsContent>
+                  
+                  <TabsContent value="buffs" className="mt-4">
+                    <BuffSelection />
+                  </TabsContent>
+                </Tabs>
               </TabsContent>
               
               <TabsContent value="summary" className="mt-0">

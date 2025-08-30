@@ -1,7 +1,9 @@
 import { calculateBuildDPR } from './calculations'
 import type { CombatState, SimulationConfig, WeaponConfig } from './types'
 import type { BuildConfiguration, DPRConfiguration, DPRResult } from '../stores/types'
-import { getClass, getFeat, getWeapon, getBuff } from '../rules/loaders'
+import { getClass, getFeat } from '../rules/loaders'
+import { weapons } from '../rules/srd/weapons'
+import { buffs } from '../rules/srd/buffs'
 
 // Convert a build configuration to combat state
 export function buildToCombatState(build: BuildConfiguration, level?: number): CombatState {
@@ -10,9 +12,27 @@ export function buildToCombatState(build: BuildConfiguration, level?: number): C
   // Calculate proficiency bonus
   const proficiencyBonus = Math.ceil(targetLevel / 4) + 1
   
-  // Get primary ability modifier (simplified - would need more logic for finesse weapons, etc.)
-  const primaryAbility = Math.max(build.abilityScores.STR, build.abilityScores.DEX)
-  const abilityModifier = Math.floor((primaryAbility - 10) / 2)
+  // Determine which weapon to use and get ability modifier
+  const weaponId = build.rangedWeapon || build.mainHandWeapon
+  let abilityModifier = Math.floor((build.abilityScores.STR - 10) / 2) // Default STR
+  
+  if (weaponId) {
+    const weapon = weapons[weaponId]
+    if (weapon) {
+      // Check if weapon has finesse property or is ranged
+      if (weapon.properties.includes('finesse') || weapon.category === 'ranged') {
+        const strMod = Math.floor((build.abilityScores.STR - 10) / 2)
+        const dexMod = Math.floor((build.abilityScores.DEX - 10) / 2)
+        // Use higher of STR or DEX for finesse, DEX for ranged
+        abilityModifier = weapon.category === 'ranged' ? dexMod : Math.max(strMod, dexMod)
+      }
+    }
+  } else {
+    // No weapon selected, use best of STR/DEX
+    const strMod = Math.floor((build.abilityScores.STR - 10) / 2)
+    const dexMod = Math.floor((build.abilityScores.DEX - 10) / 2)
+    abilityModifier = Math.max(strMod, dexMod)
+  }
   
   // Initialize combat state
   const state: CombatState = {
@@ -87,9 +107,10 @@ export function buildToCombatState(build: BuildConfiguration, level?: number): C
     }
   }
   
-  // Process active buffs
-  for (const buffId of build.activeBuffs) {
-    const buff = getBuff(buffId)
+  // Process active buffs from our SRD data
+  const allActiveBuffs = [...(build.activeBuffs || []), ...(build.round0Buffs || [])]
+  for (const buffId of allActiveBuffs) {
+    const buff = buffs[buffId]
     if (buff) {
       if (buff.effects.attackBonus) {
         state.attackBonuses.push(buff.effects.attackBonus)
@@ -100,13 +121,30 @@ export function buildToCombatState(build: BuildConfiguration, level?: number): C
       if (buff.effects.advantage) {
         state.hasAdvantage = true
       }
+      if (buff.effects.additionalAttacks) {
+        state.extraAttacks += buff.effects.additionalAttacks
+      }
       
-      // Set specific buff flags
+      // Set specific buff flags for mechanics
       if (buff.id === 'bless') state.hasBless = true
       if (buff.id === 'haste') state.hasHaste = true
       if (buff.id === 'hunters_mark') state.hasHuntersMark = true
       if (buff.id === 'hex') state.hasHex = true
       if (buff.id === 'elemental_weapon') state.hasElementalWeapon = true
+      if (buff.id === 'barbarian_rage') {
+        // Rage only applies to STR-based melee attacks
+        if (weaponId && weapons[weaponId]?.category === 'melee' && !weapons[weaponId]?.properties.includes('finesse')) {
+          state.damageBonuses.push(2) // Rage damage
+        }
+      }
+      
+      // Add on-hit damage (Hunter's Mark, Hex, etc.)
+      if (buff.effects.onHitDamage && buff.effects.onHitDamage.length > 0) {
+        const onHitDamage = buff.effects.onHitDamage[0]
+        // Convert to expected damage value
+        const expectedDamage = onHitDamage.count * (onHitDamage.die + 1) / 2 + onHitDamage.bonus
+        state.damageBonuses.push(expectedDamage)
+      }
     }
   }
   
@@ -115,15 +153,19 @@ export function buildToCombatState(build: BuildConfiguration, level?: number): C
 
 // Convert weapon ID to weapon config
 export function getWeaponConfig(weaponId: string, enhancement: number = 0): WeaponConfig | null {
-  const weapon = getWeapon(weaponId)
+  const weapon = weapons[weaponId]
   if (!weapon) return null
+  
+  // Check if weapon has Great Weapon Fighting style applicable
+  const isHeavyTwoHanded = weapon.properties.includes('heavy') && weapon.properties.includes('two-handed')
+  const hasGWF = false // TODO: Track fighting style selection in build
   
   return {
     baseDamage: {
       count: weapon.damage[0].count,
       die: weapon.damage[0].die,
-      rerollOnes: false,
-      rerollTwos: false
+      rerollOnes: hasGWF && isHeavyTwoHanded,
+      rerollTwos: hasGWF && isHeavyTwoHanded
     },
     properties: weapon.properties as any[],
     damageType: weapon.damage[0].type as any,

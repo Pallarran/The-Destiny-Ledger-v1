@@ -233,8 +233,29 @@ export function DprLab() {
                       </div>
                       {currentBuild.mainHandWeapon && (
                         <div className="flex justify-between">
-                          <span>Weapon:</span>
+                          <span>Main Weapon:</span>
                           <span className="font-medium capitalize">{currentBuild.mainHandWeapon.replace('_', ' ')}</span>
+                        </div>
+                      )}
+                      {currentBuild.rangedWeapon && (
+                        <div className="flex justify-between">
+                          <span>Ranged:</span>
+                          <span className="font-medium capitalize">{currentBuild.rangedWeapon.replace('_', ' ')}</span>
+                        </div>
+                      )}
+                      {currentBuild.activeBuffs && currentBuild.activeBuffs.length > 0 && (
+                        <div>
+                          <span className="text-muted">Active Buffs:</span>
+                          <div className="mt-1 space-y-1">
+                            {currentBuild.activeBuffs.slice(0, 3).map(buffId => (
+                              <div key={buffId} className="text-xs bg-accent/10 text-accent px-2 py-1 rounded">
+                                {buffId.replace('_', ' ')}
+                              </div>
+                            ))}
+                            {currentBuild.activeBuffs.length > 3 && (
+                              <div className="text-xs text-muted">+{currentBuild.activeBuffs.length - 3} more</div>
+                            )}
+                          </div>
                         </div>
                       )}
                     </div>
@@ -338,76 +359,154 @@ export function DprLab() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
           {/* SS/GWM Breakpoints */}
           <Panel className="bg-ink text-panel">
-            <PanelHeader title="GWM/SS Breakpoints" className="text-panel bg-ink border-b border-border/20" />
+            <PanelHeader title="GWM/SS Optimization" className="text-panel bg-ink border-b border-border/20" />
             
             {breakpoints.length > 0 ? (
-              <div className="space-y-2 max-h-64 overflow-y-auto">
-                {breakpoints.slice(0, 10).map((bp, index) => (
-                  <div key={index} className="flex items-center justify-between text-sm py-1">
-                    <span>AC {bp.ac}</span>
-                    <span className={bp.usesPowerAttack ? 'text-accent' : 'text-muted'}>
-                      {bp.usesPowerAttack ? 'Use Power Attack' : 'Normal Attacks'}
-                    </span>
-                  </div>
-                ))}
-                {breakpoints.length > 10 && (
-                  <div className="text-xs text-muted text-center pt-2">
-                    ...and {breakpoints.length - 10} more
+              <div className="space-y-3">
+                <div className="text-xs text-muted mb-2">
+                  Shows when to use power attack (-5 to hit, +10 damage) vs normal attacks
+                </div>
+                
+                <div className="space-y-1 max-h-48 overflow-y-auto">
+                  {breakpoints.slice(0, 15).map((bp, index) => (
+                    <div key={index} className="flex items-center justify-between text-sm py-1 border-b border-border/10 last:border-b-0">
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono w-8">AC{bp.ac}</span>
+                        <div className={`w-2 h-2 rounded-full ${bp.usesPowerAttack ? 'bg-accent' : 'bg-muted'}`} />
+                      </div>
+                      <div className="text-right">
+                        <div className={`text-xs font-medium ${bp.usesPowerAttack ? 'text-accent' : 'text-panel'}`}>
+                          {bp.usesPowerAttack ? 'Power Attack' : 'Normal Attack'}
+                        </div>
+                        <div className="text-xs text-muted">
+                          {bp.usesPowerAttack ? 
+                            `+${((bp.powerAttackDamage || 0) - (bp.normalDamage || 0)).toFixed(1)} DPR` :
+                            `Best option`
+                          }
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                
+                {breakpoints.length > 15 && (
+                  <div className="text-xs text-muted text-center pt-2 border-t border-border/20">
+                    Showing first 15 of {breakpoints.length} AC values
                   </div>
                 )}
+                
+                {/* Summary */}
+                <div className="pt-2 border-t border-border/20">
+                  <div className="text-xs text-muted mb-1">Quick Reference:</div>
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div>
+                      <span className="text-accent">●</span> Power Attack Better
+                    </div>
+                    <div>
+                      <span className="text-muted">●</span> Normal Attack Better
+                    </div>
+                  </div>
+                </div>
               </div>
             ) : (
               <div className="text-sm text-muted py-4 text-center">
-                {currentBuild ? 'Run calculation to see breakpoints' : 'No GWM/SS feat detected'}
+                {currentBuild && (currentBuild.levelTimeline.some(entry => 
+                  entry.featId === 'great_weapon_master' || entry.featId === 'sharpshooter'
+                )) ? 
+                  'Run calculation to see power attack optimization' : 
+                  'No GWM/Sharpshooter feat detected in build'
+                }
               </div>
             )}
           </Panel>
 
           {/* DPR Summary */}
           <Panel className="bg-panel">
-            <PanelHeader title="DPR Summary" />
+            <PanelHeader title="Combat Performance Analysis" />
             {currentResult ? (
-              <div className="space-y-3">
+              <div className="space-y-4">
+                {/* Key Metrics */}
                 <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <div className="text-lg font-bold">{Math.round(currentResult.totalDPR * 10) / 10}</div>
-                    <div className="text-sm text-muted">Total 3-Round DPR</div>
+                  <div className="text-center p-3 bg-accent/5 rounded-lg border border-accent/10">
+                    <div className="text-2xl font-bold text-accent">{Math.round(currentResult.totalDPR * 10) / 10}</div>
+                    <div className="text-xs text-muted">Total 3-Round DPR</div>
                   </div>
-                  <div>
-                    <div className="text-lg font-bold">{Math.round(currentResult.averageDPR * 10) / 10}</div>
-                    <div className="text-sm text-muted">Average DPR / Round</div>
+                  <div className="text-center p-3 bg-emerald/5 rounded-lg border border-emerald/10">
+                    <div className="text-2xl font-bold text-emerald">{Math.round(currentResult.averageDPR * 10) / 10}</div>
+                    <div className="text-xs text-muted">Average per Round</div>
                   </div>
                 </div>
+                
+                {/* Round by Round */}
                 {currentResult.roundBreakdown && (
-                  <div className="space-y-1 text-sm">
-                    <div className="flex justify-between">
-                      <span>Round 1:</span>
-                      <span>{Math.round(currentResult.roundBreakdown[0] * 10) / 10} DPR</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Round 2:</span>
-                      <span>{Math.round(currentResult.roundBreakdown[1] * 10) / 10} DPR</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Round 3:</span>
-                      <span>{Math.round(currentResult.roundBreakdown[2] * 10) / 10} DPR</span>
+                  <div>
+                    <div className="text-sm font-medium text-panel mb-2">Round-by-Round Breakdown</div>
+                    <div className="space-y-2">
+                      {currentResult.roundBreakdown.map((roundDPR, index) => (
+                        <div key={index} className="flex items-center justify-between text-sm">
+                          <span className="flex items-center gap-2">
+                            <div className="w-6 h-6 rounded-full bg-accent/10 text-accent text-xs font-medium flex items-center justify-center">
+                              {index + 1}
+                            </div>
+                            Round {index + 1}
+                            {index === 0 && ' (Action Surge)'}
+                          </span>
+                          <div className="flex items-center gap-2">
+                            <span className="font-mono">{Math.round(roundDPR * 10) / 10}</span>
+                            <div className="w-16 bg-border/20 rounded-full h-2">
+                              <div 
+                                className="bg-accent rounded-full h-2 transition-all"
+                                style={{width: `${Math.min(100, (roundDPR / Math.max(...currentResult.roundBreakdown)) * 100)}%`}}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 )}
+                
+                {/* AC Performance */}
                 {typicalDPR && (
                   <div className="pt-3 border-t border-border/20">
-                    <div className="text-sm text-muted mb-1">At AC 15:</div>
-                    <div className="grid grid-cols-3 gap-2 text-xs">
-                      <div>Normal: <span className="font-medium">{typicalDPR.normal}</span></div>
-                      <div>Advantage: <span className="font-medium">{typicalDPR.advantage}</span></div>
-                      <div>Disadvantage: <span className="font-medium">{typicalDPR.disadvantage}</span></div>
+                    <div className="text-sm font-medium text-panel mb-2">Performance vs AC 15 (Typical Enemy)</div>
+                    <div className="grid grid-cols-3 gap-3">
+                      <div className="text-center p-2 bg-panel/30 rounded">
+                        <div className="text-sm font-medium">{typicalDPR.normal}</div>
+                        <div className="text-xs text-muted">Normal</div>
+                      </div>
+                      <div className="text-center p-2 bg-accent/10 rounded border border-accent/20">
+                        <div className="text-sm font-medium text-accent">{typicalDPR.advantage}</div>
+                        <div className="text-xs text-muted">Advantage</div>
+                      </div>
+                      <div className="text-center p-2 bg-danger/10 rounded border border-danger/20">
+                        <div className="text-sm font-medium text-danger">{typicalDPR.disadvantage}</div>
+                        <div className="text-xs text-muted">Disadvantage</div>
+                      </div>
                     </div>
                   </div>
                 )}
+                
+                {/* Performance Insights */}
+                <div className="pt-3 border-t border-border/20">
+                  <div className="text-sm font-medium text-panel mb-2">Performance Insights</div>
+                  <div className="space-y-1 text-xs text-muted">
+                    {typicalDPR && (
+                      <>
+                        <div>• Advantage increases DPR by {Math.round(((typicalDPR.advantage - typicalDPR.normal) / typicalDPR.normal) * 100)}%</div>
+                        <div>• Disadvantage reduces DPR by {Math.round(((typicalDPR.normal - typicalDPR.disadvantage) / typicalDPR.normal) * 100)}%</div>
+                      </>
+                    )}
+                    {currentResult.roundBreakdown && currentResult.roundBreakdown[0] > currentResult.roundBreakdown[1] && (
+                      <div>• Round 1 is strongest due to Action Surge/nova resources</div>
+                    )}
+                  </div>
+                </div>
               </div>
             ) : (
-              <div className="text-sm text-muted py-4 text-center">
-                Run calculation to see DPR breakdown
+              <div className="text-sm text-muted py-8 text-center">
+                <div className="mb-2">⚡ Run calculation to see detailed combat analysis</div>
+                <div className="text-xs">DPR curves, round breakdowns, and optimization tips</div>
               </div>
             )}
           </Panel>

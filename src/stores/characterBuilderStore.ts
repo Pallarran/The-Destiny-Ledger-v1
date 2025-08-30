@@ -57,6 +57,12 @@ interface CharacterBuilderStore extends CharacterBuilderState {
   addWeaponEnhancement: (enhancementId: string) => void
   removeWeaponEnhancement: (enhancementId: string) => void
   
+  // Buff actions
+  toggleBuff: (buffId: string) => void
+  setActiveBuffs: (buffIds: string[]) => void
+  setRound0Buffs: (buffIds: string[]) => void
+  clearAllBuffs: () => void
+  
   // Validation actions
   validateCurrentStep: () => boolean
   validateAllSteps: () => boolean
@@ -485,6 +491,53 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
           state.currentBuild.weaponEnhancements = state.currentBuild.weaponEnhancements.filter(
             id => id !== enhancementId
           )
+          state.isDirty = true
+          validateStep(state, 'equipment')
+        }
+      })
+    },
+    
+    // Buff actions
+    toggleBuff: (buffId: string) => {
+      set((state) => {
+        if (state.currentBuild) {
+          const currentBuffs = state.currentBuild.activeBuffs || []
+          if (currentBuffs.includes(buffId)) {
+            state.currentBuild.activeBuffs = currentBuffs.filter(id => id !== buffId)
+          } else {
+            state.currentBuild.activeBuffs = [...currentBuffs, buffId]
+          }
+          state.isDirty = true
+          validateStep(state, 'equipment')
+        }
+      })
+    },
+    
+    setActiveBuffs: (buffIds: string[]) => {
+      set((state) => {
+        if (state.currentBuild) {
+          state.currentBuild.activeBuffs = [...buffIds]
+          state.isDirty = true
+          validateStep(state, 'equipment')
+        }
+      })
+    },
+    
+    setRound0Buffs: (buffIds: string[]) => {
+      set((state) => {
+        if (state.currentBuild) {
+          state.currentBuild.round0Buffs = [...buffIds]
+          state.isDirty = true
+          validateStep(state, 'equipment')
+        }
+      })
+    },
+    
+    clearAllBuffs: () => {
+      set((state) => {
+        if (state.currentBuild) {
+          state.currentBuild.activeBuffs = []
+          state.currentBuild.round0Buffs = []
           state.isDirty = true
           validateStep(state, 'equipment')
         }
