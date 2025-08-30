@@ -356,6 +356,11 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
       set((state) => {
         if (state.currentBuild) {
           state.currentBuild.abilityScores[ability] = value
+          // Set base scores for tracking racial bonuses later
+          if (!state.currentBuild.baseAbilityScores) {
+            state.currentBuild.baseAbilityScores = { ...state.currentBuild.abilityScores }
+          }
+          state.currentBuild.baseAbilityScores[ability] = value
           // Also update finalAbilityScores so it gets exported properly
           if (!state.currentBuild.finalAbilityScores) {
             state.currentBuild.finalAbilityScores = { ...state.currentBuild.abilityScores }

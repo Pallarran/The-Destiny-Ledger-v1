@@ -128,20 +128,20 @@ export function EquipmentSelection() {
         </p>
       </div>
       
-      <Tabs defaultValue="weapons" className="w-full">
+      <Tabs defaultValue="equipment" className="w-full">
         <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="weapons" className="flex items-center gap-2">
+          <TabsTrigger value="equipment" className="flex items-center gap-2">
             <Sword className="w-4 h-4" />
-            Weapons
+            Equipment
           </TabsTrigger>
-          <TabsTrigger value="armor" className="flex items-center gap-2">
+          <TabsTrigger value="details" className="flex items-center gap-2">
             <Shield className="w-4 h-4" />
-            Armor & Shield
+            AC Details
           </TabsTrigger>
         </TabsList>
         
-        {/* Weapons Tab */}
-        <TabsContent value="weapons" className="space-y-6 mt-6">
+        {/* Equipment Tab */}
+        <TabsContent value="equipment" className="space-y-6 mt-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Main Hand Weapon */}
             <div className="space-y-4">
@@ -308,11 +308,83 @@ export function EquipmentSelection() {
                 </Card>
               )}
             </div>
+            
+            {/* Armor Selection - moved to weapons tab */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-panel flex items-center gap-2">
+                <Shield className="w-5 h-5 text-gold" />
+                Armor & Shield
+              </h3>
+              
+              <div className="space-y-2">
+                <Label htmlFor="armor-select-weapons">Select Armor</Label>
+                <Select 
+                  value={currentBuild.selectedArmor || 'none'} 
+                  onValueChange={(value) => setArmor(value === 'none' ? '' : value)}
+                >
+                  <SelectTrigger id="armor-select-weapons">
+                    <SelectValue placeholder="Choose armor..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">No armor (unarmored)</SelectItem>
+                    {Object.entries(groupedArmor).map(([type, armorList]) => (
+                      armorList.length > 0 && (
+                        <div key={type}>
+                          <div className="px-2 py-1.5 text-xs font-semibold text-muted">{type}</div>
+                          {armorList.map(armorItem => (
+                            <SelectItem key={armorItem.id} value={armorItem.id}>
+                              <div className="flex items-center justify-between w-full">
+                                <span>{armorItem.name}</span>
+                                <span className="text-xs text-muted ml-2">
+                                  AC {formatArmorAC(armorItem)}
+                                </span>
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </div>
+                      )
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              {/* Shield Toggle */}
+              <div className="flex items-center justify-between p-3 border border-gold/20 rounded-lg">
+                <div>
+                  <Label htmlFor="shield-toggle-weapons" className="text-sm font-medium">
+                    Use Shield
+                  </Label>
+                  <div className="text-xs text-muted mt-1">
+                    Adds +2 to AC when equipped
+                  </div>
+                </div>
+                <Switch
+                  id="shield-toggle-weapons"
+                  checked={currentBuild.hasShield}
+                  onCheckedChange={toggleShield}
+                />
+              </div>
+              
+              {selectedArmor && (
+                <Card className="border-gold/20 bg-gold/5">
+                  <CardContent className="p-3">
+                    <div className="text-sm font-medium text-panel mb-2">{selectedArmor.name}</div>
+                    <div className="flex items-center justify-between text-xs">
+                      <span>AC: {formatArmorAC(selectedArmor)}</span>
+                      {currentBuild.hasShield && <span className="text-emerald">+2 Shield</span>}
+                    </div>
+                    <div className="text-xs font-bold text-center mt-2 text-emerald">
+                      Total AC: {calculateAC()}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
           </div>
         </TabsContent>
         
-        {/* Armor Tab */}
-        <TabsContent value="armor" className="space-y-6 mt-6">
+        {/* AC Details Tab */}
+        <TabsContent value="details" className="space-y-6 mt-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Armor Selection */}
             <div className="space-y-4">
