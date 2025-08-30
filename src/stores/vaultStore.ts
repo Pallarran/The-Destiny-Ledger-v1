@@ -33,22 +33,80 @@ interface VaultStoreState extends VaultState {
 // Storage key for localStorage persistence
 const VAULT_STORAGE_KEY = 'destiny-ledger-vault'
 
+// Sample builds to populate empty vault
+const getSampleBuilds = (): BuildConfiguration[] => [
+  {
+    id: 'sample-gwm-fighter',
+    name: 'Great Weapon Fighter',
+    createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // 7 days ago
+    updatedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), // 1 day ago
+    race: 'human_variant',
+    abilityMethod: 'pointbuy',
+    abilityScores: { STR: 16, DEX: 14, CON: 15, INT: 10, WIS: 13, CHA: 8 },
+    pointBuyLimit: 27,
+    levelTimeline: [
+      { level: 1, classId: 'fighter', features: [], featId: 'great_weapon_master' },
+      { level: 2, classId: 'fighter', features: [] },
+      { level: 3, classId: 'fighter', features: [] },
+      { level: 4, classId: 'fighter', features: [], asiOrFeat: 'asi' },
+      { level: 5, classId: 'fighter', features: [] }
+    ],
+    currentLevel: 5,
+    mainHandWeapon: 'greatsword',
+    weaponEnhancements: [],
+    activeBuffs: [],
+    round0Buffs: [],
+    tags: ['Fighter', 'DPS', 'Sample']
+  },
+  {
+    id: 'sample-ss-ranger',
+    name: 'Sharpshooter Ranger',
+    createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000), // 5 days ago
+    updatedAt: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
+    race: 'human_variant', 
+    abilityMethod: 'pointbuy',
+    abilityScores: { STR: 8, DEX: 16, CON: 14, INT: 12, WIS: 15, CHA: 10 },
+    pointBuyLimit: 27,
+    levelTimeline: [
+      { level: 1, classId: 'ranger', features: [], featId: 'sharpshooter' },
+      { level: 2, classId: 'ranger', features: [] },
+      { level: 3, classId: 'ranger', features: [] },
+      { level: 4, classId: 'ranger', features: [], asiOrFeat: 'asi' }
+    ],
+    currentLevel: 4,
+    mainHandWeapon: 'shortsword',
+    rangedWeapon: 'longbow',
+    weaponEnhancements: [],
+    activeBuffs: ['hunters_mark'],
+    round0Buffs: [],
+    tags: ['Ranger', 'Archery', 'Sample'],
+    notes: 'Focused on ranged damage with Hunter\'s Mark'
+  }
+]
+
 // Load builds from localStorage
 const loadBuildsFromStorage = (): BuildConfiguration[] => {
   try {
     const stored = localStorage.getItem(VAULT_STORAGE_KEY)
     if (stored) {
       const parsed = JSON.parse(stored)
-      return parsed.builds?.map((build: any) => ({
+      const builds = parsed.builds?.map((build: any) => ({
         ...build,
         createdAt: new Date(build.createdAt),
         updatedAt: new Date(build.updatedAt)
       })) || []
+      
+      // Return stored builds if any exist
+      if (builds.length > 0) {
+        return builds
+      }
     }
   } catch (error) {
     console.warn('Failed to load builds from localStorage:', error)
   }
-  return []
+  
+  // Return sample builds if no stored builds exist
+  return getSampleBuilds()
 }
 
 // Save builds to localStorage
@@ -63,9 +121,24 @@ const saveBuildsToStorage = (builds: BuildConfiguration[]) => {
   }
 }
 
+// Initialize store with builds from storage/samples
+const initialBuilds = loadBuildsFromStorage()
+
+// Save initial sample builds to localStorage if needed
+if (initialBuilds.length > 0) {
+  try {
+    const stored = localStorage.getItem(VAULT_STORAGE_KEY)
+    if (!stored) {
+      saveBuildsToStorage(initialBuilds)
+    }
+  } catch (error) {
+    console.warn('Failed to save initial builds:', error)
+  }
+}
+
 export const useVaultStore = create<VaultStoreState>()(
   immer((set, get) => ({
-    builds: loadBuildsFromStorage(),
+    builds: initialBuilds,
     selectedBuildIds: [],
     searchQuery: '',
     selectedTags: [],
@@ -275,7 +348,7 @@ export const useVaultStore = create<VaultStoreState>()(
         const parsed = JSON.parse(jsonData)
         
         // Handle both single build and builds array format
-        let buildData = parsed.build || parsed
+        const buildData = parsed.build || parsed
         
         if (!buildData.id || !buildData.name) {
           return { success: false, message: 'Invalid build format: missing required fields' }

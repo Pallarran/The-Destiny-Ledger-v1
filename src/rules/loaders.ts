@@ -3,34 +3,39 @@ import type {
   SubclassDefinition, 
   Feat, 
   Weapon, 
+  WeaponEnhancement,
   Buff 
 } from './types'
 
-import classesData from './data/classes.json'
-import subclassesData from './data/subclasses.json' 
-import featsData from './data/feats.json'
-import weaponsData from './data/weapons.json'
-import buffsData from './data/buffs.json'
+import { classes } from './srd/classes'
+import { weapons, weaponEnhancements } from './srd/weapons'
+import { feats } from './srd/feats'
 
 // Data loaders with proper typing
 export const loadClasses = (): Record<string, ClassDefinition> => {
-  return classesData as Record<string, ClassDefinition>
+  return classes
 }
 
 export const loadSubclasses = (): Record<string, SubclassDefinition> => {
-  return subclassesData as Record<string, SubclassDefinition>
+  // TODO: Add subclass data
+  return {}
 }
 
 export const loadFeats = (): Record<string, Feat> => {
-  return featsData as Record<string, Feat>
+  return feats
 }
 
 export const loadWeapons = (): Record<string, Weapon> => {
-  return weaponsData as Record<string, Weapon>
+  return weapons
+}
+
+export const loadWeaponEnhancements = (): Record<string, WeaponEnhancement> => {
+  return weaponEnhancements
 }
 
 export const loadBuffs = (): Record<string, Buff> => {
-  return buffsData as Record<string, Buff>
+  // TODO: Add buff data
+  return {}
 }
 
 // Convenience functions
@@ -54,6 +59,10 @@ export const getBuff = (buffId: string): Buff | undefined => {
   return loadBuffs()[buffId]
 }
 
+export const getWeaponEnhancement = (enhancementId: string): WeaponEnhancement | undefined => {
+  return loadWeaponEnhancements()[enhancementId]
+}
+
 // Get all items of a type as arrays
 export const getAllClasses = (): ClassDefinition[] => {
   return Object.values(loadClasses())
@@ -69,6 +78,10 @@ export const getAllFeats = (): Feat[] => {
 
 export const getAllWeapons = (): Weapon[] => {
   return Object.values(loadWeapons())
+}
+
+export const getAllWeaponEnhancements = (): WeaponEnhancement[] => {
+  return Object.values(loadWeaponEnhancements())
 }
 
 export const getAllBuffs = (): Buff[] => {

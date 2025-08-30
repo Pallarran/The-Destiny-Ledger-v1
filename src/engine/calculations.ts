@@ -226,7 +226,7 @@ export function calculateBuildDPR(
   // Determine if we should use GWM/SS
   let useGWMSS = false
   let gwmssAttackBonus = attackBonus
-  let gwmssDamage = { ...baseDamage }
+  const gwmssDamage = { ...baseDamage }
   
   if ((state.hasGWM && weapon.properties.includes('heavy')) || 
       (state.hasSharpshooter && weapon.properties.includes('ammunition'))) {
@@ -259,13 +259,13 @@ export function calculateBuildDPR(
   )
   
   // Calculate rounds
-  const round1DPR = dprPerAttack * attacksPerRound
-  let round2DPR = round1DPR
-  let round3DPR = round1DPR
+  let round1DPR = dprPerAttack * attacksPerRound
+  const round2DPR = round1DPR
+  const round3DPR = round1DPR
   
   // Action surge on round 1 if available and greedy
   if (state.actionSurge && config.greedyResourceUse) {
-    round1DPR + (dprPerAttack * attacksPerRound)
+    round1DPR += (dprPerAttack * attacksPerRound)
   }
   
   const totalDPR = round1DPR + round2DPR + round3DPR
