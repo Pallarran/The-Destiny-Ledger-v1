@@ -4,20 +4,13 @@ import { Input } from '../ui/input'
 import { Label } from '../ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card'
 import { Badge } from '../ui/badge'
-import { Progress } from '../ui/progress'
 import { useCharacterBuilderStore } from '../../stores/characterBuilderStore'
 import { Link } from 'react-router-dom'
 import { 
-  User, 
   Dices, 
-  Zap, 
   Sword, 
-  BarChart3,
   CheckCircle,
   AlertTriangle,
-  FileText,
-  Play,
-  TrendingUp,
   Save,
   Archive
 } from 'lucide-react'
@@ -25,7 +18,6 @@ import {
 export function BuildSummary() {
   const { 
     currentBuild,
-    stepValidation,
     validateAllSteps,
     updateBuild,
     saveBuild
@@ -33,17 +25,12 @@ export function BuildSummary() {
   
   const [buildName, setBuildName] = useState(currentBuild?.name || '')
   const [buildNotes, setBuildNotes] = useState(currentBuild?.notes || '')
-  const [isCalculatingDPR, setIsCalculatingDPR] = useState(false)
-  const [dprResult, setDprResult] = useState<number | null>(null)
   
   if (!currentBuild) {
     return <div className="text-center text-muted">Loading build summary...</div>
   }
   
   const isValid = validateAllSteps()
-  const completedSteps = Object.values(stepValidation).filter(Boolean).length
-  const totalSteps = Object.keys(stepValidation).length
-  const completionPercent = (completedSteps / totalSteps) * 100
   
   // Calculate basic stats
   const totalLevel = Math.max(...currentBuild.enhancedLevelTimeline.map(l => l.level), 1)
@@ -58,19 +45,6 @@ export function BuildSummary() {
   
   const getAbilityModifier = (score: number) => Math.floor((score - 10) / 2)
   const formatModifier = (mod: number) => mod >= 0 ? `+${mod}` : `${mod}`
-  
-  const handleCalculateDPR = async () => {
-    setIsCalculatingDPR(true)
-    try {
-      await new Promise(resolve => setTimeout(resolve, 1500))
-      const mockDPR = 15 + (totalLevel * 2) + Math.random() * 10
-      setDprResult(Math.round(mockDPR * 10) / 10)
-    } catch (error) {
-      console.error('DPR calculation failed:', error)
-    } finally {
-      setIsCalculatingDPR(false)
-    }
-  }
   
   const handleNameChange = (name: string) => {
     setBuildName(name)
@@ -96,22 +70,19 @@ export function BuildSummary() {
         </p>
       </div>
       
-      {/* Build Completion Status */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <CheckCircle className="w-5 h-5" />
-            Build Completion
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-muted">Overall Progress</span>
-              <span className="text-sm font-medium">{completedSteps}/{totalSteps} steps complete</span>
-            </div>
-            <Progress value={completionPercent} className="h-2" />
-            
+      {/* Validation Issues Only */}
+      {(validationIssues.length > 0 || isValid) && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              {validationIssues.length > 0 ? (
+                <><AlertTriangle className="w-5 h-5" /> Build Validation</>
+              ) : (
+                <><CheckCircle className="w-5 h-5" /> Build Ready</>
+              )}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
             {validationIssues.length > 0 && (
               <div className="bg-destructive/5 border border-destructive/20 rounded-lg p-3">
                 <div className="flex items-center gap-2 text-destructive text-sm font-medium mb-2">
@@ -126,7 +97,7 @@ export function BuildSummary() {
               </div>
             )}
             
-            {isValid && (
+            {isValid && validationIssues.length === 0 && (
               <div className="bg-emerald/5 border border-emerald/20 rounded-lg p-3">
                 <div className="flex items-center gap-2 text-emerald text-sm font-medium">
                   <CheckCircle className="w-4 h-4" />
@@ -134,9 +105,9 @@ export function BuildSummary() {
                 </div>
               </div>
             )}
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
       
       {/* Build Details */}
       <Card>
@@ -175,47 +146,41 @@ export function BuildSummary() {
           <CardTitle>Character Overview</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 text-center">
-            <div className="p-3 bg-panel/5 rounded-lg">
-              <TrendingUp className="w-6 h-6 text-accent mx-auto mb-2" />
-              <div className="text-2xl font-bold text-panel">{totalLevel}</div>
-              <div className="text-sm font-medium text-panel">Level</div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-3">
+              <div className="flex justify-between items-center p-3 bg-panel/5 rounded-lg">
+                <span className="text-sm font-medium">Race</span>
+                <span className="text-sm capitalize">{(currentBuild.race || 'None').replace('_', ' ')}</span>
+              </div>
+              <div className="flex justify-between items-center p-3 bg-panel/5 rounded-lg">
+                <span className="text-sm font-medium">Background</span>
+                <span className="text-sm capitalize">{(currentBuild.background || 'None').replace('_', ' ')}</span>
+              </div>
+              <div className="flex justify-between items-center p-3 bg-panel/5 rounded-lg">
+                <span className="text-sm font-medium">Level</span>
+                <span className="text-sm font-bold">{totalLevel}</span>
+              </div>
             </div>
             
-            <div className="p-3 bg-panel/5 rounded-lg">
-              <Zap className="w-6 h-6 text-emerald mx-auto mb-2" />
-              <div className="text-lg font-bold text-panel">{mainClass}</div>
-              <div className="text-sm font-medium text-panel">Main Class</div>
-            </div>
-            
-            <div className="p-3 bg-panel/5 rounded-lg">
-              <FileText className="w-6 h-6 text-gold mx-auto mb-2" />
-              <div className="text-2xl font-bold text-panel">{featCount}</div>
-              <div className="text-sm font-medium text-panel">Feats</div>
-            </div>
-            
-            <div className="p-3 bg-panel/5 rounded-lg">
-              <TrendingUp className="w-6 h-6 text-blue-400 mx-auto mb-2" />
-              <div className="text-2xl font-bold text-panel">{asiCount}</div>
-              <div className="text-sm font-medium text-panel">ASIs</div>
-            </div>
-            
-            <div className="p-3 bg-panel/5 rounded-lg">
-              <User className="w-6 h-6 text-purple-400 mx-auto mb-2" />
-              <div className="text-sm font-bold text-panel">{currentBuild.race || 'None'}</div>
-              <div className="text-sm font-medium text-panel">Race</div>
-            </div>
-            
-            <div className="p-3 bg-panel/5 rounded-lg">
-              <FileText className="w-6 h-6 text-pink-400 mx-auto mb-2" />
-              <div className="text-sm font-bold text-panel">{currentBuild.background || 'None'}</div>
-              <div className="text-sm font-medium text-panel">Background</div>
+            <div className="space-y-3">
+              <div className="flex justify-between items-center p-3 bg-panel/5 rounded-lg">
+                <span className="text-sm font-medium">Primary Class</span>
+                <span className="text-sm capitalize font-bold">{mainClass.replace('_', ' ')}</span>
+              </div>
+              <div className="flex justify-between items-center p-3 bg-panel/5 rounded-lg">
+                <span className="text-sm font-medium">Feats Taken</span>
+                <span className="text-sm font-bold">{featCount}</span>
+              </div>
+              <div className="flex justify-between items-center p-3 bg-panel/5 rounded-lg">
+                <span className="text-sm font-medium">ASIs Taken</span>
+                <span className="text-sm font-bold">{asiCount}</span>
+              </div>
             </div>
           </div>
         </CardContent>
       </Card>
       
-      {/* Ability Scores */}
+      {/* Final Ability Scores */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -225,13 +190,37 @@ export function BuildSummary() {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-3 md:grid-cols-6 gap-4 text-center">
-            {Object.entries(currentBuild.abilityScores).map(([ability, score]) => {
-              const modifier = getAbilityModifier(score)
+            {Object.entries(currentBuild.abilityScores).map(([ability, baseScore]) => {
+              // Calculate final score with race bonuses (simplified race bonus logic)
+              const getRaceBonus = (race: string, abilityName: string): number => {
+                const raceBonuses: Record<string, Record<string, number>> = {
+                  'human_variant': { 'STR': 1, 'DEX': 1 }, // Simplified
+                  'elf': { 'DEX': 2 },
+                  'dwarf': { 'CON': 2 },
+                  'halfling': { 'DEX': 2 },
+                  'dragonborn': { 'STR': 2, 'CHA': 1 },
+                  'gnome': { 'INT': 2 },
+                  'half_elf': { 'CHA': 2 },
+                  'half_orc': { 'STR': 2, 'CON': 1 },
+                  'tiefling': { 'INT': 1, 'CHA': 2 }
+                }
+                return raceBonuses[race]?.[abilityName] || 0
+              }
+              
+              const raceBonus = getRaceBonus(currentBuild.race || '', ability)
+              const finalScore = baseScore + raceBonus
+              const modifier = getAbilityModifier(finalScore)
+              
               return (
                 <div key={ability} className="p-3 bg-panel/5 rounded-lg">
                   <div className="font-semibold text-panel">{ability}</div>
-                  <div className="text-2xl font-bold text-panel">{score}</div>
+                  <div className="text-2xl font-bold text-panel">{finalScore}</div>
                   <div className="text-sm text-muted">{formatModifier(modifier)}</div>
+                  {raceBonus > 0 && (
+                    <div className="text-xs text-muted">
+                      ({baseScore} + {raceBonus} race)
+                    </div>
+                  )}
                 </div>
               )
             })}
@@ -280,64 +269,6 @@ export function BuildSummary() {
         </CardContent>
       </Card>
       
-      {/* DPR Analysis */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <BarChart3 className="w-5 h-5" />
-            Damage Analysis
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-6">
-            {!dprResult ? (
-              <>
-                <BarChart3 className="w-12 h-12 text-muted mx-auto mb-4" />
-                <p className="text-muted mb-4">
-                  Calculate expected damage per round (DPR) against various armor classes.
-                </p>
-                <Button 
-                  onClick={handleCalculateDPR}
-                  disabled={isCalculatingDPR || !isValid}
-                  className="min-w-[160px]"
-                >
-                  {isCalculatingDPR ? (
-                    <>
-                      <div className="animate-spin w-4 h-4 border-2 border-current border-t-transparent rounded-full mr-2" />
-                      Calculating...
-                    </>
-                  ) : (
-                    <>
-                      <Play className="w-4 h-4 mr-2" />
-                      Calculate DPR
-                    </>
-                  )}
-                </Button>
-                {!isValid && (
-                  <p className="text-destructive text-sm mt-2">
-                    Complete the build to calculate DPR
-                  </p>
-                )}
-              </>
-            ) : (
-              <div>
-                <div className="text-4xl font-bold text-accent mb-2">{dprResult}</div>
-                <div className="text-lg font-medium text-panel mb-1">Average DPR</div>
-                <div className="text-sm text-muted mb-4">
-                  Against AC 15 target (typical mid-level encounter)
-                </div>
-                <Button 
-                  variant="outline"
-                  onClick={handleCalculateDPR}
-                  disabled={isCalculatingDPR}
-                >
-                  Recalculate
-                </Button>
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
       
       {/* Save to Vault */}
       <Card>
