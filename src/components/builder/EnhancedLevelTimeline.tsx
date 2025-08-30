@@ -521,8 +521,11 @@ export function EnhancedLevelTimeline() {
       hasASI, hasFightingStyle, hasArchetype,
       needsASIChoice, needsFightingStyleChoice, needsArchetypeChoice,
       entryFightingStyle: (entry as any).fightingStyle,
+      entryFightingStyleType: typeof (entry as any).fightingStyle,
+      entryKeys: Object.keys(entry),
       entryArchetype: (entry as any).archetype,
-      entryIsCompleted: entry.isCompleted
+      entryIsCompleted: entry.isCompleted,
+      fullEntry: entry
     })
     
     // A level is complete if all required choices are made
