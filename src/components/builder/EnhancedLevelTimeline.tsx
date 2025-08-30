@@ -375,10 +375,14 @@ function ArchetypeChoice({ level, classId, currentChoice, onChoice }: ArchetypeC
   )
 }
 
-function LevelMilestoneCard({ entry, milestone, classData }: {
+function LevelMilestoneCard({ entry, milestone, classData, onFightingStyleClick, onArchetypeClick, onASIFeatClick, hasInteractiveFeatures }: {
   entry: BuilderLevelEntry
   milestone: LevelMilestone
   classData?: any
+  onFightingStyleClick?: () => void
+  onArchetypeClick?: () => void
+  onASIFeatClick?: () => void
+  hasInteractiveFeatures?: boolean
 }) {
   const Icon = classData ? CLASS_ICONS[classData.id as keyof typeof CLASS_ICONS] || Sword : Clock
   const colorClass = classData ? CLASS_COLORS[classData.id as keyof typeof CLASS_COLORS] || '' : ''
@@ -386,12 +390,25 @@ function LevelMilestoneCard({ entry, milestone, classData }: {
   const StatusIcon = milestone.hasIssues ? AlertTriangle : 
                      milestone.isComplete ? CheckCircle : Clock
 
+  const handleCardClick = () => {
+    // Priority order for opening selections
+    if (onFightingStyleClick) {
+      onFightingStyleClick()
+    } else if (onArchetypeClick) {
+      onArchetypeClick()
+    } else if (onASIFeatClick) {
+      onASIFeatClick()
+    }
+  }
+
   return (
     <div className="relative">
       {/* Timeline connector */}
       <div className="absolute left-4 top-12 w-px h-full bg-border -z-10" />
       
-      <Card className={`${colorClass} transition-all hover:shadow-md`}>
+      <Card className={`${colorClass} transition-all hover:shadow-md ${
+        hasInteractiveFeatures ? 'cursor-pointer hover:border-accent/50' : ''
+      }`} onClick={hasInteractiveFeatures ? handleCardClick : undefined}>
         <CardContent className="p-4">
           <div className="flex items-start gap-3">
             {/* Level Badge */}
@@ -434,6 +451,34 @@ function LevelMilestoneCard({ entry, milestone, classData }: {
                 </div>
               )}
 
+              {/* Selected Features */}
+              <div className="flex flex-wrap gap-1 mb-2">
+                {(entry as any).fightingStyle && (
+                  <Badge variant="default" className="text-xs bg-emerald/10 text-emerald border-emerald/20">
+                    <Sword className="w-3 h-3 mr-1" />
+                    {classData?.fightingStyles?.find((fs: any) => fs.id === (entry as any).fightingStyle)?.name || (entry as any).fightingStyle}
+                  </Badge>
+                )}
+                {(entry as any).archetype && (
+                  <Badge variant="default" className="text-xs bg-blue/10 text-blue border-blue/20">
+                    <Star className="w-3 h-3 mr-1" />
+                    {(entry as any).archetype}
+                  </Badge>
+                )}
+                {entry.asiOrFeat === 'feat' && entry.featId && (
+                  <Badge variant="default" className="text-xs bg-purple/10 text-purple border-purple/20">
+                    <Plus className="w-3 h-3 mr-1" />
+                    {entry.featId}
+                  </Badge>
+                )}
+                {entry.asiOrFeat === 'asi' && entry.abilityIncreases && (
+                  <Badge variant="default" className="text-xs bg-orange/10 text-orange border-orange/20">
+                    <Plus className="w-3 h-3 mr-1" />
+                    ASI
+                  </Badge>
+                )}
+              </div>
+
               {/* Validation Issues */}
               {entry.validationErrors && entry.validationErrors.length > 0 && (
                 <div className="flex items-center gap-1 text-xs text-danger">
@@ -444,9 +489,12 @@ function LevelMilestoneCard({ entry, milestone, classData }: {
             </div>
 
             {/* Action Button */}
-            <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-              <ChevronRight className="w-3 h-3" />
-            </Button>
+            {hasInteractiveFeatures && (
+              <div className="flex items-center text-xs text-muted">
+                <span className="mr-1">Click to {milestone.hasIssues ? 'choose' : 'change'}</span>
+                <ChevronRight className="w-3 h-3" />
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -663,6 +711,10 @@ export function EnhancedLevelTimeline() {
                     entry={entry}
                     milestone={milestone}
                     classData={classData}
+                    onFightingStyleClick={hasFightingStyle ? () => setShowFightingStyle(entry.level) : undefined}
+                    onArchetypeClick={hasArchetype ? () => setShowArchetype(entry.level) : undefined}
+                    onASIFeatClick={hasASI ? () => setShowASIFeat(entry.level) : undefined}
+                    hasInteractiveFeatures={hasFightingStyle || hasArchetype || hasASI}
                   />
                   
                   {/* Fighting Style Choice */}
@@ -677,30 +729,6 @@ export function EnhancedLevelTimeline() {
                     </div>
                   )}
                   
-                  {/* Show Fighting Style button - allow changing selection */}
-                  {hasFightingStyle && showFightingStyle !== entry.level && (
-                    <div className="ml-12 mt-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setShowFightingStyle(entry.level)}
-                        className="text-xs"
-                      >
-                        {(entry as any).fightingStyle ? (
-                          <>
-                            <CheckCircle className="w-3 h-3 mr-1 text-emerald" />
-                            Change Fighting Style: {(entry as any).fightingStyle}
-                          </>
-                        ) : (
-                          <>
-                            <AlertTriangle className="w-3 h-3 mr-1 text-danger" />
-                            Choose Fighting Style
-                          </>
-                        )}
-                      </Button>
-                    </div>
-                  )}
-                  
                   {/* Archetype Choice */}
                   {hasArchetype && (showArchetype === entry.level || (!(entry as any).archetype && showArchetype === null)) && (
                     <div className="ml-12 mt-2">
@@ -710,30 +738,6 @@ export function EnhancedLevelTimeline() {
                         currentChoice={(entry as any).archetype}
                         onChoice={(archetypeId) => handleArchetypeChoice(entry.level, archetypeId)}
                       />
-                    </div>
-                  )}
-                  
-                  {/* Show Archetype button - allow changing selection */}
-                  {hasArchetype && showArchetype !== entry.level && (
-                    <div className="ml-12 mt-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setShowArchetype(entry.level)}
-                        className="text-xs"
-                      >
-                        {(entry as any).archetype ? (
-                          <>
-                            <CheckCircle className="w-3 h-3 mr-1 text-emerald" />
-                            Change Archetype: {(entry as any).archetype}
-                          </>
-                        ) : (
-                          <>
-                            <AlertTriangle className="w-3 h-3 mr-1 text-danger" />
-                            Choose Archetype
-                          </>
-                        )}
-                      </Button>
                     </div>
                   )}
                   
