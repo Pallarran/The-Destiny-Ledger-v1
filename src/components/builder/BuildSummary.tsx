@@ -223,71 +223,68 @@ export function BuildSummary() {
         </Card>
       </div>
       
-      {/* Ability Scores & Saves */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Ability Scores */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Dices className="w-5 h-5" />
-              Ability Scores
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-3 gap-3">
-              {Object.entries(abilityScores).map(([ability, score]) => {
-                const modifier = getAbilityModifier(score)
-                const baseScore = currentBuild.baseAbilityScores?.[ability as keyof typeof currentBuild.baseAbilityScores] || score
-                const hasBonus = baseScore !== score
-                
-                return (
-                  <div key={ability} className="text-center p-3 bg-panel/5 rounded-lg">
-                    <div className="text-xs font-medium text-muted mb-1">{ability}</div>
-                    <div className="text-2xl font-bold text-accent">{score}</div>
-                    <div className="text-sm font-medium">{formatModifier(modifier)}</div>
-                    {hasBonus && (
-                      <div className="text-xs text-emerald mt-1">
-                        base: {baseScore}
-                      </div>
-                    )}
-                  </div>
-                )
-              })}
-            </div>
-          </CardContent>
-        </Card>
-        
-        {/* Saving Throws */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Sparkles className="w-5 h-5" />
-              Saving Throws
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 gap-3">
-              {savingThrows.map(save => (
-                <div key={save.ability} className="flex items-center justify-between p-2 bg-panel/5 rounded">
-                  <div className="flex items-center gap-2">
-                    <div className={`w-2 h-2 rounded-full ${save.isProficient ? 'bg-emerald' : 'bg-muted'}`} />
-                    <span className="text-sm font-medium">{save.ability}</span>
-                  </div>
-                  <Badge variant={save.isProficient ? "default" : "secondary"} className="text-xs">
-                    {save.modifier}
-                  </Badge>
+      {/* Ability Scores */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Dices className="w-5 h-5" />
+            Ability Scores
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-3 md:grid-cols-6 gap-3">
+            {Object.entries(abilityScores).map(([ability, score]) => {
+              const modifier = getAbilityModifier(score)
+              const baseScore = currentBuild.baseAbilityScores?.[ability as keyof typeof currentBuild.baseAbilityScores] || score
+              const hasBonus = baseScore !== score
+              
+              return (
+                <div key={ability} className="text-center p-3 bg-panel/5 rounded-lg">
+                  <div className="text-xs font-medium text-muted mb-1">{ability}</div>
+                  <div className="text-2xl font-bold text-accent">{score}</div>
+                  <div className="text-sm font-medium">{formatModifier(modifier)}</div>
+                  {hasBonus && (
+                    <div className="text-xs text-emerald mt-1">
+                      base: {baseScore}
+                    </div>
+                  )}
                 </div>
-              ))}
-            </div>
-            <div className="mt-3 text-xs text-muted">
-              <span className="inline-flex items-center gap-1">
-                <div className="w-2 h-2 rounded-full bg-emerald" />
-                Proficient
-              </span>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+              )
+            })}
+          </div>
+        </CardContent>
+      </Card>
+      
+      {/* Saving Throws */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Sparkles className="w-5 h-5" />
+            Saving Throws
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+            {savingThrows.map(save => (
+              <div key={save.ability} className="flex items-center justify-between p-2 bg-panel/5 rounded">
+                <div className="flex items-center gap-2">
+                  <div className={`w-2 h-2 rounded-full ${save.isProficient ? 'bg-emerald' : 'bg-muted'}`} />
+                  <span className="text-sm font-medium">{save.ability}</span>
+                </div>
+                <Badge variant={save.isProficient ? "default" : "secondary"} className="text-xs">
+                  {save.modifier}
+                </Badge>
+              </div>
+            ))}
+          </div>
+          <div className="mt-3 text-xs text-muted">
+            <span className="inline-flex items-center gap-1">
+              <div className="w-2 h-2 rounded-full bg-emerald" />
+              Proficient
+            </span>
+          </div>
+        </CardContent>
+      </Card>
       
       {/* Skills */}
       <Card>
