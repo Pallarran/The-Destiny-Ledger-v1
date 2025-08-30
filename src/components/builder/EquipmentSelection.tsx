@@ -327,46 +327,24 @@ export function EquipmentSelection() {
                     </div>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-            
-            {selectedArmor && (
-              <Card className="border-gold/20 bg-gold/5">
-                <CardContent className="p-4 space-y-3">
-                  <div>
-                    <div className="font-semibold text-panel">{selectedArmor.name}</div>
-                    <div className="text-sm text-muted mt-1">
-                      {selectedArmor.type.charAt(0).toUpperCase() + selectedArmor.type.slice(1)} armor
-                    </div>
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-3 text-sm">
-                    <div>
-                      <div className="text-xs font-medium text-muted mb-1">Base AC</div>
-                      <Badge variant="outline" className="text-xs">
-                        {formatArmorAC(selectedArmor)}
-                      </Badge>
-                    </div>
+                
+                {/* Show armor requirements and penalties */}
+                {selectedArmor && (
+                  <div className="mt-2 pt-2 border-t border-emerald/20">
                     {selectedArmor.strengthRequirement && (
-                      <div>
-                        <div className="text-xs font-medium text-muted mb-1">Str Required</div>
-                        <Badge variant="secondary" className="text-xs">
-                          {selectedArmor.strengthRequirement}
-                        </Badge>
+                      <div className="text-xs text-amber-600">
+                        Requires Strength {selectedArmor.strengthRequirement}
+                      </div>
+                    )}
+                    {selectedArmor.stealthDisadvantage && (
+                      <div className="text-xs text-danger">
+                        Disadvantage on Stealth checks
                       </div>
                     )}
                   </div>
-                  
-                  {selectedArmor.stealthDisadvantage && (
-                    <div className="p-2 bg-danger/10 border border-danger/20 rounded">
-                      <div className="text-xs text-danger font-medium">
-                        Disadvantage on Stealth checks
-                      </div>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            )}
+                )}
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>
