@@ -281,7 +281,7 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
     // Look for archetype in this level first, or find it from earlier levels of the same class
     let selectedArchetype = entry.archetype
     if (!selectedArchetype && currentBuild?.enhancedLevelTimeline) {
-      const earlierArchetypeEntry = currentBuild.enhancedLevelTimeline
+      const earlierArchetypeEntry = (currentBuild.enhancedLevelTimeline || [])
         .filter((e: any) => e.classId === entry.classId && e.level < entry.level && e.archetype)
         .sort((a: any, b: any) => b.level - a.level)[0]
       selectedArchetype = earlierArchetypeEntry?.archetype

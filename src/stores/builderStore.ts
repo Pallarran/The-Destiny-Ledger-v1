@@ -85,6 +85,9 @@ export const useBuilderStore = create<BuilderState>()(
     addLevelEntry: (entry) => {
       set((state) => {
         if (state.currentBuild) {
+          if (!state.currentBuild.levelTimeline) {
+            state.currentBuild.levelTimeline = []
+          }
           state.currentBuild.levelTimeline.push(entry)
           state.currentBuild.levelTimeline.sort((a, b) => a.level - b.level)
           state.currentBuild.currentLevel = Math.max(
@@ -100,7 +103,7 @@ export const useBuilderStore = create<BuilderState>()(
     updateLevelEntry: (level, updates) => {
       set((state) => {
         if (state.currentBuild) {
-          const entry = state.currentBuild.levelTimeline.find(e => e.level === level)
+          const entry = (state.currentBuild.levelTimeline || []).find(e => e.level === level)
           if (entry) {
             Object.assign(entry, updates)
             state.currentBuild.updatedAt = new Date()
@@ -113,7 +116,7 @@ export const useBuilderStore = create<BuilderState>()(
     removeLevelEntry: (level) => {
       set((state) => {
         if (state.currentBuild) {
-          state.currentBuild.levelTimeline = state.currentBuild.levelTimeline.filter(
+          state.currentBuild.levelTimeline = (state.currentBuild.levelTimeline || []).filter(
             e => e.level !== level
           )
           state.currentBuild.updatedAt = new Date()
