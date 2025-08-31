@@ -82,9 +82,32 @@ interface CharacterBuilderStore extends CharacterBuilderState {
 
 const createDefaultBuilder = (name: string = 'New Character'): CharacterBuilder => {
   // Get default settings from settings store
-  const settings = useSettingsStore.getState()
+  // First try to get from store state, then check localStorage as fallback
+  let settings = useSettingsStore.getState()
+  
+  // If settings haven't been initialized yet, try to load from localStorage
+  if (!settings.defaultPointBuyLimit || settings.defaultPointBuyLimit === 27) {
+    try {
+      const storedSettings = localStorage.getItem('destinyLedgerSettings')
+      if (storedSettings) {
+        const parsedSettings = JSON.parse(storedSettings)
+        if (parsedSettings.defaultPointBuyLimit) {
+          settings = { ...settings, ...parsedSettings }
+        }
+      }
+    } catch (error) {
+      console.error('Error loading settings from localStorage:', error)
+    }
+  }
+  
   const abilityMethod = settings.defaultAbilityMethod || 'pointbuy'
   const pointBuyLimit = settings.defaultPointBuyLimit || 27
+  
+  console.log('Creating new build with settings:', {
+    abilityMethod,
+    pointBuyLimit,
+    settingsState: settings
+  })
   
   return {
     // Base BuildConfiguration fields

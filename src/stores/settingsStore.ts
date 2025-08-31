@@ -114,6 +114,7 @@ if (typeof window !== 'undefined') {
     const storedSettings = localStorage.getItem('destinyLedgerSettings')
     if (storedSettings) {
       const parsedSettings = JSON.parse(storedSettings) as AppSettings
+      console.log('Loading settings from localStorage:', parsedSettings)
       // Apply settings to the store
       useSettingsStore.setState(parsedSettings)
       // Apply theme to document
@@ -123,6 +124,7 @@ if (typeof window !== 'undefined') {
         document.documentElement.classList.add('reduce-motion')
       }
     } else {
+      console.log('No stored settings found, using defaults:', defaultSettings)
       // If no stored settings, save defaults
       localStorage.setItem('destinyLedgerSettings', JSON.stringify(defaultSettings))
       document.documentElement.setAttribute('data-theme', defaultSettings.theme)
