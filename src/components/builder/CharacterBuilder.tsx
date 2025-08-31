@@ -25,6 +25,9 @@ import {
   FileText,
   Users
 } from 'lucide-react'
+import { getClass } from '../../rules/loaders'
+import { subclasses } from '../../rules/srd/subclasses'
+import { feats } from '../../rules/srd/feats'
 
 // Step components
 import { AbilityScoreAssignment } from './AbilityScoreAssignment'
@@ -472,60 +475,82 @@ export function CharacterBuilder() {
                 {[...currentBuild.enhancedLevelTimeline]
                   .sort((a, b) => a.level - b.level)
                   .map(entry => {
-                    // Calculate class level for this entry
+                    const classData = getClass(entry.classId)
                     const classLevel = currentBuild.enhancedLevelTimeline
                       .filter(e => e.classId === entry.classId && e.level <= entry.level)
                       .length
+                    const classFeatures = classData?.features[classLevel] || []
+                    
+                    // Get all features for this level
+                    const features = []
+                    
+                    // Class name and level
+                    features.push(`${classData?.name || entry.classId} ${classLevel}`)
+                    
+                    // Skills (only at level 1)
+                    if (entry.level === 1 && currentBuild?.skillProficiencies && currentBuild.skillProficiencies.length > 0) {
+                      features.push(`Skills: ${currentBuild.skillProficiencies.join(', ')}`)
+                    }
+                    
+                    // Fighting Style
+                    if (entry.fightingStyle) {
+                      const fightingStyleName = classData?.fightingStyles?.find((fs: any) => fs.id === entry.fightingStyle)?.name || entry.fightingStyle
+                      features.push(`Fighting Style: ${fightingStyleName}`)
+                    }
+                    
+                    // Archetype
+                    if (entry.archetype) {
+                      const archetypeName = Object.values(subclasses).find((sub: any) => sub.id === entry.archetype)?.name || entry.archetype
+                      features.push(`Archetype: ${archetypeName}`)
+                    }
+                    
+                    // ASI or Feat
+                    if (entry.asiOrFeat === 'asi' && entry.abilityIncreases) {
+                      const asiString = Object.entries(entry.abilityIncreases)
+                        .map(([ability, increase]) => `${ability} +${increase}`)
+                        .join(', ')
+                      features.push(`ASI: ${asiString}`)
+                    } else if (entry.asiOrFeat === 'feat' && entry.featId) {
+                      const featName = Object.values(feats).find((f: any) => f.id === entry.featId)?.name || entry.featId
+                      features.push(`Feat: ${featName}`)
+                    }
+                    
+                    // Class Features (automatic ones)
+                    const autoFeatures = classFeatures.filter((f: any) => 
+                      f.rulesKey !== 'fighting_style' && f.rulesKey !== 'asi' && f.rulesKey !== 'archetype' && f.rulesKey !== 'archetype_feature'
+                    )
+                    autoFeatures.forEach((feature: any) => {
+                      features.push(`Class: ${feature.name}`)
+                    })
+                    
+                    // Archetype Features
+                    const archetypeFeatures = classFeatures.filter((f: any) => f.rulesKey === 'archetype_feature')
+                    if (archetypeFeatures.length > 0 && entry.archetype) {
+                      const subclass = Object.values(subclasses).find((sub: any) => sub.id === entry.archetype)
+                      if (subclass && subclass.features) {
+                        const subclassFeatures = subclass.features.filter((f: any) => f.level === classLevel)
+                        subclassFeatures.forEach((feature: any) => {
+                          features.push(`Archetype: ${feature.name}`)
+                        })
+                      }
+                    }
                     
                     return (
-                      <div key={entry.level} className="flex items-center gap-3 p-3 bg-panel/5 rounded-lg">
-                        <div className="flex-shrink-0 w-6 h-6 bg-accent/10 text-accent rounded-full flex items-center justify-center text-xs font-bold">
-                          {entry.level}
+                      <div key={entry.level} className="flex flex-col gap-1 p-3 bg-accent/5 rounded-lg">
+                        <div className="flex items-center gap-2">
+                          <div className="w-6 h-6 bg-accent text-accent-foreground rounded-full flex items-center justify-center text-xs font-bold">
+                            {entry.level}
+                          </div>
+                          <div className="text-sm text-foreground font-medium">
+                            Level {entry.level}
+                          </div>
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="font-medium text-sm text-foreground capitalize">
-                            {entry.classId.replace('_', ' ')} {classLevel}
-                          </div>
-                          <div className="text-xs text-muted">
-                            {/* Class Features */}
-                            {entry.features.length > 0 && (
-                              <div className="mt-1">
-                                {entry.features.map((feature, idx) => (
-                                  <div key={idx} className="text-xs text-panel">
-                                    • {feature.replace('_', ' ')}
-                                  </div>
-                                ))}
-                              </div>
-                            )}
-                            
-                            {/* Special Choices */}
-                            <div className="mt-1 flex flex-wrap gap-1">
-                              {entry.asiOrFeat && (
-                                <span className="px-1 py-0.5 bg-accent/10 text-accent rounded text-xs">
-                                  {entry.asiOrFeat === 'feat' ? `Feat: ${entry.featId || 'Chosen'}` : 'ASI'}
-                                </span>
-                              )}
-                              {entry.fightingStyle && (
-                                <span className="px-1 py-0.5 bg-emerald/10 text-emerald rounded text-xs">
-                                  Style: {entry.fightingStyle.replace('_', ' ')}
-                                </span>
-                              )}
-                              {entry.archetype && (
-                                <span className="px-1 py-0.5 bg-gold/10 text-gold rounded text-xs">
-                                  {entry.archetype.replace('_', ' ')}
-                                </span>
-                              )}
-                            </div>
-
-                            {/* Skills from Class (Level 1 only) */}
-                            {entry.level === 1 && currentBuild.skillProficiencies && currentBuild.skillProficiencies.length > 0 && (
-                              <div className="mt-1">
-                                <span className="text-xs text-blue-500">
-                                  Skills: {currentBuild.skillProficiencies.join(', ')}
-                                </span>
-                              </div>
-                            )}
-                          </div>
+                        <div className="ml-8 flex flex-wrap gap-1">
+                          {features.map((feature, idx) => (
+                            <Badge key={idx} variant="outline" className="text-xs">
+                              {feature}
+                            </Badge>
+                          ))}
                         </div>
                       </div>
                     )
