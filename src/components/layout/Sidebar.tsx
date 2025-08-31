@@ -5,7 +5,8 @@ import {
   User, 
   BarChart3, 
   GitCompare, 
-  TrendingUp
+  TrendingUp,
+  Users
 } from 'lucide-react'
 
 const navigation = [
@@ -14,6 +15,7 @@ const navigation = [
   { name: 'DPR Lab', href: '/dpr', icon: BarChart3 },
   { name: 'Compare Builds', href: '/compare', icon: GitCompare },
   { name: 'Level Path Explorer', href: '/explorer', icon: TrendingUp },
+  { name: 'Party Optimizer', href: '/party', icon: Users },
 ]
 
 export function Sidebar() {

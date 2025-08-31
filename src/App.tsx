@@ -6,6 +6,7 @@ import { CharacterBuilder } from './pages/CharacterBuilder'
 import { DprLab } from './pages/DprLab'
 import { Compare } from './pages/Compare'
 import { LevelPathExplorer } from './pages/LevelPathExplorer'
+import { PartyOptimizer } from './pages/PartyOptimizer'
 import { Settings } from './pages/Settings'
 
 function App() {
@@ -23,6 +24,7 @@ function App() {
           <Route path="/dpr" element={<DprLab />} />
           <Route path="/compare" element={<Compare />} />
           <Route path="/explorer" element={<LevelPathExplorer />} />
+          <Route path="/party" element={<PartyOptimizer />} />
           <Route path="/settings" element={<Settings />} />
         </Routes>
       </Layout>
