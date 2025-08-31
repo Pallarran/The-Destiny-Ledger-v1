@@ -666,7 +666,23 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
                   <div className="text-xs font-medium text-muted mb-2">Choose Feat:</div>
                   <Select 
                     value={section.selectedFeat || ""} 
-                    onValueChange={(featId) => section.onFeat(featId)}
+                    onValueChange={(featId) => {
+                      const selectedFeat = Object.values(feats).find((f: any) => f.id === featId)
+                      
+                      // If feat has ability score increase options, we need to handle that
+                      if (selectedFeat?.abilityScoreIncrease) {
+                        // Just store the feat selection for now, ability score choice comes next
+                        updateLevel(entry.level, { 
+                          asiOrFeat: 'feat', 
+                          featId: featId,
+                          // Clear any previous ability increases while user makes choice
+                          abilityIncreases: undefined
+                        })
+                      } else {
+                        // Regular feat without ability score increase
+                        section.onFeat(featId)
+                      }
+                    }}
                   >
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Select a feat..." />
@@ -675,7 +691,14 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
                       {Object.values(feats).sort((a: any, b: any) => a.name.localeCompare(b.name)).map((feat: any) => (
                         <SelectItem key={feat.id} value={feat.id}>
                           <div className="flex flex-col gap-1">
-                            <div className="font-medium">{feat.name}</div>
+                            <div className="font-medium">
+                              {feat.name}
+                              {feat.abilityScoreIncrease && (
+                                <span className="ml-2 text-xs bg-accent/10 text-accent px-1 rounded">
+                                  +1 Ability Score
+                                </span>
+                              )}
+                            </div>
                             <div className="text-xs text-muted-foreground line-clamp-2">
                               {feat.description}
                             </div>
@@ -684,6 +707,44 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
                       ))}
                     </SelectContent>
                   </Select>
+                  
+                  {/* Half-feat ability score selection */}
+                  {section.selectedFeat && (() => {
+                    const selectedFeat = Object.values(feats).find((f: any) => f.id === section.selectedFeat)
+                    if (!selectedFeat?.abilityScoreIncrease) return null
+                    
+                    return (
+                      <div className="mt-3 p-3 bg-accent/5 rounded-lg border border-accent/20">
+                        <div className="text-xs font-medium text-muted mb-2">
+                          Choose +1 Ability Score Increase:
+                        </div>
+                        <div className="grid grid-cols-3 gap-2">
+                          {selectedFeat.abilityScoreIncrease.choices.map((ability: any) => (
+                            <label 
+                              key={ability}
+                              className="flex items-center gap-2 p-2 rounded hover:bg-accent/10 cursor-pointer text-sm"
+                            >
+                              <input 
+                                type="radio" 
+                                name={`half-feat-asi-${entry.level}`}
+                                checked={section.abilityIncreases?.[ability] === 1}
+                                onChange={() => {
+                                  // Set both the feat and the ability score increase
+                                  updateLevel(entry.level, {
+                                    asiOrFeat: 'feat',
+                                    featId: section.selectedFeat,
+                                    abilityIncreases: { [ability]: 1 }
+                                  })
+                                  setExpandedSection(null)
+                                }}
+                              />
+                              <span>{ability} +1</span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                    )
+                  })()}
                 </div>
               )}
             </div>

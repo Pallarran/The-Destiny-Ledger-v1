@@ -513,7 +513,16 @@ export function CharacterBuilder() {
                       features.push(`ASI: ${asiString}`)
                     } else if (entry.asiOrFeat === 'feat' && entry.featId) {
                       const featName = Object.values(feats).find((f: any) => f.id === entry.featId)?.name || entry.featId
-                      features.push(`Feat: ${featName}`)
+                      
+                      // Check if this is a half-feat with ability score increases
+                      if (entry.abilityIncreases) {
+                        const asiString = Object.entries(entry.abilityIncreases)
+                          .map(([ability, increase]) => `${ability} +${increase}`)
+                          .join(', ')
+                        features.push(`Feat: ${featName} (${asiString})`)
+                      } else {
+                        features.push(`Feat: ${featName}`)
+                      }
                     }
                     
                     // Class Features (automatic ones)
