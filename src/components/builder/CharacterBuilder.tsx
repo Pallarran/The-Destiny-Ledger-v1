@@ -85,22 +85,23 @@ export function CharacterBuilder({ buildId }: CharacterBuilderProps) {
   const [buildNotes, setBuildNotes] = useState(currentBuild?.notes || '')
   
   useEffect(() => {
-    console.log('CharacterBuilder useEffect - currentBuild:', currentBuild?.name, 'storedBuild:', storedBuild?.name)
+    console.log('CharacterBuilder useEffect - currentBuild:', currentBuild?.name, 'storedBuild:', storedBuild?.name, 'buildId:', buildId)
     
-    // If we have a stored build and no current build, load it
-    if (storedBuild && !currentBuild) {
-      console.log('Loading build from vault:', storedBuild.name)
+    // If we have a buildId from URL params, we're editing a specific build
+    if (buildId && storedBuild && storedBuild.id === buildId && !currentBuild) {
+      console.log('Loading specific build from URL:', storedBuild.name)
       loadFromBuildConfiguration(storedBuild)
-      // Clear immediately to prevent reload loops
+      // Clear the stored build to prevent reloading on next visit
       setTimeout(() => clearCurrentBuild(), 0)
-      return // Exit early to prevent creating new build
+      return
     }
     
-    // Only create new build if we have no current build and no stored build
-    if (!currentBuild && !storedBuild) {
-      console.log('Creating new build - no stored or current build')
-      if (buildId) {
-        console.warn('Loading build by ID not yet implemented')
+    // For all other cases (no buildId or buildId doesn't match), create a fresh build
+    if (!currentBuild) {
+      console.log('Creating fresh new build')
+      // Clear any stored build first to prevent conflicts
+      if (storedBuild) {
+        clearCurrentBuild()
       }
       createNewBuild()
     }
