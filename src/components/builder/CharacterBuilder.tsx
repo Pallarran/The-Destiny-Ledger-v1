@@ -495,7 +495,7 @@ export function CharacterBuilder() {
                     const classLevel = (currentBuild.enhancedLevelTimeline || [])
                       .filter(e => e.classId === entry.classId && e.level <= entry.level)
                       .length
-                    const classFeatures = classData?.features[classLevel] || []
+                    const classFeatures = classData?.features?.[classLevel] || []
                     
                     // Get all features for this level
                     const features = []

@@ -124,7 +124,7 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
   const Icon = classData ? CLASS_ICONS[classData.id as keyof typeof CLASS_ICONS] || Sword : Clock
 
   // Get class features for this level
-  const classFeatures = classData?.features[classLevel] || []
+  const classFeatures = classData?.features?.[classLevel] || []
   
   // Calculate level benefits
   const isFirstClassLevel = classLevel === 1
