@@ -102,8 +102,12 @@ export function LevelTimeline() {
                       </div>
                       <Icon className={`w-5 h-5 ${classData?.color || 'text-accent'}`} />
                       <div className="flex-1">
-                        <div className="font-medium">{classData?.name || entry.classId}</div>
-                        <div className="text-sm text-muted">Level {entry.level}</div>
+                        <div className="font-medium">
+                          {classData?.name || entry.classId} {
+                            levels.filter(l => l.classId === entry.classId && l.level <= entry.level).length
+                          }
+                        </div>
+                        <div className="text-sm text-muted">Character Level {entry.level}</div>
                       </div>
                       {entry.features.length > 0 && (
                         <Badge variant="outline">{entry.features.length} features</Badge>
