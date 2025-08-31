@@ -101,15 +101,25 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
   const archetypeFeatures = classFeatures.filter((f: any) => f.rulesKey === 'archetype_feature')
   if (archetypeFeatures.length > 0) {
     // Get the specific archetype features from the selected subclass
-    const selectedArchetype = entry.archetype
+    // Look for archetype in this level first, or find it from earlier levels of the same class
+    let selectedArchetype = entry.archetype
+    if (!selectedArchetype && currentBuild?.enhancedLevelTimeline) {
+      const earlierArchetypeEntry = currentBuild.enhancedLevelTimeline
+        .filter((e: any) => e.classId === entry.classId && e.level < entry.level && e.archetype)
+        .sort((a: any, b: any) => b.level - a.level)[0]
+      selectedArchetype = earlierArchetypeEntry?.archetype
+    }
+    
     const specificArchetypeFeatures = []
     
     if (selectedArchetype) {
       // Find the subclass data
       const subclass = Object.values(subclasses).find((sub: any) => sub.id === selectedArchetype)
+      console.log('Archetype lookup:', { selectedArchetype, subclass: subclass?.name, classLevel })
       if (subclass && subclass.features) {
         // Get features for this class level from the subclass (features is an array, not keyed by level)
         const subclassFeatures = subclass.features.filter((f: any) => f.level === classLevel)
+        console.log('Subclass features for level', classLevel, ':', subclassFeatures)
         if (subclassFeatures && subclassFeatures.length > 0) {
           specificArchetypeFeatures.push(...subclassFeatures.map((f: any) => ({ 
             name: f.name, 
@@ -117,6 +127,8 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
           })))
         }
       }
+    } else {
+      console.log('No archetype selected for entry:', entry)
     }
     
     sections.push({

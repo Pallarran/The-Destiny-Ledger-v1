@@ -378,10 +378,6 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
           }
           state.currentBuild.finalAbilityScores[ability] = value
           
-          // Recalculate final scores including any ASI increases
-          const { recalculateAllAbilityScores } = get()
-          recalculateAllAbilityScores()
-          
           state.isDirty = true
           validateStep(state, 'ability-scores')
         }
@@ -443,10 +439,30 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
     updateAbilityScores: (scores: AbilityScoreArray) => {
       set((state) => {
         if (state.currentBuild) {
+          // Calculate and store the racial bonuses for future ASI calculations
+          if (state.currentBuild.baseAbilityScores) {
+            const racialBonuses: Partial<AbilityScoreArray> = {}
+            Object.keys(scores).forEach(key => {
+              const ability = key as keyof AbilityScoreArray
+              const bonus = scores[ability] - (state.currentBuild!.baseAbilityScores![ability] || 8)
+              if (bonus > 0) {
+                racialBonuses[ability] = bonus
+              }
+            })
+            state.currentBuild.racialBonuses = racialBonuses
+          }
+          
           // This is called by racial bonus application, so these are final scores
           state.currentBuild.finalAbilityScores = scores
           // Keep abilityScores synced for compatibility
           state.currentBuild.abilityScores = scores
+          
+          // After applying racial bonuses, recalculate to include any ASI increases
+          setTimeout(() => {
+            const { recalculateAllAbilityScores } = get()
+            recalculateAllAbilityScores()
+          }, 0)
+          
           state.isDirty = true
           validateStep(state, 'ability-scores')
         }
