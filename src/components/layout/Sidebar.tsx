@@ -10,7 +10,7 @@ import {
 
 const navigation = [
   { name: 'Build Vault', href: '/vault', icon: Archive },
-  { name: 'Character Builder', href: '/builder', icon: User },
+  { name: 'Character Builder', href: '/builder?new=true', icon: User },
   { name: 'DPR Lab', href: '/dpr', icon: BarChart3 },
   { name: 'Compare Builds', href: '/compare', icon: GitCompare },
   { name: 'Level Path Explorer', href: '/explorer', icon: TrendingUp },

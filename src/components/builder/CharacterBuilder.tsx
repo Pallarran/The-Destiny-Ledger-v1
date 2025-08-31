@@ -91,18 +91,32 @@ export function CharacterBuilder({ buildId }: CharacterBuilderProps) {
     const isNew = searchParams.get('new') === 'true'
     console.log('CharacterBuilder useEffect - currentBuild:', currentBuild?.name, 'storedBuild:', storedBuild?.name, 'buildId:', buildId, 'fromVault:', fromVault, 'isNew:', isNew)
     
-    // If explicitly creating new build (from vault "New Build" button or direct navigation)
-    if (isNew || (!storedBuild && !buildId && !currentBuild)) {
-      console.log('Creating fresh new build')
+    // If explicitly creating new build or direct navigation without context
+    if (isNew || (!fromVault && !buildId)) {
+      console.log('Creating fresh new build - explicit new or direct navigation')
+      // Clear any stored build first for direct navigation
+      if (storedBuild && !fromVault) {
+        console.log('Clearing stored build for direct navigation')
+        clearCurrentBuild()
+      }
+      // Always create new build for these scenarios
       createNewBuild()
       return
     }
     
-    // If we have a storedBuild and came from vault, load it
-    if (storedBuild && !currentBuild && (fromVault || buildId)) {
-      console.log('Loading build from vault/store:', storedBuild.name)
+    // If we have a storedBuild and came from vault with proper context, load it
+    if (storedBuild && !currentBuild && fromVault) {
+      console.log('Loading build from vault:', storedBuild.name)
       loadFromBuildConfiguration(storedBuild)
       // Clear the stored build to prevent reloading on next visit
+      setTimeout(() => clearCurrentBuild(), 0)
+      return
+    }
+    
+    // If we have a buildId (URL parameter for specific build)
+    if (buildId && storedBuild && !currentBuild) {
+      console.log('Loading build from buildId:', buildId)
+      loadFromBuildConfiguration(storedBuild)
       setTimeout(() => clearCurrentBuild(), 0)
       return
     }
