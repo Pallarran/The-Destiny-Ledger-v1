@@ -3,6 +3,8 @@ import { Panel, PanelHeader } from '../components/ui/panel'
 import { ChartFrame } from '../components/ui/chart-frame'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs'
 import CombatRoundOptimizer from '../components/optimizer/CombatRoundOptimizer'
+import { WeaponInfoPanel } from '../components/dpr/WeaponInfoPanel'
+import { AttackBreakdownDisplay } from '../components/dpr/AttackBreakdownDisplay'
 import { 
   PlayIcon,
   Loader2
@@ -301,8 +303,13 @@ export function DprLab() {
             
             <TabsContent value="dpr-analysis" className="mt-6">
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            {/* Configuration Panel */}
-            <div className="lg:col-span-5">
+            {/* Left Column: Build Information */}
+            <div className="lg:col-span-5 space-y-6">
+              {/* Weapon Information Panels */}
+              <WeaponInfoPanel build={selectedBuild} />
+              <AttackBreakdownDisplay build={selectedBuild} />
+              
+              {/* Configuration Panel */}
               <Panel className="bg-ink text-panel">
                 <PanelHeader title="Simulation Config" className="text-panel bg-ink border-b border-border/20" />
                 
