@@ -71,7 +71,8 @@ const fighterFeatures: Record<number, Feature[]> = {
       id: 'martial_archetype',
       name: 'Martial Archetype',
       description: 'You choose an archetype that you strive to emulate in your combat styles and techniques.',
-      source: 'Fighter 3'
+      source: 'Fighter 3',
+      rulesKey: 'archetype'
     }
   ],
   4: [
@@ -101,6 +102,15 @@ const fighterFeatures: Record<number, Feature[]> = {
       rulesKey: 'asi'
     }
   ],
+  7: [
+    {
+      id: 'archetype_feature_fighter_7',
+      name: 'Martial Archetype Feature',
+      description: 'You gain a feature granted by your Martial Archetype.',
+      source: 'Fighter 7',
+      rulesKey: 'archetype_feature'
+    }
+  ],
   8: [
     {
       id: 'asi_fighter_8',
@@ -116,6 +126,21 @@ const fighterFeatures: Record<number, Feature[]> = {
       name: 'Indomitable',
       description: 'You can reroll a saving throw that you fail.',
       source: 'Fighter 9'
+    }
+  ],
+  10: [
+    {
+      id: 'archetype_feature_fighter_10',
+      name: 'Martial Archetype Feature',
+      description: 'You gain a feature granted by your Martial Archetype.',
+      source: 'Fighter 10',
+      rulesKey: 'archetype_feature'
+    },
+    {
+      id: 'indomitable_improvement_10',
+      name: 'Indomitable',
+      description: 'You can use Indomitable twice between long rests.',
+      source: 'Fighter 10'
     }
   ],
   11: [
@@ -136,6 +161,14 @@ const fighterFeatures: Record<number, Feature[]> = {
       rulesKey: 'asi'
     }
   ],
+  13: [
+    {
+      id: 'indomitable_improvement_13',
+      name: 'Indomitable',
+      description: 'You can use Indomitable three times between long rests.',
+      source: 'Fighter 13'
+    }
+  ],
   14: [
     {
       id: 'asi_fighter_14', 
@@ -145,6 +178,15 @@ const fighterFeatures: Record<number, Feature[]> = {
       rulesKey: 'asi'
     }
   ],
+  15: [
+    {
+      id: 'archetype_feature_fighter_15',
+      name: 'Martial Archetype Feature',
+      description: 'You gain a feature granted by your Martial Archetype.',
+      source: 'Fighter 15',
+      rulesKey: 'archetype_feature'
+    }
+  ],
   16: [
     {
       id: 'asi_fighter_16',
@@ -152,6 +194,29 @@ const fighterFeatures: Record<number, Feature[]> = {
       description: 'You can increase one ability score by 2, or two ability scores by 1 each, or take a feat.',
       source: 'Fighter 16',
       rulesKey: 'asi'
+    }
+  ],
+  17: [
+    {
+      id: 'action_surge_improvement_17',
+      name: 'Action Surge',
+      description: 'You can use Action Surge twice between short or long rests.',
+      source: 'Fighter 17'
+    },
+    {
+      id: 'indomitable_mastery_17',
+      name: 'Indomitable',
+      description: 'You can use Indomitable four times between long rests.',
+      source: 'Fighter 17'
+    }
+  ],
+  18: [
+    {
+      id: 'archetype_feature_fighter_18',
+      name: 'Martial Archetype Feature',
+      description: 'You gain a feature granted by your Martial Archetype.',
+      source: 'Fighter 18',
+      rulesKey: 'archetype_feature'
     }
   ],
   19: [
@@ -217,7 +282,8 @@ const rogueFeatures: Record<number, Feature[]> = {
       id: 'roguish_archetype',
       name: 'Roguish Archetype',
       description: 'You choose an archetype that you emulate in the exercise of your rogue abilities.',
-      source: 'Rogue 3'
+      source: 'Rogue 3',
+      rulesKey: 'archetype'
     }
   ],
   4: [
