@@ -8,7 +8,8 @@ import { classes } from '../../rules/srd/classes'
 import { feats } from '../../rules/srd/feats'
 import { subclasses } from '../../rules/srd/subclasses'
 import { getClass } from '../../rules/loaders'
-import { Plus, Sword, BookOpen, Shield, Star, ChevronRight, AlertTriangle, CheckCircle, Clock } from 'lucide-react'
+import { getProficiencyBonus } from '../../rules/srd/skills'
+import { Plus, Sword, BookOpen, Shield, Star, ChevronRight, AlertTriangle, CheckCircle, Clock, Heart, TrendingUp, Sparkles } from 'lucide-react'
 import type { BuilderLevelEntry } from '../../types/character'
 
 const CLASS_ICONS = {
@@ -17,6 +18,93 @@ const CLASS_ICONS = {
   rogue: Shield,
   cleric: Star,
 } as const
+
+// Helper function to calculate hit points gained at level
+function calculateHitPointsGained(classData: any, isFirstLevel: boolean): number {
+  if (!classData?.hitDie) return 0
+  
+  if (isFirstLevel) {
+    // First level gets max hit die + CON modifier (handled elsewhere)
+    return classData.hitDie
+  } else {
+    // Subsequent levels get average of hit die + CON modifier (handled elsewhere)
+    return Math.floor(classData.hitDie / 2) + 1
+  }
+}
+
+// Spell slot progression for full casters (Wizard, Cleric, Bard, Sorcerer)
+const FULL_CASTER_SLOTS = {
+  1: [2, 0, 0, 0, 0, 0, 0, 0, 0],
+  2: [3, 0, 0, 0, 0, 0, 0, 0, 0],
+  3: [4, 2, 0, 0, 0, 0, 0, 0, 0],
+  4: [4, 3, 0, 0, 0, 0, 0, 0, 0],
+  5: [4, 3, 2, 0, 0, 0, 0, 0, 0],
+  6: [4, 3, 3, 0, 0, 0, 0, 0, 0],
+  7: [4, 3, 3, 1, 0, 0, 0, 0, 0],
+  8: [4, 3, 3, 2, 0, 0, 0, 0, 0],
+  9: [4, 3, 3, 3, 1, 0, 0, 0, 0],
+  10: [4, 3, 3, 3, 2, 0, 0, 0, 0],
+  11: [4, 3, 3, 3, 2, 1, 0, 0, 0],
+  12: [4, 3, 3, 3, 2, 1, 0, 0, 0],
+  13: [4, 3, 3, 3, 2, 1, 1, 0, 0],
+  14: [4, 3, 3, 3, 2, 1, 1, 0, 0],
+  15: [4, 3, 3, 3, 2, 1, 1, 1, 0],
+  16: [4, 3, 3, 3, 2, 1, 1, 1, 0],
+  17: [4, 3, 3, 3, 2, 1, 1, 1, 1],
+  18: [4, 3, 3, 3, 3, 1, 1, 1, 1],
+  19: [4, 3, 3, 3, 3, 2, 1, 1, 1],
+  20: [4, 3, 3, 3, 3, 2, 2, 1, 1]
+} as const
+
+// Half caster progression (Paladin, Ranger)
+const HALF_CASTER_SLOTS = {
+  1: [0, 0, 0, 0, 0],
+  2: [2, 0, 0, 0, 0],
+  3: [3, 0, 0, 0, 0],
+  4: [3, 0, 0, 0, 0],
+  5: [4, 2, 0, 0, 0],
+  6: [4, 2, 0, 0, 0],
+  7: [4, 3, 0, 0, 0],
+  8: [4, 3, 0, 0, 0],
+  9: [4, 3, 2, 0, 0],
+  10: [4, 3, 2, 0, 0],
+  11: [4, 3, 3, 0, 0],
+  12: [4, 3, 3, 0, 0],
+  13: [4, 3, 3, 1, 0],
+  14: [4, 3, 3, 1, 0],
+  15: [4, 3, 3, 2, 0],
+  16: [4, 3, 3, 2, 0],
+  17: [4, 3, 3, 3, 1],
+  18: [4, 3, 3, 3, 1],
+  19: [4, 3, 3, 3, 2],
+  20: [4, 3, 3, 3, 2]
+} as const
+
+// Helper function to get spell progression for a class
+function getSpellProgression(classId: string, classLevel: number) {
+  const fullCasters = ['wizard', 'cleric', 'bard', 'sorcerer']
+  const halfCasters = ['paladin', 'ranger']
+  
+  if (fullCasters.includes(classId)) {
+    return FULL_CASTER_SLOTS[classLevel as keyof typeof FULL_CASTER_SLOTS] || null
+  } else if (halfCasters.includes(classId)) {
+    return HALF_CASTER_SLOTS[classLevel as keyof typeof HALF_CASTER_SLOTS] || null
+  }
+  
+  return null
+}
+
+// Helper function to get level progression benefits
+function getLevelBenefits(level: number, classData: any, isFirstClassLevel: boolean) {
+  const proficiencyBonus = getProficiencyBonus(level)
+  const hitPointsGained = calculateHitPointsGained(classData, isFirstClassLevel)
+  
+  return {
+    proficiencyBonus,
+    hitPointsGained,
+    isProficiencyBonusIncrease: level === 1 || (level - 1) % 4 === 0
+  }
+}
 
 
 
@@ -36,8 +124,91 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
   // Get class features for this level
   const classFeatures = classData?.features[classLevel] || []
   
+  // Calculate level benefits
+  const isFirstClassLevel = classLevel === 1
+  const levelBenefits = getLevelBenefits(entry.level, classData, isFirstClassLevel)
+  
+  // Check for spell progression
+  const spellSlots = getSpellProgression(entry.classId, classLevel)
+  const prevSpellSlots = classLevel > 1 ? getSpellProgression(entry.classId, classLevel - 1) : null
+  
   // Create comprehensive feature/choice list
   const sections = []
+  
+  // 0. Level Benefits (automatic progression)
+  const benefits = []
+  
+  // Hit Points
+  benefits.push({
+    name: `Hit Points`,
+    description: `Gain ${levelBenefits.hitPointsGained} HP (${isFirstClassLevel ? 'max' : 'avg'} of d${classData?.hitDie || '?'} + CON modifier)`,
+    icon: Heart,
+    isBonus: false
+  })
+  
+  // Proficiency Bonus  
+  if (levelBenefits.isProficiencyBonusIncrease) {
+    benefits.push({
+      name: 'Proficiency Bonus',
+      description: `Proficiency bonus increases to +${levelBenefits.proficiencyBonus}`,
+      icon: TrendingUp,
+      isBonus: true
+    })
+  }
+  
+  // Spell Progression
+  if (spellSlots) {
+    const newSlots: string[] = []
+    const improvedSlots: string[] = []
+    
+    spellSlots.forEach((slots, level) => {
+      const prevSlots = prevSpellSlots?.[level] || 0
+      if (slots > 0 && prevSlots === 0) {
+        newSlots.push(`${slots} level ${level + 1}`)
+      } else if (slots > prevSlots) {
+        improvedSlots.push(`${slots} level ${level + 1} (+${slots - prevSlots})`)
+      }
+    })
+    
+    if (newSlots.length > 0) {
+      benefits.push({
+        name: 'New Spell Slots',
+        description: `Gain ${newSlots.join(', ')} spell slots`,
+        icon: Sparkles,
+        isBonus: true
+      })
+    }
+    
+    if (improvedSlots.length > 0) {
+      benefits.push({
+        name: 'Improved Spell Slots', 
+        description: `Increase to ${improvedSlots.join(', ')} spell slots`,
+        icon: Sparkles,
+        isBonus: true
+      })
+    }
+  }
+  
+  if (benefits.length > 0) {
+    sections.push({
+      id: 'level_benefits',
+      title: 'Level Benefits',
+      type: 'benefits',
+      isComplete: true,
+      benefits: benefits
+    })
+  }
+  
+  // 0.5. Spell Slots Summary (for spellcasters)
+  if (spellSlots && spellSlots.some(slots => slots > 0)) {
+    sections.push({
+      id: 'spell_slots',
+      title: 'Spell Slots',
+      type: 'spell_slots',
+      isComplete: true,
+      spellSlots: spellSlots
+    })
+  }
   
   // 1. Class Features (automatic)
   const autoFeatures = classFeatures.filter((f: any) => 
@@ -49,7 +220,11 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
       title: 'Class Features',
       type: 'auto',
       isComplete: true,
-      features: autoFeatures.map((f: any) => ({ name: f.name, description: f.description }))
+      features: autoFeatures.map((f: any) => ({ 
+        name: f.name, 
+        description: f.description,
+        source: f.source 
+      }))
     })
   }
 
@@ -138,7 +313,11 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
       isComplete: true,
       features: specificArchetypeFeatures.length > 0 
         ? specificArchetypeFeatures 
-        : archetypeFeatures.map((f: any) => ({ name: f.name, description: f.description }))
+        : archetypeFeatures.map((f: any) => ({ 
+            name: f.name, 
+            description: f.description,
+            source: f.source
+          }))
     })
   }
 
@@ -268,11 +447,56 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
                   {/* Auto features display */}
                   {section.type === 'auto' && section.features && (
                     <div className="mt-2 pt-2 border-t border-current/20">
-                      <div className="flex flex-wrap gap-1">
+                      <div className="space-y-1">
                         {section.features.map((feature: any, idx: number) => (
-                          <Badge key={idx} variant="outline" className="text-xs">
-                            {feature.name}
-                          </Badge>
+                          <div key={idx} className="text-xs">
+                            <div className="flex items-center gap-2">
+                              <Badge variant="outline" className="text-xs">
+                                {feature.name}
+                              </Badge>
+                            </div>
+                            {feature.description && (
+                              <div className="mt-1 text-muted pl-1">
+                                {feature.description}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Benefits display */}
+                  {section.type === 'benefits' && section.benefits && (
+                    <div className="mt-2 pt-2 border-t border-current/20">
+                      <div className="space-y-1">
+                        {section.benefits.map((benefit: any, idx: number) => {
+                          const IconComponent = benefit.icon
+                          return (
+                            <div key={idx} className="flex items-center gap-2 text-xs">
+                              <IconComponent className={`w-3 h-3 ${benefit.isBonus ? 'text-gold' : 'text-red-500'}`} />
+                              <span className="font-medium">{benefit.name}:</span>
+                              <span className="text-muted">{benefit.description}</span>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Spell Slots display */}
+                  {section.type === 'spell_slots' && section.spellSlots && (
+                    <div className="mt-2 pt-2 border-t border-current/20">
+                      <div className="grid grid-cols-9 gap-1 text-xs">
+                        <div className="font-medium">Level:</div>
+                        {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(level => (
+                          <div key={level} className="font-medium text-center">{level}</div>
+                        ))}
+                        <div className="font-medium">Slots:</div>
+                        {section.spellSlots.map((slots: number, idx: number) => (
+                          <div key={idx} className={`text-center ${slots > 0 ? 'text-accent font-medium' : 'text-muted'}`}>
+                            {slots || '-'}
+                          </div>
                         ))}
                       </div>
                     </div>

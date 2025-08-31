@@ -617,45 +617,6 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
               console.log('No legacy entry found for level:', level)
             }
             
-            // Recalculate final ability scores if ASI changes were made
-            if (updates.abilityIncreases || updates.asiOrFeat) {
-              // Start with base ability scores  
-              const finalScores: AbilityScoreArray = { 
-                STR: state.currentBuild.baseAbilityScores?.STR || 8,
-                DEX: state.currentBuild.baseAbilityScores?.DEX || 8,
-                CON: state.currentBuild.baseAbilityScores?.CON || 8,
-                INT: state.currentBuild.baseAbilityScores?.INT || 8,
-                WIS: state.currentBuild.baseAbilityScores?.WIS || 8,
-                CHA: state.currentBuild.baseAbilityScores?.CHA || 8
-              }
-              
-              // Add racial bonuses (if any)
-              if (state.currentBuild.racialBonuses) {
-                Object.entries(state.currentBuild.racialBonuses).forEach(([ability, bonus]) => {
-                  if (bonus && typeof bonus === 'number') {
-                    finalScores[ability as keyof AbilityScoreArray] += bonus
-                  }
-                })
-              }
-              
-              // Add ASI increases from all level progression
-              state.currentBuild.enhancedLevelTimeline.forEach(entry => {
-                if (entry.asiOrFeat === 'asi' && entry.abilityIncreases) {
-                  Object.entries(entry.abilityIncreases).forEach(([ability, increase]) => {
-                    if (increase && typeof increase === 'number') {
-                      finalScores[ability as keyof AbilityScoreArray] += increase
-                    }
-                  })
-                }
-              })
-              
-              // Update final ability scores
-              state.currentBuild.finalAbilityScores = finalScores
-              state.currentBuild.abilityScores = finalScores // Keep legacy sync
-              
-              console.log('Recalculated ability scores after ASI change:', finalScores)
-            }
-            
             state.isDirty = true
             validateStep(state, 'class-progression')
           } else {
@@ -665,6 +626,12 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
           console.log('No current build found')
         }
       })
+      
+      // Recalculate all ability scores if ASI changes were made
+      if (updates.abilityIncreases || updates.asiOrFeat) {
+        const { recalculateAllAbilityScores } = get()
+        recalculateAllAbilityScores()
+      }
     },
     
     removeLevel: (level: number) => {
