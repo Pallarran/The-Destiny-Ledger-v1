@@ -636,16 +636,38 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
     
     removeLevel: (level: number) => {
       set((state) => {
-        if (state.currentBuild) {
-          state.currentBuild.enhancedLevelTimeline = state.currentBuild.enhancedLevelTimeline.filter(
-            e => e.level !== level
-          )
-          state.currentBuild.levelTimeline = state.currentBuild.levelTimeline.filter(
-            e => e.level !== level
-          )
-          state.isDirty = true
-          validateStep(state, 'class-progression')
+        if (!state.currentBuild) return
+        
+        const currentLevels = state.currentBuild.enhancedLevelTimeline || []
+        
+        // Safety check: Only allow removing the highest level to prevent gaps
+        const maxLevel = Math.max(...currentLevels.map(e => e.level), 0)
+        if (level !== maxLevel) {
+          console.warn(`Cannot remove level ${level}. Can only remove highest level (${maxLevel}) to prevent gaps.`)
+          return
         }
+        
+        // Safety check: Don't allow removing level 1 if it's the only level
+        if (level === 1 && currentLevels.length === 1) {
+          console.warn('Cannot remove the only remaining level.')
+          return
+        }
+        
+        console.log(`Removing level ${level}`)
+        
+        // Remove from both timelines
+        state.currentBuild.enhancedLevelTimeline = currentLevels.filter(e => e.level !== level)
+        state.currentBuild.levelTimeline = (state.currentBuild.levelTimeline || []).filter(e => e.level !== level)
+        
+        // Clean up any dependent choices that might reference the removed level
+        // Note: We don't need to clean up archetype choices from earlier levels
+        // since those are still valid for the class levels that remain
+        
+        state.isDirty = true
+        validateStep(state, 'class-progression')
+        
+        console.log(`Level ${level} removed successfully. Remaining levels:`, 
+          state.currentBuild.enhancedLevelTimeline.map(e => `L${e.level} ${e.classId}`))
       })
     },
     

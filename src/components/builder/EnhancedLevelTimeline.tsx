@@ -9,7 +9,7 @@ import { feats } from '../../rules/srd/feats'
 import { subclasses } from '../../rules/srd/subclasses'
 import { getClass } from '../../rules/loaders'
 import { getProficiencyBonus } from '../../rules/srd/skills'
-import { Plus, Sword, BookOpen, Shield, Star, ChevronRight, AlertTriangle, CheckCircle, Clock, Heart, TrendingUp, Sparkles } from 'lucide-react'
+import { Plus, Sword, BookOpen, Shield, Star, ChevronRight, AlertTriangle, CheckCircle, Clock, Heart, TrendingUp, Sparkles, Trash2 } from 'lucide-react'
 import type { BuilderLevelEntry } from '../../types/character'
 
 const CLASS_ICONS = {
@@ -108,7 +108,7 @@ function getLevelBenefits(level: number, classData: any, isFirstClassLevel: bool
 
 
 
-function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, updateLevel, selectFeat, selectASI, setSkillProficiencies }: {
+function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, updateLevel, selectFeat, selectASI, setSkillProficiencies, removeLevel, canRemove }: {
   entry: BuilderLevelEntry
   classData?: any
   classLevel: number
@@ -117,6 +117,8 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
   selectFeat: (level: number, featId: string) => void
   selectASI: (level: number, abilityIncreases: any) => void
   setSkillProficiencies: (skills: string[]) => void
+  removeLevel?: (level: number) => void
+  canRemove?: boolean
 }) {
   const [expandedSection, setExpandedSection] = useState<string | null>(null)
   const Icon = classData ? CLASS_ICONS[classData.id as keyof typeof CLASS_ICONS] || Sword : Clock
@@ -392,7 +394,24 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
                 </Badge>
               )}
             </div>
-            <div className="ml-auto">
+            <div className="ml-auto flex items-center gap-2">
+              {canRemove && removeLevel && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    if (confirm(`Remove level ${entry.level}? This action cannot be undone.`)) {
+                      removeLevel(entry.level)
+                    }
+                  }}
+                  className="h-6 w-6 p-0 text-red-500 hover:text-red-700 hover:bg-red-50"
+                  title={`Remove level ${entry.level}`}
+                >
+                  <Trash2 className="w-3 h-3" />
+                </Button>
+              )}
+              
               {allComplete ? (
                 <CheckCircle className="w-5 h-5 text-emerald" />
               ) : (
@@ -706,7 +725,7 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
 }
 
 export function EnhancedLevelTimeline() {
-  const { currentBuild, addLevel, selectFeat, selectASI, updateLevel, setSkillProficiencies } = useCharacterBuilderStore()
+  const { currentBuild, addLevel, removeLevel, selectFeat, selectASI, updateLevel, setSkillProficiencies } = useCharacterBuilderStore()
   const [selectedClass, setSelectedClass] = useState('')
   
   if (!currentBuild) {
@@ -798,6 +817,9 @@ export function EnhancedLevelTimeline() {
             {levels.map((entry) => {
               const classData = getClass(entry.classId)
               const classLevel = levels.filter(l => l.classId === entry.classId && l.level <= entry.level).length
+              const maxLevel = Math.max(...levels.map(l => l.level))
+              const isHighestLevel = entry.level === maxLevel
+              const canRemove = isHighestLevel && levels.length > 1 // Can't remove if it's the only level
               
               return (
                 <LevelMilestoneCard 
@@ -810,6 +832,8 @@ export function EnhancedLevelTimeline() {
                   selectFeat={selectFeat}
                   selectASI={selectASI}
                   setSkillProficiencies={setSkillProficiencies}
+                  removeLevel={removeLevel}
+                  canRemove={canRemove}
                 />
               )
             })}

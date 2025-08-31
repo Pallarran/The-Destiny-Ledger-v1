@@ -3,7 +3,7 @@ import { Button } from '../ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card'
 import { Badge } from '../ui/badge'
 import { useCharacterBuilderStore } from '../../stores/characterBuilderStore'
-import { Plus, Sword, BookOpen, Shield, Star } from 'lucide-react'
+import { Plus, Sword, BookOpen, Shield, Star, Trash2 } from 'lucide-react'
 
 const MOCK_CLASSES = [
   { id: 'fighter', name: 'Fighter', icon: Sword, color: 'text-red-500' },
@@ -13,7 +13,7 @@ const MOCK_CLASSES = [
 ]
 
 export function LevelTimeline() {
-  const { currentBuild, addLevel } = useCharacterBuilderStore()
+  const { currentBuild, addLevel, removeLevel } = useCharacterBuilderStore()
   const [selectedClass, setSelectedClass] = useState('')
   
   if (!currentBuild) {
@@ -92,6 +92,9 @@ export function LevelTimeline() {
             {levels.map((entry) => {
               const classData = MOCK_CLASSES.find(c => c.id === entry.classId)
               const Icon = classData?.icon || Sword
+              const maxLevel = Math.max(...levels.map(l => l.level))
+              const isHighestLevel = entry.level === maxLevel
+              const canRemove = isHighestLevel && levels.length > 1
               
               return (
                 <Card key={entry.level}>
@@ -111,6 +114,22 @@ export function LevelTimeline() {
                       </div>
                       {entry.features.length > 0 && (
                         <Badge variant="outline">{entry.features.length} features</Badge>
+                      )}
+                      
+                      {canRemove && (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => {
+                            if (confirm(`Remove level ${entry.level}? This action cannot be undone.`)) {
+                              removeLevel(entry.level)
+                            }
+                          }}
+                          className="h-6 w-6 p-0 text-red-500 hover:text-red-700 hover:bg-red-50"
+                          title={`Remove level ${entry.level}`}
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </Button>
                       )}
                     </div>
                   </CardContent>
