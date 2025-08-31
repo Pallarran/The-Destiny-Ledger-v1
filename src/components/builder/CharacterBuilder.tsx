@@ -538,11 +538,11 @@ export function CharacterBuilder() {
                     return (
                       <div key={entry.level} className="flex flex-col gap-1 p-3 bg-accent/5 rounded-lg">
                         <div className="flex items-center gap-2">
-                          <div className="w-6 h-6 bg-accent text-accent-foreground rounded-full flex items-center justify-center text-xs font-bold">
+                          <div className="text-blue-500 text-lg font-bold">
                             {entry.level}
                           </div>
                           <div className="text-sm text-foreground font-medium">
-                            Level {entry.level}
+                            {classData?.name || entry.classId} {classLevel}
                           </div>
                         </div>
                         <div className="ml-8 flex flex-wrap gap-1">
