@@ -306,55 +306,12 @@ export function CharacterBuilder() {
                 <span>{Math.round(getStepProgress())}% Complete</span>
               </div>
               <Progress value={getStepProgress()} className="h-1 w-48" />
-              
-              {/* Build Status */}
-              {(issues.length > 0 || isValid || globalErrors.length > 0) && (
-                <div className="mt-2">
-                  {issues.length > 0 && (
-                    <div className="bg-destructive/5 border border-destructive/20 rounded-lg p-2">
-                      <div className="flex items-center gap-2 text-destructive text-xs font-medium mb-1">
-                        <AlertTriangle className="w-3 h-3" />
-                        Issues to Address
-                      </div>
-                      <ul className="text-xs text-destructive space-y-1">
-                        {issues.map((issue, index) => (
-                          <li key={index} className="ml-3">• {issue}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-
-                  {isValid && issues.length === 0 && globalErrors.length === 0 && (
-                    <div className="bg-emerald/5 border border-emerald/20 rounded-lg p-2">
-                      <div className="flex items-center gap-2 text-emerald text-xs font-medium">
-                        <CheckCircle className="w-3 h-3" />
-                        Build is valid and ready to save!
-                      </div>
-                    </div>
-                  )}
-
-                  {globalErrors.length > 0 && (
-                    <div className="bg-destructive/5 border border-destructive/20 rounded-lg p-2">
-                      <div className="flex items-center gap-2 text-destructive text-xs font-medium mb-1">
-                        <AlertTriangle className="w-3 h-3" />
-                        Build Validation Errors
-                      </div>
-                      <ul className="text-xs text-destructive space-y-1">
-                        {globalErrors.map((error, index) => (
-                          <li key={index} className="ml-3">• {error}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                </div>
-              )}
             </div>
           </div>
         </div>
 
-        
         {/* Horizontal Steps Navigation */}
-        <div className="border-t border-border/20 pt-6">
+        <div className="border-t border-border/20 pt-4 pb-4">
           <div className="flex flex-wrap gap-2 justify-center">
             {BUILDER_STEPS.map((step, index) => {
               const Icon = STEP_ICONS[step]
@@ -391,6 +348,50 @@ export function CharacterBuilder() {
               )
             })}
           </div>
+        </div>
+
+        {/* Build Status */}
+        <div className="border-t border-border/20 pt-4">
+          {(issues.length > 0 || isValid || globalErrors.length > 0) && (
+            <div className="mt-2">
+              {issues.length > 0 && (
+                <div className="bg-destructive/5 border border-destructive/20 rounded-lg p-2">
+                  <div className="flex items-center gap-2 text-destructive text-xs font-medium mb-1">
+                    <AlertTriangle className="w-3 h-3" />
+                    Issues to Address
+                  </div>
+                  <ul className="text-xs text-destructive space-y-1">
+                    {issues.map((issue, index) => (
+                      <li key={index} className="ml-3">• {issue}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {isValid && issues.length === 0 && globalErrors.length === 0 && (
+                <div className="bg-emerald/5 border border-emerald/20 rounded-lg p-2">
+                  <div className="flex items-center gap-2 text-emerald text-xs font-medium">
+                    <CheckCircle className="w-3 h-3" />
+                    Build is valid and ready to save!
+                  </div>
+                </div>
+              )}
+
+              {globalErrors.length > 0 && (
+                <div className="bg-destructive/5 border border-destructive/20 rounded-lg p-2">
+                  <div className="flex items-center gap-2 text-destructive text-xs font-medium mb-1">
+                    <AlertTriangle className="w-3 h-3" />
+                    Build Validation Errors
+                  </div>
+                  <ul className="text-xs text-destructive space-y-1">
+                    {globalErrors.map((error, index) => (
+                      <li key={index} className="ml-3">• {error}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </Panel>
       
