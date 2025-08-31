@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Panel, PanelHeader } from '../components/ui/panel'
 import { ChartFrame } from '../components/ui/chart-frame'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs'
@@ -76,7 +76,7 @@ export function DprLab() {
     }
   }, [builderCurrentBuild, exportToBuildConfiguration, selectedBuild?.id, manualBuildSelection, hasSelectedVaultBuild])
   
-  const handleCalculate = async () => {
+  const handleCalculate = useCallback(async () => {
     if (!selectedBuild || !isInitialized) return
     
     const config = {
@@ -108,7 +108,29 @@ export function DprLab() {
     } catch (error) {
       console.error('DPR calculation failed:', error)
     }
-  }
+  }, [selectedBuild, isInitialized, fixedConfig, localConfig, calculateDPRCurves, calculatePowerAttackBreakpoints, setResult, setCalculating, setBreakpoints])
+  
+  // Auto-calculate DPR when build changes or when conditions are met
+  useEffect(() => {
+    const autoCalculate = async () => {
+      if (selectedBuild && isInitialized && !isCalculating) {
+        await handleCalculate()
+      }
+    }
+    
+    autoCalculate()
+  }, [selectedBuild?.id, isInitialized, handleCalculate, isCalculating]) // Trigger when build changes or worker is ready
+  
+  // Auto-calculate when local config changes (but only if we have a selected build)
+  useEffect(() => {
+    const autoCalculate = async () => {
+      if (selectedBuild && isInitialized && !isCalculating) {
+        await handleCalculate()
+      }
+    }
+    
+    autoCalculate()
+  }, [localConfig.round0BuffsEnabled, localConfig.greedyResourceUse, localConfig.autoGWMSS, selectedBuild, isInitialized, handleCalculate, isCalculating])
   
   // Transform data for chart
   const chartData = currentResult ? 
@@ -265,24 +287,34 @@ export function DprLab() {
                 <PanelHeader title="Simulation Config" className="text-panel bg-ink border-b border-border/20" />
                 
                 <div className="space-y-6">
-                {/* Calculate Button */}
+                {/* Auto-Calculation Status */}
                 <div className="mb-6">
-                  <button
-                    onClick={handleCalculate}
-                    disabled={!selectedBuild || !isInitialized || isCalculating}
-                    className="w-full flex items-center justify-center gap-2 bg-accent hover:bg-accent/90 disabled:opacity-50 disabled:cursor-not-allowed text-white px-4 py-2 rounded font-medium"
-                  >
+                  <div className="w-full flex items-center justify-center gap-2 bg-accent/10 text-accent px-4 py-2 rounded font-medium border border-accent/30">
                     {isCalculating ? (
                       <>
                         <Loader2 className="w-4 h-4 animate-spin" />
                         Calculating...
                       </>
+                    ) : currentResult ? (
+                      <>
+                        <PlayIcon className="w-4 h-4" />
+                        Auto-Calculated
+                      </>
                     ) : (
                       <>
                         <PlayIcon className="w-4 h-4" />
-                        Calculate DPR
+                        Ready for Auto-Calculation
                       </>
                     )}
+                  </div>
+                  
+                  {/* Manual recalculate button (optional) */}
+                  <button
+                    onClick={handleCalculate}
+                    disabled={!selectedBuild || !isInitialized || isCalculating}
+                    className="w-full mt-2 text-sm text-muted hover:text-accent disabled:opacity-50 disabled:cursor-not-allowed underline"
+                  >
+                    Recalculate Manually
                   </button>
                   
                 </div>
