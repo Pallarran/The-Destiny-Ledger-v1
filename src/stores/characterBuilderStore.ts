@@ -493,9 +493,9 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
             })
           }
           
-          // Add ASI increases from all level progression
+          // Add ASI increases from all level progression (both regular ASIs and half-feats)
           state.currentBuild.enhancedLevelTimeline.forEach(entry => {
-            if (entry.asiOrFeat === 'asi' && entry.abilityIncreases) {
+            if (entry.abilityIncreases) {
               Object.entries(entry.abilityIncreases).forEach(([ability, increase]) => {
                 if (increase && typeof increase === 'number') {
                   finalScores[ability as keyof AbilityScoreArray] += increase
@@ -510,7 +510,12 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
           
           console.log('Recalculated all ability scores:', finalScores)
           console.log('Base scores:', state.currentBuild.baseAbilityScores)
-          console.log('ASI entries found:', state.currentBuild.enhancedLevelTimeline.filter(e => e.asiOrFeat === 'asi').map(e => ({ level: e.level, increases: e.abilityIncreases })))
+          console.log('ASI/Half-feat entries found:', state.currentBuild.enhancedLevelTimeline.filter(e => e.abilityIncreases).map(e => ({ 
+            level: e.level, 
+            type: e.asiOrFeat, 
+            featId: e.featId,
+            increases: e.abilityIncreases 
+          })))
         }
       })
     },
