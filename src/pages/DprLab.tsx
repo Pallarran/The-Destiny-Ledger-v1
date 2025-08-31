@@ -155,6 +155,15 @@ export function DprLab() {
   // Get typical DPR at AC 15
   const typicalDPR = chartData.find(point => point.ac === 15)
   
+  // Debug logging for DPR display values
+  if (typicalDPR && typicalDPR.normal > 30) {
+    console.log('DPR Display Debug - High value detected:', {
+      typicalDPR,
+      rawCurrentResult: currentResult,
+      selectedBuild: selectedBuild?.name
+    })
+  }
+  
   // Placeholder data if no results
   const displayData = chartData.length > 0 ? chartData : [
     { ac: 10, normal: 12, advantage: 15, disadvantage: 9 },

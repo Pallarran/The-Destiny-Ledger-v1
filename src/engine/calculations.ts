@@ -271,20 +271,23 @@ export function calculateBuildDPR(
   const totalDPR = round1DPR + round2DPR + round3DPR
   const averageDPR = totalDPR / 3
   
-  // Debug logging for high damage values
-  if (averageDPR > 30) {
-    console.warn('Unusually high DPR detected:', {
-      averageDPR,
-      totalDPR,
-      dprPerAttack,
-      attacksPerRound,
-      finalAttackBonus,
-      finalDamage,
-      targetAC: config.targetAC,
-      actionSurge: state.actionSurge,
-      useGWMSS
-    })
-  }
+  // Debug logging for all DPR calculations
+  console.log('DPR Calculation Debug:', {
+    averageDPR,
+    totalDPR,
+    dprPerAttack,
+    attacksPerRound,
+    finalAttackBonus,
+    baseDamage: calculateDamageRoll(baseDamage),
+    finalDamage: calculateDamageRoll(finalDamage),
+    targetAC: config.targetAC,
+    actionSurge: state.actionSurge,
+    useGWMSS,
+    round1DPR,
+    round2DPR,
+    round3DPR,
+    probs: calculateHitProbability(finalAttackBonus, config.targetAC, advantageState)
+  })
   
   // Calculate hit/crit/miss for display
   const probs = calculateHitProbability(finalAttackBonus, config.targetAC, advantageState)
