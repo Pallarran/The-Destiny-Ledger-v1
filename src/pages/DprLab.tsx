@@ -29,6 +29,9 @@ export function DprLab() {
     return null
   })
   
+  // Track when user manually wants to select a different build
+  const [manualBuildSelection, setManualBuildSelection] = useState(false)
+  
   const [localConfig, setLocalConfig] = useState<{
     round0BuffsEnabled: boolean
     greedyResourceUse: boolean
@@ -57,15 +60,15 @@ export function DprLab() {
     }
   }, [selectedBuild, currentConfig, fixedConfig, localConfig, setConfiguration])
   
-  // Update selectedBuild when builderCurrentBuild changes
+  // Update selectedBuild when builderCurrentBuild changes (only if not manually selecting)
   useEffect(() => {
-    if (builderCurrentBuild) {
+    if (builderCurrentBuild && !manualBuildSelection) {
       const exportedBuild = exportToBuildConfiguration()
       if (exportedBuild && exportedBuild.id !== selectedBuild?.id) {
         setSelectedBuild(exportedBuild)
       }
     }
-  }, [builderCurrentBuild, exportToBuildConfiguration, selectedBuild?.id])
+  }, [builderCurrentBuild, exportToBuildConfiguration, selectedBuild?.id, manualBuildSelection])
   
   const handleCalculate = async () => {
     if (!selectedBuild || !isInitialized) return
@@ -155,7 +158,10 @@ export function DprLab() {
                 </div>
                 
                 <button
-                  onClick={() => setSelectedBuild(null)}
+                  onClick={() => {
+                    setSelectedBuild(null)
+                    setManualBuildSelection(true)
+                  }}
                   className="px-3 py-1 text-sm bg-muted/10 hover:bg-muted/20 rounded transition-colors"
                 >
                   Change Build
@@ -167,32 +173,70 @@ export function DprLab() {
               <h3 className="text-lg font-semibold text-foreground mb-2">Select a Build to Analyze</h3>
               <p className="text-muted mb-4">Choose from your vault or current Character Builder session</p>
               
-              {vaultBuilds.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-w-4xl mx-auto">
-                  {vaultBuilds.map((build) => (
+              <div className="space-y-4">
+                {/* Current Builder Build (if available) */}
+                {builderCurrentBuild && (
+                  <div>
+                    <h4 className="text-sm font-medium text-foreground mb-2">Current Builder Session</h4>
                     <button
-                      key={build.id}
-                      onClick={() => setSelectedBuild(build)}
-                      className="flex items-center gap-3 p-3 text-left bg-panel/50 hover:bg-panel border border-border hover:border-accent/50 rounded-lg transition-colors group"
+                      onClick={() => {
+                        const exportedBuild = exportToBuildConfiguration()
+                        if (exportedBuild) {
+                          setSelectedBuild(exportedBuild)
+                          setManualBuildSelection(false)
+                        }
+                      }}
+                      className="flex items-center gap-3 p-3 text-left bg-accent/10 hover:bg-accent/20 border border-accent/30 hover:border-accent/50 rounded-lg transition-colors group w-full"
                     >
-                      <div className="w-10 h-10 bg-accent/10 text-accent rounded-full flex items-center justify-center text-sm font-bold group-hover:bg-accent/20 transition-colors">
-                        {Math.max(...(build.levelTimeline?.map(l => l.level) || [1]))}
+                      <div className="w-10 h-10 bg-accent/20 text-accent rounded-full flex items-center justify-center text-sm font-bold group-hover:bg-accent/30 transition-colors">
+                        {Math.max(...((builderCurrentBuild.enhancedLevelTimeline || []).map((l: any) => l.level) || [1]))}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h4 className="font-medium text-foreground truncate">{build.name}</h4>
+                        <h4 className="font-medium text-foreground truncate">{builderCurrentBuild.name}</h4>
                         <p className="text-xs text-muted truncate capitalize">
-                          {build.race?.replace('_', ' ') || 'Unknown'}
+                          {builderCurrentBuild.race?.replace('_', ' ') || 'Unknown'} • Current Build
                         </p>
                       </div>
                     </button>
-                  ))}
-                </div>
-              ) : (
-                <div>
-                  <p className="text-muted mb-4">No builds found in your vault.</p>
-                  <p className="text-sm text-muted">Create builds in the Character Builder to analyze their DPR performance.</p>
-                </div>
-              )}
+                  </div>
+                )}
+                
+                {/* Vault Builds */}
+                {vaultBuilds.length > 0 && (
+                  <div>
+                    {builderCurrentBuild && <h4 className="text-sm font-medium text-foreground mb-2">Vault Builds</h4>}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-w-4xl mx-auto">
+                      {vaultBuilds.map((build) => (
+                        <button
+                          key={build.id}
+                          onClick={() => {
+                            setSelectedBuild(build)
+                            setManualBuildSelection(false)
+                          }}
+                          className="flex items-center gap-3 p-3 text-left bg-panel/50 hover:bg-panel border border-border hover:border-accent/50 rounded-lg transition-colors group"
+                        >
+                          <div className="w-10 h-10 bg-accent/10 text-accent rounded-full flex items-center justify-center text-sm font-bold group-hover:bg-accent/20 transition-colors">
+                            {Math.max(...(build.levelTimeline?.map(l => l.level) || [1]))}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-medium text-foreground truncate">{build.name}</h4>
+                            <p className="text-xs text-muted truncate capitalize">
+                              {build.race?.replace('_', ' ') || 'Unknown'}
+                            </p>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                {!builderCurrentBuild && vaultBuilds.length === 0 && (
+                  <div>
+                    <p className="text-muted mb-4">No builds found in your vault.</p>
+                    <p className="text-sm text-muted">Create builds in the Character Builder to analyze their DPR performance.</p>
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </div>
