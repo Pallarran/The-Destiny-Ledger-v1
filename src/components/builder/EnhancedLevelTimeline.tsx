@@ -121,8 +121,8 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
 
   // 5. Skills (Level 1 only)
   if (entry.level === 1 && classLevel === 1) {
-    const classSkills = classData?.skills || []
-    const skillCount = classData?.skillCount || 2
+    const classSkills = classData?.skillChoices || []
+    const skillCount = classData?.skillChoiceCount || 2
     const selectedSkills = currentBuild.skillProficiencies || []
     
     sections.push({
