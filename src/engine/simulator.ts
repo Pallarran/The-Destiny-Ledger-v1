@@ -247,11 +247,7 @@ export function generateDPRCurves(
     }
   }
   
-  // Calculate totals and averages
-  const totalDPR = normalCurve.reduce((sum, point) => sum + point.dpr, 0)
-  const averageDPR = totalDPR / normalCurve.length
-  
-  // Get breakdown for AC 15 (typical)
+  // Get breakdown for AC 15 (typical) for summary stats
   const typicalAC = 15
   const typicalConfig: SimulationConfig = {
     targetAC: typicalAC,
@@ -261,6 +257,10 @@ export function generateDPRCurves(
     autoGWMSS: config.autoGWMSS
   }
   const typicalResult = calculateBuildDPR(combatState, weaponConfig, typicalConfig)
+  
+  // Use breakdown from AC 15 for summary stats
+  const totalDPR = typicalResult.breakdown.total
+  const averageDPR = typicalResult.breakdown.average
   
   return {
     buildId: build.id,

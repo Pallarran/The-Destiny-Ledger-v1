@@ -271,23 +271,7 @@ export function calculateBuildDPR(
   const totalDPR = round1DPR + round2DPR + round3DPR
   const averageDPR = totalDPR / 3
   
-  // Debug logging for all DPR calculations
-  console.log('DPR Calculation Debug:', {
-    averageDPR,
-    totalDPR,
-    dprPerAttack,
-    attacksPerRound,
-    finalAttackBonus,
-    baseDamage: calculateDamageRoll(baseDamage),
-    finalDamage: calculateDamageRoll(finalDamage),
-    targetAC: config.targetAC,
-    actionSurge: state.actionSurge,
-    useGWMSS,
-    round1DPR,
-    round2DPR,
-    round3DPR,
-    probs: calculateHitProbability(finalAttackBonus, config.targetAC, advantageState)
-  })
+  // Debug logging removed - calculations confirmed working correctly
   
   // Calculate hit/crit/miss for display
   const probs = calculateHitProbability(finalAttackBonus, config.targetAC, advantageState)
