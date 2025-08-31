@@ -9,8 +9,10 @@ export function calculateMaxAttunementSlots(build: CharacterBuild): number {
   let maxSlots = 3 // Base attunement slots for all characters
 
   // Check for Artificer levels and their attunement bonuses
-  const artificerLevels = build.levels
-    .filter(level => level.classId === 'artificer')
+  // Try different possible level timeline properties
+  const levelTimeline = build.levels || (build as any).levelTimeline || (build as any).enhancedLevelTimeline || []
+  const artificerLevels = levelTimeline
+    .filter((level: any) => level.classId === 'artificer')
     .length
 
   if (artificerLevels >= 18) {
