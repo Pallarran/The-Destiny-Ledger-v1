@@ -35,6 +35,7 @@ interface CharacterBuilderStore extends CharacterBuilderState {
   setAbilityScore: (ability: AbilityScore, value: number) => void
   setPointBuyConfig: (config: PointBuyConfig) => void
   resetAbilityScores: () => void
+  recalculateAllAbilityScores: () => void
   
   // Race & Background actions
   setRace: (raceId: string) => void
@@ -377,6 +378,10 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
           }
           state.currentBuild.finalAbilityScores[ability] = value
           
+          // Recalculate final scores including any ASI increases
+          const { recalculateAllAbilityScores } = get()
+          recalculateAllAbilityScores()
+          
           state.isDirty = true
           validateStep(state, 'ability-scores')
         }
@@ -444,6 +449,51 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
           state.currentBuild.abilityScores = scores
           state.isDirty = true
           validateStep(state, 'ability-scores')
+        }
+      })
+    },
+
+    // Helper function to recalculate all ability scores including ASI increases
+    recalculateAllAbilityScores: () => {
+      set((state) => {
+        if (state.currentBuild) {
+          // Start with base ability scores  
+          const finalScores: AbilityScoreArray = { 
+            STR: state.currentBuild.baseAbilityScores?.STR || 8,
+            DEX: state.currentBuild.baseAbilityScores?.DEX || 8,
+            CON: state.currentBuild.baseAbilityScores?.CON || 8,
+            INT: state.currentBuild.baseAbilityScores?.INT || 8,
+            WIS: state.currentBuild.baseAbilityScores?.WIS || 8,
+            CHA: state.currentBuild.baseAbilityScores?.CHA || 8
+          }
+          
+          // Add racial bonuses (if any)
+          if (state.currentBuild.racialBonuses) {
+            Object.entries(state.currentBuild.racialBonuses).forEach(([ability, bonus]) => {
+              if (bonus && typeof bonus === 'number') {
+                finalScores[ability as keyof AbilityScoreArray] += bonus
+              }
+            })
+          }
+          
+          // Add ASI increases from all level progression
+          state.currentBuild.enhancedLevelTimeline.forEach(entry => {
+            if (entry.asiOrFeat === 'asi' && entry.abilityIncreases) {
+              Object.entries(entry.abilityIncreases).forEach(([ability, increase]) => {
+                if (increase && typeof increase === 'number') {
+                  finalScores[ability as keyof AbilityScoreArray] += increase
+                }
+              })
+            }
+          })
+          
+          // Update final ability scores
+          state.currentBuild.finalAbilityScores = finalScores
+          state.currentBuild.abilityScores = finalScores // Keep legacy sync
+          
+          console.log('Recalculated all ability scores:', finalScores)
+          console.log('Base scores:', state.currentBuild.baseAbilityScores)
+          console.log('ASI entries found:', state.currentBuild.enhancedLevelTimeline.filter(e => e.asiOrFeat === 'asi').map(e => ({ level: e.level, increases: e.abilityIncreases })))
         }
       })
     },
