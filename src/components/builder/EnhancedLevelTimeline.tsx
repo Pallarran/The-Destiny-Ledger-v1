@@ -316,6 +316,74 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
                 </label>
               </div>
 
+              {/* ASI Selection Interface */}
+              {section.currentChoice === 'asi' && (
+                <div className="pl-6 border-l-2 border-accent/20">
+                  <div className="text-xs font-medium text-muted mb-2">Choose Ability Increases:</div>
+                  <div className="text-xs text-muted mb-2">You can increase one ability by 2, or two different abilities by 1 each.</div>
+                  <div className="space-y-2">
+                    {/* Single +2 Option */}
+                    <div className="space-y-1">
+                      <div className="text-xs font-medium">Increase one ability by 2:</div>
+                      <div className="grid grid-cols-3 gap-2">
+                        {['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA'].map((ability) => (
+                          <label key={`single-${ability}`} className="flex items-center gap-1 text-xs cursor-pointer">
+                            <input
+                              type="radio"
+                              name={`asi-single-${entry.level}`}
+                              onChange={() => {
+                                const increases = { [ability]: 2 }
+                                updateLevel(entry.level, { abilityIncreases: increases })
+                              }}
+                              checked={section.abilityIncreases?.[ability] === 2 && Object.keys(section.abilityIncreases || {}).length === 1}
+                            />
+                            <span>{ability} +2</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                    
+                    {/* Two +1 Options */}
+                    <div className="space-y-1">
+                      <div className="text-xs font-medium">Or increase two abilities by 1 each:</div>
+                      <div className="text-xs text-muted mb-2">Click two different abilities:</div>
+                      <div className="grid grid-cols-3 gap-2">
+                        {['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA'].map((ability) => (
+                          <label key={`double-${ability}`} className="flex items-center gap-1 text-xs cursor-pointer">
+                            <input
+                              type="checkbox"
+                              onChange={(e) => {
+                                const currentIncreases = section.abilityIncreases || {}
+                                const newIncreases = { ...currentIncreases }
+                                
+                                if (e.target.checked) {
+                                  // Add this ability (+1), but limit to 2 total abilities
+                                  const selectedCount = Object.keys(newIncreases).length
+                                  if (selectedCount < 2) {
+                                    newIncreases[ability] = 1
+                                  }
+                                } else {
+                                  // Remove this ability
+                                  delete newIncreases[ability]
+                                }
+                                
+                                updateLevel(entry.level, { abilityIncreases: newIncreases })
+                              }}
+                              checked={section.abilityIncreases?.[ability] === 1}
+                              disabled={
+                                !section.abilityIncreases?.[ability] && 
+                                Object.keys(section.abilityIncreases || {}).length >= 2
+                              }
+                            />
+                            <span>{ability} +1</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Show appropriate sub-selection */}
               {section.currentChoice === 'feat' && (
                 <div className="pl-6 border-l-2 border-accent/20">
@@ -421,10 +489,7 @@ export function EnhancedLevelTimeline() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Plus className="w-5 h-5" />
-            Add Level {nextLevel}
-            {nextLevel > 20 && (
-              <Badge variant="destructive">Max Level Reached</Badge>
-            )}
+            Add Level
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -456,7 +521,7 @@ export function EnhancedLevelTimeline() {
               disabled={!selectedClass || nextLevel > 20}
               className="w-full"
             >
-              {nextLevel > 20 ? 'Maximum Level Reached' : `Add Level ${nextLevel}`}
+              {nextLevel > 20 ? 'Maximum Level Reached' : 'Add Level'}
             </Button>
           </div>
         </CardContent>
