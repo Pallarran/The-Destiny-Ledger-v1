@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import { Panel, PanelHeader } from '../components/ui/panel'
 import { ChartFrame } from '../components/ui/chart-frame'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs'
+import CombatRoundOptimizer from '../components/optimizer/CombatRoundOptimizer'
 import { 
   PlayIcon,
   Loader2
@@ -196,7 +198,14 @@ export function DprLab() {
         </div>
         
         {selectedBuild && (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <Tabs defaultValue="dpr-analysis" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="dpr-analysis">DPR Analysis</TabsTrigger>
+              <TabsTrigger value="combat-optimizer">Combat Optimizer</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="dpr-analysis" className="mt-6">
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             {/* Configuration Panel */}
             <div className="lg:col-span-5">
               <Panel className="bg-ink text-panel">
@@ -338,11 +347,9 @@ export function DprLab() {
             </ChartFrame>
           </div>
         </div>
-        )}
-
+        
         {/* Results Section */}
-        {selectedBuild && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
           {/* SS/GWM Breakpoints */}
           <Panel className="bg-ink text-panel">
             <PanelHeader title="GWM/SS Optimization" className="text-panel bg-ink border-b border-border/20" />
@@ -496,7 +503,14 @@ export function DprLab() {
               </div>
             )}
           </Panel>
-          </div>
+        </div>
+              </TabsContent>
+            
+            <TabsContent value="combat-optimizer" className="mt-6">
+              <CombatRoundOptimizer />
+            </TabsContent>
+            
+          </Tabs>
         )}
       </Panel>
     </div>
