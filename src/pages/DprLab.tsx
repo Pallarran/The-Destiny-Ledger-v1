@@ -12,6 +12,7 @@ import { useDPRWorker } from '../hooks/useDPRWorker'
 import { useDPRStore } from '../stores/dprStore'
 import { useVaultStore } from '../stores/vaultStore'
 import { useCharacterBuilderStore } from '../stores/characterBuilderStore'
+import { useSettingsStore } from '../stores/settingsStore'
 import { createDPRConfig } from '../stores/dprStore'
 import type { BuildConfiguration } from '../stores/types'
 
@@ -20,6 +21,9 @@ export function DprLab() {
   const { currentBuild: builderCurrentBuild, exportToBuildConfiguration } = useCharacterBuilderStore()
   const { currentResult, currentConfig, setConfiguration, setResult, setCalculating } = useDPRStore()
   const { isInitialized, isCalculating, calculateDPRCurves, calculatePowerAttackBreakpoints } = useDPRWorker()
+  
+  // Get default settings from settings store
+  const { greedyResourceUse: defaultGreedy, autoCalculateGWMSS: defaultAutoGWMSS } = useSettingsStore()
   
   // State for selected build - convert current builder build to BuildConfiguration format
   const [selectedBuild, setSelectedBuild] = useState<BuildConfiguration | null>(() => {
@@ -38,8 +42,8 @@ export function DprLab() {
     autoGWMSS: boolean
   }>({
     round0BuffsEnabled: true,
-    greedyResourceUse: true,
-    autoGWMSS: true
+    greedyResourceUse: defaultGreedy,
+    autoGWMSS: defaultAutoGWMSS
   })
   
   // Fixed config per specification

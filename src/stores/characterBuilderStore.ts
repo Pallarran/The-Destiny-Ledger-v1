@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { immer } from 'zustand/middleware/immer'
+import { useSettingsStore } from './settingsStore'
 import type { 
   CharacterBuilder, 
   CharacterBuilderState, 
@@ -79,60 +80,70 @@ interface CharacterBuilderStore extends CharacterBuilderState {
   clearDirty: () => void
 }
 
-const createDefaultBuilder = (name: string = 'New Character'): CharacterBuilder => ({
-  // Base BuildConfiguration fields
-  id: crypto.randomUUID(),
-  name,
-  createdAt: new Date(),
-  updatedAt: new Date(),
-  notes: '',
-  race: '',
-  subrace: '',
-  background: '',
-  baseAbilityScores: { ...DEFAULT_ABILITY_SCORES },
-  skillProficiencies: [],
-  abilityMethod: 'pointbuy',
-  abilityScores: { ...DEFAULT_ABILITY_SCORES },
-  pointBuyLimit: 27,
-  levelTimeline: [],
-  currentLevel: 1,
-  mainHandWeapon: '',
-  offHandWeapon: '',
-  rangedWeapon: '',
-  weaponEnhancements: [],
-  magicItems: [],
-  attunedItems: [],
-  activeBuffs: [],
-  round0Buffs: [],
+const createDefaultBuilder = (name: string = 'New Character'): CharacterBuilder => {
+  // Get default settings from settings store
+  const settings = useSettingsStore.getState()
+  const abilityMethod = settings.defaultAbilityMethod || 'pointbuy'
+  const pointBuyLimit = settings.defaultPointBuyLimit || 27
   
-  // Equipment interface compatibility
-  equipment: {
-    mainHand: null,
-    offHand: null,
-    armor: null,
-    shield: false,
-    other: [],
+  return {
+    // Base BuildConfiguration fields
+    id: crypto.randomUUID(),
+    name,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    notes: '',
+    race: '',
+    subrace: '',
+    background: '',
+    baseAbilityScores: { ...DEFAULT_ABILITY_SCORES },
+    skillProficiencies: [],
+    abilityMethod: abilityMethod as any,
+    abilityScores: { ...DEFAULT_ABILITY_SCORES },
+    pointBuyLimit: pointBuyLimit,
+    levelTimeline: [],
+    currentLevel: 1,
+    mainHandWeapon: '',
+    offHandWeapon: '',
+    rangedWeapon: '',
+    weaponEnhancements: [],
     magicItems: [],
-    attunedItems: []
-  },
-  
-  // Extended CharacterBuilder fields
-  currentStep: 'ability-scores',
-  completedSteps: [],
-  abilityAssignmentMethod: 'pointbuy',
-  pointBuyConfig: { ...DEFAULT_POINT_BUY_CONFIG },
-  racialBonuses: {},
-  finalAbilityScores: { ...DEFAULT_ABILITY_SCORES },
-  enhancedLevelTimeline: [],
-  maxLevel: 20,
-  selectedMainHand: '',
-  selectedOffHand: '',
-  selectedRanged: '',
-  selectedArmor: '',
-  hasShield: false,
-  isValid: false,
-  validationErrors: []
-})
+    attunedItems: [],
+    activeBuffs: [],
+    round0Buffs: [],
+    
+    // Equipment interface compatibility
+    equipment: {
+      mainHand: null,
+      offHand: null,
+      armor: null,
+      shield: false,
+      other: [],
+      magicItems: [],
+      attunedItems: []
+    },
+    
+    // Extended CharacterBuilder fields
+    currentStep: 'ability-scores',
+    completedSteps: [],
+    abilityAssignmentMethod: abilityMethod as AbilityAssignmentMethod,
+    pointBuyConfig: { 
+      ...DEFAULT_POINT_BUY_CONFIG,
+      totalPoints: pointBuyLimit
+    },
+    racialBonuses: {},
+    finalAbilityScores: { ...DEFAULT_ABILITY_SCORES },
+    enhancedLevelTimeline: [],
+    maxLevel: 20,
+    selectedMainHand: '',
+    selectedOffHand: '',
+    selectedRanged: '',
+    selectedArmor: '',
+    hasShield: false,
+    isValid: false,
+    validationErrors: []
+  }
+}
 
 export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
   immer((set, get) => ({
@@ -958,7 +969,8 @@ function validateAbilityScores(build: CharacterBuilder): boolean {
   
   // Method-specific validation using base scores
   if (build.abilityAssignmentMethod === 'pointbuy') {
-    // For point buy, D&D 5e rules require EXACTLY 27 points to be spent
+    // For point buy, use the configured point limit from the build
+    const pointLimit = build.pointBuyConfig?.totalPoints || build.pointBuyLimit || 27
     const pointCosts = { 8: 0, 9: 1, 10: 2, 11: 3, 12: 4, 13: 5, 14: 7, 15: 9 }
     
     // Check all base scores are valid for point buy (8-15)
@@ -966,7 +978,7 @@ function validateAbilityScores(build: CharacterBuilder): boolean {
     if (!validRange) return false
     
     const totalUsed = scores.reduce((sum, score) => sum + (pointCosts[score as keyof typeof pointCosts] || 0), 0)
-    return totalUsed === 27 // Must spend exactly 27 points per D&D rules
+    return totalUsed === pointLimit // Must spend exactly the configured points
   } else if (build.abilityAssignmentMethod === 'standard') {
     // For standard array, each value must be used exactly once
     const standardArray = [15, 14, 13, 12, 10, 8]
