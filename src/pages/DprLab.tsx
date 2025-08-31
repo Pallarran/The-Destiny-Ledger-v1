@@ -5,6 +5,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs'
 import CombatRoundOptimizer from '../components/optimizer/CombatRoundOptimizer'
 import { WeaponInfoPanel } from '../components/dpr/WeaponInfoPanel'
 import { AttackBreakdownDisplay } from '../components/dpr/AttackBreakdownDisplay'
+import { BuildFeaturesPanel } from '../components/dpr/BuildFeaturesPanel'
+import { ActiveEffectsDisplay } from '../components/dpr/ActiveEffectsDisplay'
+import { ACAnalysisPanel } from '../components/dpr/ACAnalysisPanel'
+import { PowerAttackGuidance } from '../components/dpr/PowerAttackGuidance'
 import { 
   PlayIcon,
   Loader2
@@ -22,7 +26,7 @@ export function DprLab() {
   const { builds: vaultBuilds } = useVaultStore()
   const { currentBuild: builderCurrentBuild, exportToBuildConfiguration } = useCharacterBuilderStore()
   const { currentResult, currentConfig, setConfiguration, setResult, setCalculating } = useDPRStore()
-  const { isInitialized, isCalculating, calculateDPRCurves, calculatePowerAttackBreakpoints } = useDPRWorker()
+  const { isInitialized, isCalculating, calculateDPRCurves } = useDPRWorker()
   
   // Get default settings from settings store
   const { greedyResourceUse: defaultGreedy, autoCalculateGWMSS: defaultAutoGWMSS } = useSettingsStore()
@@ -61,7 +65,6 @@ export function DprLab() {
     advantageState: 'normal' as const // Always calculate all three curves
   }
   
-  const [breakpoints, setBreakpoints] = useState<any[]>([])
   
   // Initialize config when build changes
   useEffect(() => {
@@ -99,21 +102,10 @@ export function DprLab() {
         setResult(result)
       }
       
-      // Calculate power attack breakpoints if the build has GWM/SS
-      const hasGWMSS = selectedBuild.levelTimeline?.some(entry => 
-        entry.featId === 'great_weapon_master' || entry.featId === 'sharpshooter'
-      )
-      
-      if (hasGWMSS) {
-        const breakpointData = await calculatePowerAttackBreakpoints(selectedBuild, fixedConfig.acMin, fixedConfig.acMax)
-        if (breakpointData) {
-          setBreakpoints(breakpointData)
-        }
-      }
     } catch (error) {
       console.error('DPR calculation failed:', error)
     }
-  }, [selectedBuild, isInitialized, fixedConfig, localConfig, calculateDPRCurves, calculatePowerAttackBreakpoints])
+  }, [selectedBuild, isInitialized, fixedConfig, localConfig, calculateDPRCurves])
   
   // Auto-calculate DPR when build changes or when conditions are met
   useEffect(() => {
@@ -460,70 +452,24 @@ export function DprLab() {
           </div>
         </div>
         
+        {/* Build Features Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+          {/* Combat Features */}
+          <BuildFeaturesPanel build={selectedBuild} />
+          
+          {/* Active Effects */}
+          <ActiveEffectsDisplay build={selectedBuild} />
+        </div>
+        
+        {/* AC-Specific Analysis Section */}
+        <div className="mt-6">
+          <ACAnalysisPanel build={selectedBuild} config={localConfig} />
+        </div>
+        
         {/* Results Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-          {/* SS/GWM Breakpoints */}
-          <Panel className="bg-ink text-panel">
-            <PanelHeader title="GWM/SS Optimization" className="text-panel bg-ink border-b border-border/20" />
-            
-            {breakpoints.length > 0 ? (
-              <div className="space-y-3">
-                <div className="text-xs text-muted mb-2">
-                  Shows when to use power attack (-5 to hit, +10 damage) vs normal attacks
-                </div>
-                
-                <div className="space-y-1 max-h-48 overflow-y-auto">
-                  {breakpoints.slice(0, 15).map((bp, index) => (
-                    <div key={index} className="flex items-center justify-between text-sm py-1 border-b border-border/10 last:border-b-0">
-                      <div className="flex items-center gap-2">
-                        <span className="font-mono w-8">AC{bp.ac}</span>
-                        <div className={`w-2 h-2 rounded-full ${bp.usesPowerAttack ? 'bg-accent' : 'bg-muted'}`} />
-                      </div>
-                      <div className="text-right">
-                        <div className={`text-xs font-medium ${bp.usesPowerAttack ? 'text-accent' : 'text-panel'}`}>
-                          {bp.usesPowerAttack ? 'Power Attack' : 'Normal Attack'}
-                        </div>
-                        <div className="text-xs text-muted">
-                          {bp.usesPowerAttack ? 
-                            `+${((bp.powerAttackDamage || 0) - (bp.normalDamage || 0)).toFixed(1)} DPR` :
-                            `Best option`
-                          }
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                
-                {breakpoints.length > 15 && (
-                  <div className="text-xs text-muted text-center pt-2 border-t border-border/20">
-                    Showing first 15 of {breakpoints.length} AC values
-                  </div>
-                )}
-                
-                {/* Summary */}
-                <div className="pt-2 border-t border-border/20">
-                  <div className="text-xs text-muted mb-1">Quick Reference:</div>
-                  <div className="grid grid-cols-2 gap-2 text-xs">
-                    <div>
-                      <span className="text-accent">●</span> Power Attack Better
-                    </div>
-                    <div>
-                      <span className="text-muted">●</span> Normal Attack Better
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="text-sm text-muted py-4 text-center">
-                {selectedBuild && (selectedBuild.levelTimeline?.some(entry => 
-                  entry.featId === 'great_weapon_master' || entry.featId === 'sharpshooter'
-                )) ? 
-                  'Run calculation to see power attack optimization' : 
-                  selectedBuild ? 'No GWM/Sharpshooter feat detected in build' : 'Select a build to analyze'
-                }
-              </div>
-            )}
-          </Panel>
+          {/* Power Attack Guidance */}
+          <PowerAttackGuidance build={selectedBuild} config={localConfig} />
 
           {/* DPR Summary */}
           <Panel className="bg-panel">
