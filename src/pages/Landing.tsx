@@ -67,7 +67,7 @@ export function Landing() {
               src={`${import.meta.env.BASE_URL}destiny-ledger-logo-with-name.png`} 
               alt="The Destiny Ledger"
               className="mx-auto mb-4 w-full h-auto"
-              style={{ maxWidth: '307px' }}
+              style={{ maxWidth: '346px' }}
             />
           </div>
           
