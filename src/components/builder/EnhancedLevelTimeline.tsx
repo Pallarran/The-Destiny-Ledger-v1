@@ -100,12 +100,33 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
   // 3b. Archetype Features (automatic)
   const archetypeFeatures = classFeatures.filter((f: any) => f.rulesKey === 'archetype_feature')
   if (archetypeFeatures.length > 0) {
+    // Get the specific archetype features from the selected subclass
+    const selectedArchetype = entry.archetype
+    const specificArchetypeFeatures = []
+    
+    if (selectedArchetype) {
+      // Find the subclass data
+      const subclass = Object.values(subclasses).find((sub: any) => sub.id === selectedArchetype)
+      if (subclass) {
+        // Get features for this class level from the subclass
+        const subclassFeatures = subclass.features[classLevel]
+        if (subclassFeatures && Array.isArray(subclassFeatures)) {
+          specificArchetypeFeatures.push(...subclassFeatures.map((f: any) => ({ 
+            name: f.name, 
+            description: f.description 
+          })))
+        }
+      }
+    }
+    
     sections.push({
       id: 'archetype_features',
       title: 'Archetype Features',
       type: 'auto',
       isComplete: true,
-      features: archetypeFeatures.map((f: any) => ({ name: f.name, description: f.description }))
+      features: specificArchetypeFeatures.length > 0 
+        ? specificArchetypeFeatures 
+        : archetypeFeatures.map((f: any) => ({ name: f.name, description: f.description }))
     })
   }
 
@@ -388,24 +409,26 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
               {section.currentChoice === 'feat' && (
                 <div className="pl-6 border-l-2 border-accent/20">
                   <div className="text-xs font-medium text-muted mb-2">Choose Feat:</div>
-                  <div className="max-h-40 overflow-y-auto space-y-1">
-                    {Object.values(feats).map((feat: any) => (
-                      <label key={feat.id} className="flex items-start gap-2 p-1 rounded hover:bg-accent/5 cursor-pointer">
-                        <input
-                          type="radio"
-                          name={`feat-${entry.level}`}
-                          value={feat.id}
-                          checked={section.selectedFeat === feat.id}
-                          onChange={() => section.onFeat(feat.id)}
-                          className="mt-0.5"
-                        />
-                        <div className="flex-1">
-                          <div className="text-xs font-medium">{feat.name}</div>
-                          <div className="text-xs text-muted truncate">{feat.description}</div>
-                        </div>
-                      </label>
-                    ))}
-                  </div>
+                  <Select 
+                    value={section.selectedFeat || ""} 
+                    onValueChange={(featId) => section.onFeat(featId)}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select a feat..." />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-80">
+                      {Object.values(feats).map((feat: any) => (
+                        <SelectItem key={feat.id} value={feat.id}>
+                          <div className="flex flex-col gap-1">
+                            <div className="font-medium">{feat.name}</div>
+                            <div className="text-xs text-muted-foreground line-clamp-2">
+                              {feat.description}
+                            </div>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               )}
             </div>
