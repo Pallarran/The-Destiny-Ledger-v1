@@ -386,11 +386,6 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
               <span className="font-semibold text-base">
                 {classData?.name || entry.classId}
               </span>
-              {classLevel > 1 && (
-                <Badge variant="secondary" className="text-xs">
-                  {classLevel} level
-                </Badge>
-              )}
               {entry.subclassId && (
                 <Badge variant="outline" className="text-xs">
                   {entry.subclassId}
