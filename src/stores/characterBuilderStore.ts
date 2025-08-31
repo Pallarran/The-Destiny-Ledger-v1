@@ -391,11 +391,11 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
       get().loadFromBuildConfiguration(build)
     },
     
-    saveBuild: () => {
+    saveBuild: async () => {
       const buildConfig = get().exportToBuildConfiguration()
       if (buildConfig) {
         // Import vault store to save the build
-        const { useVaultStore } = require('./vaultStore')
+        const { useVaultStore } = await import('./vaultStore')
         const { addBuild, updateBuild } = useVaultStore.getState()
         
         // Check if build exists (update) or is new (add)
@@ -908,7 +908,7 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
       return allValid
     },
     
-    getStepErrors: (_step: BuilderStep) => {
+    getStepErrors: () => {
       // TODO: Implement detailed error collection
       return []
     },
@@ -970,7 +970,7 @@ function validateStep(state: any, step: BuilderStep): boolean {
       isValid = validateClassProgression(state.currentBuild)
       break
     case 'equipment':
-      isValid = validateEquipment(state.currentBuild)
+      isValid = validateEquipment()
       break
     case 'summary':
       isValid = true // Summary is always valid if we got here
@@ -1024,7 +1024,7 @@ function validateClassProgression(build: CharacterBuilder): boolean {
   return (build.enhancedLevelTimeline || []).length > 0
 }
 
-function validateEquipment(_build: CharacterBuilder): boolean {
+function validateEquipment(): boolean {
   // Equipment is optional but should be valid if present
   return true // For now, accept any equipment state
 }

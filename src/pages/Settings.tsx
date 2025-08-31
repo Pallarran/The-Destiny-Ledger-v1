@@ -7,6 +7,7 @@ import { Label } from '../components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select'
 import { useSettingsStore } from '../stores/settingsStore'
 import { useVaultStore } from '../stores/vaultStore'
+import type { BuildConfiguration } from '../stores/types'
 import { 
   Settings as SettingsIcon,
   Palette,
@@ -126,7 +127,7 @@ export function Settings() {
         // Import builds
         if (importData.builds && Array.isArray(importData.builds)) {
           const vaultStore = useVaultStore.getState()
-          importData.builds.forEach((build: any) => {
+          importData.builds.forEach((build: BuildConfiguration) => {
             // Check if build already exists
             const existing = builds.find(b => b.id === build.id)
             if (existing) {

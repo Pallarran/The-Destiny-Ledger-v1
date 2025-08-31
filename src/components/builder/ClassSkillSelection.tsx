@@ -19,6 +19,13 @@ export function ClassSkillSelection({ classId, level, onSkillsSelected }: ClassS
   
   const classData = getClass(classId)
   
+  useEffect(() => {
+    if (onSkillsSelected) {
+      onSkillsSelected(selectedSkills)
+    }
+    setSkillProficiencies(selectedSkills)
+  }, [selectedSkills, onSkillsSelected, setSkillProficiencies])
+  
   if (!classData || level !== 1) {
     return null // Only show skill selection at level 1
   }
@@ -28,13 +35,6 @@ export function ClassSkillSelection({ classId, level, onSkillsSelected }: ClassS
   
   // Get skills from background
   const backgroundSkills: string[] = [] // This would come from background data
-  
-  useEffect(() => {
-    if (onSkillsSelected) {
-      onSkillsSelected(selectedSkills)
-    }
-    setSkillProficiencies(selectedSkills)
-  }, [selectedSkills, onSkillsSelected, setSkillProficiencies])
   
   const handleSkillToggle = (skill: string, checked: boolean) => {
     if (checked && selectedSkills.length < maxSkills) {

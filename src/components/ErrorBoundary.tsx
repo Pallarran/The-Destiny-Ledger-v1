@@ -1,5 +1,5 @@
 import { Component } from 'react'
-import type { ReactNode } from 'react'
+import type { ReactNode, ErrorInfo } from 'react'
 
 interface Props {
   children: ReactNode
@@ -8,7 +8,7 @@ interface Props {
 interface State {
   hasError: boolean
   error: Error | null
-  errorInfo: any
+  errorInfo: ErrorInfo | null
 }
 
 class ErrorBoundary extends Component<Props, State> {
@@ -17,11 +17,11 @@ class ErrorBoundary extends Component<Props, State> {
     this.state = { hasError: false, error: null, errorInfo: null }
   }
 
-  static getDerivedStateFromError(_error: Error) {
+  static getDerivedStateFromError() {
     return { hasError: true }
   }
 
-  componentDidCatch(error: Error, errorInfo: any) {
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error('ErrorBoundary caught an error:', error)
     console.error('Error info:', errorInfo)
     console.error('Component stack:', errorInfo.componentStack)
