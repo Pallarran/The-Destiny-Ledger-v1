@@ -193,18 +193,18 @@ export function CharacterBuilder() {
     
     const issues = []
     if (!currentBuild.race) issues.push('Race not selected')
-    if (currentBuild.enhancedLevelTimeline.length === 0) issues.push('No class levels defined')
+    if (!currentBuild.enhancedLevelTimeline || currentBuild.enhancedLevelTimeline.length === 0) issues.push('No class levels defined')
     if (!buildName.trim()) issues.push('Build name required')
     
     // Check for concentration conflicts
     const activeBuffs = currentBuild.activeBuffs || []
     const round0Buffs = currentBuild.round0Buffs || []
     
-    const activeConcentrationBuffs = activeBuffs
+    const activeConcentrationBuffs = (activeBuffs || [])
       .map((id: string) => buffs[id])
       .filter((buff: any) => buff?.concentration)
     
-    const round0ConcentrationBuffs = round0Buffs
+    const round0ConcentrationBuffs = (round0Buffs || [])
       .map((id: string) => buffs[id])
       .filter((buff: any) => buff?.concentration)
     
@@ -486,13 +486,13 @@ export function CharacterBuilder() {
           <Panel>
             <h3 className="font-semibold text-foreground mb-4">Level Progression</h3>
             
-            {currentBuild.enhancedLevelTimeline.length > 0 ? (
+            {(currentBuild.enhancedLevelTimeline || []).length > 0 ? (
               <div className="space-y-2">
-                {[...currentBuild.enhancedLevelTimeline]
+                {[...(currentBuild.enhancedLevelTimeline || [])]
                   .sort((a, b) => a.level - b.level)
                   .map(entry => {
                     const classData = getClass(entry.classId)
-                    const classLevel = currentBuild.enhancedLevelTimeline
+                    const classLevel = (currentBuild.enhancedLevelTimeline || [])
                       .filter(e => e.classId === entry.classId && e.level <= entry.level)
                       .length
                     const classFeatures = classData?.features[classLevel] || []
