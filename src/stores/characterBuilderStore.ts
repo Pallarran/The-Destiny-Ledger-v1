@@ -36,6 +36,7 @@ interface CharacterBuilderStore extends CharacterBuilderState {
   setPointBuyConfig: (config: PointBuyConfig) => void
   resetAbilityScores: () => void
   recalculateAllAbilityScores: () => void
+  triggerRacialBonusRecalculation: () => void
   
   // Race & Background actions
   setRace: (raceId: string) => void
@@ -512,6 +513,11 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
           console.log('ASI entries found:', state.currentBuild.enhancedLevelTimeline.filter(e => e.asiOrFeat === 'asi').map(e => ({ level: e.level, increases: e.abilityIncreases })))
         }
       })
+    },
+
+    // Trigger racial bonus recalculation (for components to call when needed)
+    triggerRacialBonusRecalculation: () => {
+      // This will be implemented if needed
     },
     
     setSkillProficiencies: (skills: string[]) => {

@@ -123,10 +123,25 @@ export function RaceBackgroundSelection() {
       }
     }
   }, [currentBuild?.race, setSubrace])
+
+  // Load subrace data when subrace selection changes  
+  useEffect(() => {
+    if (currentBuild?.subrace && selectedRaceData) {
+      const subrace = selectedRaceData.subraces?.find(s => s.id === currentBuild.subrace)
+      if (subrace) {
+        setSelectedSubraceState(subrace)
+      }
+    }
+  }, [currentBuild?.subrace, selectedRaceData])
   
   // Apply racial ability score increases
   useEffect(() => {
-    if (!selectedRaceData || !currentBuild || !currentBuild.baseAbilityScores) return
+    if (!selectedRaceData || !currentBuild || !currentBuild.baseAbilityScores) {
+      console.log('Racial bonus calculation skipped:', { selectedRaceData: !!selectedRaceData, currentBuild: !!currentBuild, baseAbilityScores: !!currentBuild?.baseAbilityScores })
+      return
+    }
+    
+    console.log('Calculating racial bonuses:', { race: selectedRaceData.name, subrace: selectedSubrace?.name })
     
     // Calculate total ability score bonuses
     const racialBonuses: Record<string, number> = {}
@@ -150,8 +165,9 @@ export function RaceBackgroundSelection() {
       updatedScores[ability] = updatedScores[ability] + (racialBonuses[ability] || 0)
     })
     
+    console.log('Applying racial bonuses:', { racialBonuses, baseScores: currentBuild.baseAbilityScores, finalScores: updatedScores })
     updateAbilityScores(updatedScores)
-  }, [selectedRaceData, selectedSubrace, currentBuild?.baseAbilityScores])
+  }, [selectedRaceData, selectedSubrace, currentBuild?.baseAbilityScores, updateAbilityScores])
   
   // Trigger validation when selections change
   useEffect(() => {
