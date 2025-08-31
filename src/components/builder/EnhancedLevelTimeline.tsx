@@ -41,7 +41,7 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
   
   // 1. Class Features (automatic)
   const autoFeatures = classFeatures.filter((f: any) => 
-    f.rulesKey !== 'fighting_style' && f.rulesKey !== 'asi' && !f.id.includes('archetype')
+    f.rulesKey !== 'fighting_style' && f.rulesKey !== 'asi' && f.rulesKey !== 'archetype' && f.rulesKey !== 'archetype_feature'
   )
   if (autoFeatures.length > 0) {
     sections.push({
@@ -75,8 +75,8 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
     })
   }
 
-  // 3. Archetype Choice
-  const hasArchetype = classFeatures.some((f: any) => f.id.includes('archetype'))
+  // 3. Archetype Choice (initial selection only)
+  const hasArchetype = classFeatures.some((f: any) => f.rulesKey === 'archetype')
   if (hasArchetype) {
     const availableSubclasses = Object.values(subclasses).filter((sub: any) => sub.className === entry.classId)
     sections.push({
@@ -94,6 +94,18 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
         updateLevel(entry.level, { archetype: archetypeId })
         setExpandedSection(null)
       }
+    })
+  }
+
+  // 3b. Archetype Features (automatic)
+  const archetypeFeatures = classFeatures.filter((f: any) => f.rulesKey === 'archetype_feature')
+  if (archetypeFeatures.length > 0) {
+    sections.push({
+      id: 'archetype_features',
+      title: 'Archetype Features',
+      type: 'auto',
+      isComplete: true,
+      features: archetypeFeatures.map((f: any) => ({ name: f.name, description: f.description }))
     })
   }
 
@@ -284,7 +296,9 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
                     type="radio"
                     name={`asi-feat-${entry.level}`}
                     checked={section.currentChoice === 'asi'}
-                    onChange={() => {/* Handle ASI selection */}}
+                    onChange={() => {
+                      updateLevel(entry.level, { asiOrFeat: 'asi' })
+                    }}
                   />
                   <span className="text-sm font-medium">Ability Score Improvement</span>
                 </label>
@@ -293,7 +307,10 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
                     type="radio"
                     name={`asi-feat-${entry.level}`}
                     checked={section.currentChoice === 'feat'}
-                    onChange={() => {/* Handle Feat selection */}}
+                    onChange={() => {
+                      // Just set the choice to 'feat' mode, actual feat selection happens below
+                      updateLevel(entry.level, { asiOrFeat: 'feat' })
+                    }}
                   />
                   <span className="text-sm font-medium">Feat</span>
                 </label>
