@@ -21,7 +21,8 @@
       "Bash(git rev-parse:*)",
       "Bash(grep:*)",
       "Bash(rg:*)",
-      "Bash(tree:*)"
+      "Bash(tree:*)",
+      "Bash(npm run:*)"
     ],
     "deny": [],
     "ask": []
