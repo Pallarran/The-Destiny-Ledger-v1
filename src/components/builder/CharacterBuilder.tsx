@@ -484,9 +484,6 @@ export function CharacterBuilder() {
                     // Get all features for this level
                     const features = []
                     
-                    // Class name and level
-                    features.push(`${classData?.name || entry.classId} ${classLevel}`)
-                    
                     // Skills (only at level 1)
                     if (entry.level === 1 && currentBuild?.skillProficiencies && currentBuild.skillProficiencies.length > 0) {
                       features.push(`Skills: ${currentBuild.skillProficiencies.join(', ')}`)
