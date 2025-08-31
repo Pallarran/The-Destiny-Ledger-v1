@@ -10,10 +10,10 @@ import {
 } from 'lucide-react'
 
 const navigation = [
-  { name: 'Build Vault', href: '/vault', icon: Archive },
   { name: 'Character Builder', href: '/builder', icon: User },
+  { name: 'Vault', href: '/vault', icon: Archive },
   { name: 'DPR Lab', href: '/dpr', icon: BarChart3 },
-  { name: 'Compare Builds', href: '/compare', icon: GitCompare },
+  { name: 'Compare', href: '/compare', icon: GitCompare },
   { name: 'Level Path Explorer', href: '/explorer', icon: TrendingUp },
   { name: 'Party Optimizer', href: '/party', icon: Users },
 ]

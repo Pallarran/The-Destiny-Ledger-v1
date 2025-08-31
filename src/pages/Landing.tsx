@@ -6,6 +6,7 @@ import {
   User, 
   TrendingUp,
   Calculator,
+  GitCompare,
   Users
 } from 'lucide-react'
 
@@ -14,56 +15,63 @@ export function Landing() {
     {
       icon: User,
       title: "Character Builder",
-      description: "Create optimized D&D 5e characters with ability scores, multiclass progression, and equipment selection.",
+      description: "Create optimized D&D 5e characters with multiclass progression and equipment.",
       link: "/builder",
       color: "text-accent"
     },
     {
       icon: Archive,
-      title: "Build Vault",
-      description: "Store, organize, and manage your character builds with search, tags, and export tools.",
+      title: "Vault",
+      description: "Store and manage character builds with search and export tools.",
       link: "/vault", 
       color: "text-blue-500"
     },
     {
       icon: Calculator,
-      title: "DPR Laboratory",
-      description: "Mathematical damage analysis with probability distributions and optimization thresholds.",
+      title: "DPR Lab",
+      description: "Mathematical damage analysis with probability distributions.",
       link: "/dpr",
       color: "text-emerald-500"
     },
     {
-      icon: Users,
-      title: "Build Comparison",
-      description: "Multi-dimensional analysis with radar charts and role effectiveness scoring.",
+      icon: GitCompare,
+      title: "Compare",
+      description: "Multi-dimensional build analysis with radar charts and scoring.",
       link: "/compare",
       color: "text-purple-500"
     },
     {
       icon: TrendingUp,
-      title: "Progression Optimizer", 
-      description: "Strategic multiclass timing and ASI/feat decision optimization for power spikes.",
+      title: "Level Path Explorer", 
+      description: "Optimize multiclass timing and ASI/feat decisions for power spikes.",
       link: "/explorer",
       color: "text-orange-500"
+    },
+    {
+      icon: Users,
+      title: "Party Optimizer",
+      description: "Balance team compositions and optimize party synergies.",
+      link: "/party",
+      color: "text-cyan-500"
     }
   ]
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {/* Main Panel */}
-      <Panel className="text-center py-12">
+      <Panel className="text-center py-8">
         <div className="max-w-6xl mx-auto">
           {/* Logo */}
-          <div className="mb-8">
+          <div className="mb-6">
             <img 
               src={`${import.meta.env.BASE_URL}destiny-ledger-logo-with-name.png`} 
               alt="The Destiny Ledger"
-              className="mx-auto mb-6 max-w-md w-full h-auto"
+              className="mx-auto mb-4 max-w-md w-full h-auto"
             />
           </div>
           
           {/* App Description */}
-          <div className="space-y-4 mb-10">
+          <div className="space-y-3 mb-8">
             <h1 className="text-2xl font-bold text-foreground">
               Master the Art of Character Optimization
             </h1>
@@ -74,7 +82,7 @@ export function Landing() {
           </div>
 
           {/* Feature Cards in Single Row */}
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
             {features.map((feature, index) => {
               const IconComponent = feature.icon
               return (
