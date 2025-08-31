@@ -193,7 +193,7 @@ export function CharacterBuilder() {
     
     const issues = []
     if (!currentBuild.race) issues.push('Race not selected')
-    if (!currentBuild.enhancedLevelTimeline || currentBuild.enhancedLevelTimeline.length === 0) issues.push('No class levels defined')
+    if (!(currentBuild.enhancedLevelTimeline || []).length) issues.push('No class levels defined')
     if (!buildName.trim()) issues.push('Build name required')
     
     // Check for concentration conflicts

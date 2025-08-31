@@ -276,7 +276,7 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
           }
           
           console.log('Successfully created character builder:', characterBuilder.name)
-          console.log('Enhanced level timeline length:', characterBuilder.enhancedLevelTimeline.length)
+          console.log('Enhanced level timeline length:', characterBuilder.enhancedLevelTimeline?.length || 0)
           
           state.currentBuild = characterBuilder
           state.isDirty = false
@@ -317,7 +317,7 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
         abilityMethod: currentBuild.abilityAssignmentMethod as any,
         abilityScores: currentBuild.finalAbilityScores || currentBuild.abilityScores,
         pointBuyLimit: currentBuild.pointBuyConfig.totalPoints,
-        levelTimeline: currentBuild.enhancedLevelTimeline.map(entry => ({
+        levelTimeline: (currentBuild.enhancedLevelTimeline || []).map(entry => ({
           level: entry.level,
           classId: entry.classId,
           subclassId: entry.subclassId,
@@ -522,7 +522,7 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
           }
           
           // Add ASI increases from all level progression (both regular ASIs and half-feats)
-          state.currentBuild.enhancedLevelTimeline.forEach(entry => {
+          (state.currentBuild.enhancedLevelTimeline || []).forEach(entry => {
             if (entry.abilityIncreases) {
               Object.entries(entry.abilityIncreases).forEach(([ability, increase]) => {
                 if (increase && typeof increase === 'number') {
@@ -538,7 +538,7 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
           
           console.log('Recalculated all ability scores:', finalScores)
           console.log('Base scores:', state.currentBuild.baseAbilityScores)
-          console.log('ASI/Half-feat entries found:', state.currentBuild.enhancedLevelTimeline.filter(e => e.abilityIncreases).map(e => ({ 
+          console.log('ASI/Half-feat entries found:', (state.currentBuild.enhancedLevelTimeline || []).filter(e => e.abilityIncreases).map(e => ({ 
             level: e.level, 
             type: e.asiOrFeat, 
             featId: e.featId,
@@ -582,6 +582,9 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
               validationErrors: []
             }
             
+            if (!state.currentBuild.enhancedLevelTimeline) {
+              state.currentBuild.enhancedLevelTimeline = []
+            }
             state.currentBuild.enhancedLevelTimeline.push(newEntry)
             // Sort by creating a new array to avoid readonly property errors
             state.currentBuild.enhancedLevelTimeline = [...state.currentBuild.enhancedLevelTimeline].sort((a, b) => a.level - b.level)
@@ -592,7 +595,7 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
             }
             
             // Update legacy levelTimeline for compatibility
-            state.currentBuild.levelTimeline = state.currentBuild.enhancedLevelTimeline.map(entry => ({
+            state.currentBuild.levelTimeline = (state.currentBuild.enhancedLevelTimeline || []).map(entry => ({
               level: entry.level,
               classId: entry.classId,
               subclassId: entry.subclassId,
@@ -609,7 +612,7 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
             state.isDirty = true
             validateStep(state, 'class-progression')
             
-            console.log('Successfully added level. Total levels:', state.currentBuild.enhancedLevelTimeline.length)
+            console.log('Successfully added level. Total levels:', state.currentBuild.enhancedLevelTimeline?.length || 0)
           }
         } catch (error) {
           console.error('Error in addLevel:', error)
@@ -622,7 +625,7 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
       console.log('updateLevel called in store:', { level, updates })
       set((state) => {
         if (state.currentBuild) {
-          const entry = state.currentBuild.enhancedLevelTimeline.find(e => e.level === level)
+          const entry = (state.currentBuild.enhancedLevelTimeline || []).find(e => e.level === level)
           if (entry) {
             console.log('Found entry before update:', entry)
             Object.assign(entry, updates)
@@ -700,7 +703,7 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
         validateStep(state, 'class-progression')
         
         console.log(`Level ${level} removed successfully. Remaining levels:`, 
-          state.currentBuild.enhancedLevelTimeline.map(e => `L${e.level} ${e.classId}`))
+          (state.currentBuild.enhancedLevelTimeline || []).map(e => `L${e.level} ${e.classId}`))
       })
     },
     
@@ -983,7 +986,7 @@ function validateRaceBackground(build: CharacterBuilder): boolean {
 
 function validateClassProgression(build: CharacterBuilder): boolean {
   // Must have at least level 1
-  return build.enhancedLevelTimeline.length > 0
+  return (build.enhancedLevelTimeline || []).length > 0
 }
 
 function validateEquipment(_build: CharacterBuilder): boolean {
