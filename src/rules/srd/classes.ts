@@ -310,6 +310,14 @@ const rogueFeatures: Record<number, Feature[]> = {
       source: 'Rogue 5'
     }
   ],
+  6: [
+    {
+      id: 'expertise_rogue_6',
+      name: 'Expertise',
+      description: 'Choose two more of your skill proficiencies. Your proficiency bonus is doubled for any ability check you make that uses either of the chosen proficiencies.',
+      source: 'Rogue 6'
+    }
+  ],
   7: [
     {
       id: 'sneak_attack_4d6',
@@ -341,6 +349,15 @@ const rogueFeatures: Record<number, Feature[]> = {
       description: 'Your Sneak Attack damage increases to 5d6.',
       source: 'Rogue 9',
       rulesKey: 'sneak_attack_5d6'
+    }
+  ],
+  10: [
+    {
+      id: 'roguish_archetype_feature_10',
+      name: 'Roguish Archetype Feature',
+      description: 'You gain a feature granted by your Roguish Archetype.',
+      source: 'Rogue 10',
+      rulesKey: 'archetype_feature'
     }
   ],
   11: [
@@ -376,6 +393,15 @@ const rogueFeatures: Record<number, Feature[]> = {
       rulesKey: 'sneak_attack_7d6'
     }
   ],
+  14: [
+    {
+      id: 'roguish_archetype_feature_14',
+      name: 'Roguish Archetype Feature',
+      description: 'You gain a feature granted by your Roguish Archetype.',
+      source: 'Rogue 14',
+      rulesKey: 'archetype_feature'
+    }
+  ],
   15: [
     {
       id: 'sneak_attack_8d6',
@@ -407,6 +433,14 @@ const rogueFeatures: Record<number, Feature[]> = {
       description: 'Your Sneak Attack damage increases to 9d6.',
       source: 'Rogue 17',
       rulesKey: 'sneak_attack_9d6'
+    }
+  ],
+  18: [
+    {
+      id: 'elusive',
+      name: 'Elusive',
+      description: 'No attack roll has advantage against you while you aren\'t incapacitated.',
+      source: 'Rogue 18'
     }
   ],
   19: [
@@ -461,6 +495,14 @@ const wizardFeatures: Record<number, Feature[]> = {
       rulesKey: 'archetype'
     }
   ],
+  3: [
+    {
+      id: 'cantrip_formulas',
+      name: 'Cantrip Formulas',
+      description: 'You have scribed a set of arcane formulas in your spellbook that you can use to formulate a cantrip in your mind.',
+      source: 'Wizard 3'
+    }
+  ],
   4: [
     {
       id: 'asi_wizard_4',
@@ -468,6 +510,31 @@ const wizardFeatures: Record<number, Feature[]> = {
       description: 'You can increase one ability score by 2, or two ability scores by 1 each, or take a feat.',
       source: 'Wizard 4',
       rulesKey: 'asi'
+    }
+  ],
+  5: [
+    {
+      id: 'third_level_spells',
+      name: '3rd-level Spells',
+      description: 'You can now prepare and cast 3rd-level wizard spells.',
+      source: 'Wizard 5'
+    }
+  ],
+  6: [
+    {
+      id: 'arcane_tradition_feature_6',
+      name: 'Arcane Tradition Feature',
+      description: 'You gain a feature granted by your Arcane Tradition.',
+      source: 'Wizard 6',
+      rulesKey: 'archetype_feature'
+    }
+  ],
+  7: [
+    {
+      id: 'fourth_level_spells',
+      name: '4th-level Spells',
+      description: 'You can now prepare and cast 4th-level wizard spells.',
+      source: 'Wizard 7'
     }
   ],
   8: [
@@ -479,6 +546,31 @@ const wizardFeatures: Record<number, Feature[]> = {
       rulesKey: 'asi'
     }
   ],
+  9: [
+    {
+      id: 'fifth_level_spells',
+      name: '5th-level Spells',
+      description: 'You can now prepare and cast 5th-level wizard spells.',
+      source: 'Wizard 9'
+    }
+  ],
+  10: [
+    {
+      id: 'arcane_tradition_feature_10',
+      name: 'Arcane Tradition Feature',
+      description: 'You gain a feature granted by your Arcane Tradition.',
+      source: 'Wizard 10',
+      rulesKey: 'archetype_feature'
+    }
+  ],
+  11: [
+    {
+      id: 'sixth_level_spells',
+      name: '6th-level Spells',
+      description: 'You can now prepare and cast 6th-level wizard spells.',
+      source: 'Wizard 11'
+    }
+  ],
   12: [
     {
       id: 'asi_wizard_12',
@@ -488,6 +580,31 @@ const wizardFeatures: Record<number, Feature[]> = {
       rulesKey: 'asi'
     }
   ],
+  13: [
+    {
+      id: 'seventh_level_spells',
+      name: '7th-level Spells',
+      description: 'You can now prepare and cast 7th-level wizard spells.',
+      source: 'Wizard 13'
+    }
+  ],
+  14: [
+    {
+      id: 'arcane_tradition_feature_14',
+      name: 'Arcane Tradition Feature',
+      description: 'You gain a feature granted by your Arcane Tradition.',
+      source: 'Wizard 14',
+      rulesKey: 'archetype_feature'
+    }
+  ],
+  15: [
+    {
+      id: 'eighth_level_spells',
+      name: '8th-level Spells',
+      description: 'You can now prepare and cast 8th-level wizard spells.',
+      source: 'Wizard 15'
+    }
+  ],
   16: [
     {
       id: 'asi_wizard_16',
@@ -495,6 +612,14 @@ const wizardFeatures: Record<number, Feature[]> = {
       description: 'You can increase one ability score by 2, or two ability scores by 1 each, or take a feat.',
       source: 'Wizard 16',
       rulesKey: 'asi'
+    }
+  ],
+  17: [
+    {
+      id: 'ninth_level_spells',
+      name: '9th-level Spells',
+      description: 'You can now prepare and cast 9th-level wizard spells, the pinnacle of arcane magic.',
+      source: 'Wizard 17'
     }
   ],
   18: [
@@ -520,6 +645,216 @@ const wizardFeatures: Record<number, Feature[]> = {
       name: 'Signature Spells',
       description: 'Choose two 3rd-level wizard spells. You always have these spells prepared and can cast each once without expending a spell slot.',
       source: 'Wizard 20'
+    }
+  ]
+}
+
+// Artificer Class
+const artificerFeatures: Record<number, Feature[]> = {
+  1: [
+    {
+      id: 'magical_tinkering',
+      name: 'Magical Tinkering',
+      description: 'You have learned how to invest a spark of magic into mundane objects. You can imbue tiny objects with minor magical properties.',
+      source: 'Artificer 1'
+    },
+    {
+      id: 'spellcasting_artificer',
+      name: 'Spellcasting',
+      description: 'You have studied the workings of magic and how to channel it through objects. You know two cantrips and can prepare spells.',
+      source: 'Artificer 1',
+      rulesKey: 'spellcasting'
+    }
+  ],
+  2: [
+    {
+      id: 'infuse_item',
+      name: 'Infuse Item',
+      description: 'You have learned how to imbue mundane items with certain magical infusions. You know 4 infusions and can infuse 2 items.',
+      source: 'Artificer 2'
+    }
+  ],
+  3: [
+    {
+      id: 'artificer_specialist',
+      name: 'Artificer Specialist',
+      description: 'Choose an Artificer Specialist, which grants you features at 3rd, 5th, 9th, and 15th level.',
+      source: 'Artificer 3',
+      rulesKey: 'archetype'
+    },
+    {
+      id: 'right_tool_for_job',
+      name: 'The Right Tool for the Job',
+      description: 'With thieves\' tools or artisan\'s tools in hand, you can magically create one set of artisan\'s tools in an unoccupied space.',
+      source: 'Artificer 3'
+    }
+  ],
+  4: [
+    {
+      id: 'asi_artificer_4',
+      name: 'Ability Score Improvement',
+      description: 'You can increase one ability score by 2, or two ability scores by 1 each, or take a feat.',
+      source: 'Artificer 4',
+      rulesKey: 'asi'
+    }
+  ],
+  5: [
+    {
+      id: 'artificer_specialist_feature_5',
+      name: 'Artificer Specialist Feature',
+      description: 'You gain a feature granted by your Artificer Specialist.',
+      source: 'Artificer 5',
+      rulesKey: 'archetype_feature'
+    }
+  ],
+  6: [
+    {
+      id: 'tool_expertise',
+      name: 'Tool Expertise',
+      description: 'Your proficiency bonus is doubled for any ability check you make that uses your proficiency with a tool.',
+      source: 'Artificer 6'
+    },
+    {
+      id: 'infuse_item_improvement_6',
+      name: 'Infuse Item',
+      description: 'You can now infuse 3 items and know 6 infusions.',
+      source: 'Artificer 6'
+    }
+  ],
+  7: [
+    {
+      id: 'flash_of_genius',
+      name: 'Flash of Genius',
+      description: 'When you or another creature you can see makes an ability check or saving throw, you can add your Intelligence modifier to the roll.',
+      source: 'Artificer 7'
+    }
+  ],
+  8: [
+    {
+      id: 'asi_artificer_8',
+      name: 'Ability Score Improvement',
+      description: 'You can increase one ability score by 2, or two ability scores by 1 each, or take a feat.',
+      source: 'Artificer 8',
+      rulesKey: 'asi'
+    }
+  ],
+  9: [
+    {
+      id: 'artificer_specialist_feature_9',
+      name: 'Artificer Specialist Feature',
+      description: 'You gain a feature granted by your Artificer Specialist.',
+      source: 'Artificer 9',
+      rulesKey: 'archetype_feature'
+    }
+  ],
+  10: [
+    {
+      id: 'infuse_item_improvement_10',
+      name: 'Infuse Item',
+      description: 'You can now infuse 4 items and know 8 infusions.',
+      source: 'Artificer 10'
+    },
+    {
+      id: 'magic_item_adept',
+      name: 'Magic Item Adept',
+      description: 'You can attune to up to 4 magic items at once. You can craft magic items more efficiently.',
+      source: 'Artificer 10'
+    }
+  ],
+  11: [
+    {
+      id: 'spell_storing_item',
+      name: 'Spell-Storing Item',
+      description: 'You can store a spell in an object. A creature can use its action to produce the spell\'s effect from the object.',
+      source: 'Artificer 11'
+    }
+  ],
+  12: [
+    {
+      id: 'asi_artificer_12',
+      name: 'Ability Score Improvement',
+      description: 'You can increase one ability score by 2, or two ability scores by 1 each, or take a feat.',
+      source: 'Artificer 12',
+      rulesKey: 'asi'
+    }
+  ],
+  13: [
+    {
+      id: 'fourth_level_spells_artificer',
+      name: '4th-level Spells',
+      description: 'You can now prepare and cast 4th-level artificer spells.',
+      source: 'Artificer 13'
+    }
+  ],
+  14: [
+    {
+      id: 'infuse_item_improvement_14',
+      name: 'Infuse Item',
+      description: 'You can now infuse 5 items and know 10 infusions.',
+      source: 'Artificer 14'
+    },
+    {
+      id: 'magic_item_savant',
+      name: 'Magic Item Savant',
+      description: 'You can attune to up to 5 magic items at once. You ignore all class, race, and level requirements on the use of magic items.',
+      source: 'Artificer 14'
+    }
+  ],
+  15: [
+    {
+      id: 'artificer_specialist_feature_15',
+      name: 'Artificer Specialist Feature',
+      description: 'You gain a feature granted by your Artificer Specialist.',
+      source: 'Artificer 15',
+      rulesKey: 'archetype_feature'
+    }
+  ],
+  16: [
+    {
+      id: 'asi_artificer_16',
+      name: 'Ability Score Improvement',
+      description: 'You can increase one ability score by 2, or two ability scores by 1 each, or take a feat.',
+      source: 'Artificer 16',
+      rulesKey: 'asi'
+    }
+  ],
+  17: [
+    {
+      id: 'fifth_level_spells_artificer',
+      name: '5th-level Spells',
+      description: 'You can now prepare and cast 5th-level artificer spells.',
+      source: 'Artificer 17'
+    }
+  ],
+  18: [
+    {
+      id: 'infuse_item_improvement_18',
+      name: 'Infuse Item',
+      description: 'You can now infuse 6 items and know 12 infusions.',
+      source: 'Artificer 18'
+    },
+    {
+      id: 'magic_item_master',
+      name: 'Magic Item Master',
+      description: 'You can attune to up to 6 magic items at once.',
+      source: 'Artificer 18'
+    }
+  ],
+  19: [
+    {
+      id: 'asi_artificer_19',
+      name: 'Ability Score Improvement',
+      description: 'You can increase one ability score by 2, or two ability scores by 1 each, or take a feat.',
+      source: 'Artificer 19',
+      rulesKey: 'asi'
+    }
+  ],
+  20: [
+    {
+      id: 'soul_of_artifice',
+      name: 'Soul of Artifice',
+      description: 'You have developed a mystical connection to your magic items. You gain a +1 bonus to all saving throws per magic item you are attuned to.',
+      source: 'Artificer 20'
     }
   ]
 }
@@ -550,6 +885,14 @@ const clericFeatures: Record<number, Feature[]> = {
       source: 'Cleric 2'
     }
   ],
+  3: [
+    {
+      id: 'third_level_spells_cleric',
+      name: '3rd-level Spells',
+      description: 'You can now prepare and cast 3rd-level cleric spells.',
+      source: 'Cleric 3'
+    }
+  ],
   4: [
     {
       id: 'asi_cleric_4',
@@ -567,6 +910,29 @@ const clericFeatures: Record<number, Feature[]> = {
       source: 'Cleric 5'
     }
   ],
+  6: [
+    {
+      id: 'channel_divinity_2',
+      name: 'Channel Divinity (2/Rest)',
+      description: 'You can use your Channel Divinity twice between rests.',
+      source: 'Cleric 6'
+    },
+    {
+      id: 'divine_domain_feature_6',
+      name: 'Divine Domain Feature',
+      description: 'You gain a feature granted by your Divine Domain.',
+      source: 'Cleric 6',
+      rulesKey: 'archetype_feature'
+    }
+  ],
+  7: [
+    {
+      id: 'fourth_level_spells_cleric',
+      name: '4th-level Spells',
+      description: 'You can now prepare and cast 4th-level cleric spells.',
+      source: 'Cleric 7'
+    }
+  ],
   8: [
     {
       id: 'asi_cleric_8',
@@ -576,12 +942,28 @@ const clericFeatures: Record<number, Feature[]> = {
       rulesKey: 'asi'
     }
   ],
+  9: [
+    {
+      id: 'fifth_level_spells_cleric',
+      name: '5th-level Spells',
+      description: 'You can now prepare and cast 5th-level cleric spells.',
+      source: 'Cleric 9'
+    }
+  ],
   10: [
     {
       id: 'divine_intervention',
       name: 'Divine Intervention',
       description: 'You can call on your deity to intervene on your behalf when your need is great.',
       source: 'Cleric 10'
+    }
+  ],
+  11: [
+    {
+      id: 'sixth_level_spells_cleric',
+      name: '6th-level Spells',
+      description: 'You can now prepare and cast 6th-level cleric spells.',
+      source: 'Cleric 11'
     }
   ],
   12: [
@@ -593,6 +975,30 @@ const clericFeatures: Record<number, Feature[]> = {
       rulesKey: 'asi'
     }
   ],
+  13: [
+    {
+      id: 'seventh_level_spells_cleric',
+      name: '7th-level Spells',
+      description: 'You can now prepare and cast 7th-level cleric spells.',
+      source: 'Cleric 13'
+    }
+  ],
+  14: [
+    {
+      id: 'destroy_undead_cr_3',
+      name: 'Destroy Undead (CR 3)',
+      description: 'When an undead fails its saving throw against your Turn Undead feature, it is instantly destroyed if its challenge rating is at or below 3.',
+      source: 'Cleric 14'
+    }
+  ],
+  15: [
+    {
+      id: 'eighth_level_spells_cleric',
+      name: '8th-level Spells',
+      description: 'You can now prepare and cast 8th-level cleric spells.',
+      source: 'Cleric 15'
+    }
+  ],
   16: [
     {
       id: 'asi_cleric_16',
@@ -600,6 +1006,35 @@ const clericFeatures: Record<number, Feature[]> = {
       description: 'You can increase one ability score by 2, or two ability scores by 1 each, or take a feat.',
       source: 'Cleric 16',
       rulesKey: 'asi'
+    }
+  ],
+  17: [
+    {
+      id: 'ninth_level_spells_cleric',
+      name: '9th-level Spells',
+      description: 'You can now prepare and cast 9th-level cleric spells, the pinnacle of divine magic.',
+      source: 'Cleric 17'
+    },
+    {
+      id: 'destroy_undead_cr_4',
+      name: 'Destroy Undead (CR 4)',
+      description: 'When an undead fails its saving throw against your Turn Undead feature, it is instantly destroyed if its challenge rating is at or below 4.',
+      source: 'Cleric 17'
+    }
+  ],
+  18: [
+    {
+      id: 'channel_divinity_3',
+      name: 'Channel Divinity (3/Rest)',
+      description: 'You can use your Channel Divinity three times between rests.',
+      source: 'Cleric 18'
+    },
+    {
+      id: 'divine_domain_feature_17',
+      name: 'Divine Domain Feature',
+      description: 'You gain a feature granted by your Divine Domain.',
+      source: 'Cleric 18',
+      rulesKey: 'archetype_feature'
     }
   ],
   19: [
@@ -685,6 +1120,15 @@ const barbarianFeatures: Record<number, Feature[]> = {
       source: 'Barbarian 5'
     }
   ],
+  6: [
+    {
+      id: 'primal_path_feature_6',
+      name: 'Primal Path Feature',
+      description: 'You gain a feature granted by your Primal Path.',
+      source: 'Barbarian 6',
+      rulesKey: 'archetype_feature'
+    }
+  ],
   7: [
     {
       id: 'feral_instinct',
@@ -710,6 +1154,15 @@ const barbarianFeatures: Record<number, Feature[]> = {
       source: 'Barbarian 9'
     }
   ],
+  10: [
+    {
+      id: 'primal_path_feature_10',
+      name: 'Primal Path Feature',
+      description: 'You gain a feature granted by your Primal Path.',
+      source: 'Barbarian 10',
+      rulesKey: 'archetype_feature'
+    }
+  ],
   11: [
     {
       id: 'relentless_rage',
@@ -727,6 +1180,23 @@ const barbarianFeatures: Record<number, Feature[]> = {
       rulesKey: 'asi'
     }
   ],
+  13: [
+    {
+      id: 'brutal_critical_2',
+      name: 'Brutal Critical',
+      description: 'You can roll two additional weapon damage dice when determining extra damage for a critical hit.',
+      source: 'Barbarian 13'
+    }
+  ],
+  14: [
+    {
+      id: 'primal_path_feature_14',
+      name: 'Primal Path Feature',
+      description: 'You gain a feature granted by your Primal Path.',
+      source: 'Barbarian 14',
+      rulesKey: 'archetype_feature'
+    }
+  ],
   15: [
     {
       id: 'persistent_rage',
@@ -742,6 +1212,14 @@ const barbarianFeatures: Record<number, Feature[]> = {
       description: 'You can increase one ability score by 2, or two ability scores by 1 each, or take a feat.',
       source: 'Barbarian 16',
       rulesKey: 'asi'
+    }
+  ],
+  17: [
+    {
+      id: 'brutal_critical_3',
+      name: 'Brutal Critical',
+      description: 'You can roll three additional weapon damage dice when determining extra damage for a critical hit.',
+      source: 'Barbarian 17'
     }
   ],
   18: [
@@ -846,6 +1324,22 @@ const bardFeatures: Record<number, Feature[]> = {
       name: 'Countercharm',
       description: 'You gain the ability to use musical notes or words of power to disrupt mind-influencing effects.',
       source: 'Bard 6'
+    },
+    {
+      id: 'bard_college_feature_6',
+      name: 'Bard College Feature',
+      description: 'You gain a feature granted by your Bard College.',
+      source: 'Bard 6',
+      rulesKey: 'archetype_feature'
+    }
+  ],
+  7: [
+    {
+      id: 'bard_college_feature_7',
+      name: 'Bard College Feature',
+      description: 'You gain a feature granted by your Bard College.',
+      source: 'Bard 7',
+      rulesKey: 'archetype_feature'
     }
   ],
   8: [
@@ -855,6 +1349,14 @@ const bardFeatures: Record<number, Feature[]> = {
       description: 'You can increase one ability score by 2, or two ability scores by 1 each, or take a feat.',
       source: 'Bard 8',
       rulesKey: 'asi'
+    }
+  ],
+  9: [
+    {
+      id: 'song_of_rest_d8',
+      name: 'Song of Rest (d8)',
+      description: 'Your Song of Rest die changes to a d8.',
+      source: 'Bard 9'
     }
   ],
   10: [
@@ -871,6 +1373,14 @@ const bardFeatures: Record<number, Feature[]> = {
       source: 'Bard 10'
     }
   ],
+  11: [
+    {
+      id: 'magical_secrets_11',
+      name: 'Magical Secrets',
+      description: 'Choose two more spells from any class.',
+      source: 'Bard 11'
+    }
+  ],
   12: [
     {
       id: 'asi_bard_12',
@@ -878,6 +1388,29 @@ const bardFeatures: Record<number, Feature[]> = {
       description: 'You can increase one ability score by 2, or two ability scores by 1 each, or take a feat.',
       source: 'Bard 12',
       rulesKey: 'asi'
+    }
+  ],
+  13: [
+    {
+      id: 'song_of_rest_d10',
+      name: 'Song of Rest (d10)',
+      description: 'Your Song of Rest die changes to a d10.',
+      source: 'Bard 13'
+    }
+  ],
+  14: [
+    {
+      id: 'magical_secrets_14',
+      name: 'Magical Secrets',
+      description: 'Choose two more spells from any class.',
+      source: 'Bard 14'
+    },
+    {
+      id: 'bard_college_feature_14',
+      name: 'Bard College Feature',
+      description: 'You gain a feature granted by your Bard College.',
+      source: 'Bard 14',
+      rulesKey: 'archetype_feature'
     }
   ],
   15: [
@@ -895,6 +1428,14 @@ const bardFeatures: Record<number, Feature[]> = {
       description: 'You can increase one ability score by 2, or two ability scores by 1 each, or take a feat.',
       source: 'Bard 16',
       rulesKey: 'asi'
+    }
+  ],
+  17: [
+    {
+      id: 'song_of_rest_d12',
+      name: 'Song of Rest (d12)',
+      description: 'Your Song of Rest die changes to a d12.',
+      source: 'Bard 17'
     }
   ],
   18: [
@@ -1004,6 +1545,15 @@ const paladinFeatures: Record<number, Feature[]> = {
       source: 'Paladin 6'
     }
   ],
+  7: [
+    {
+      id: 'sacred_oath_feature_7',
+      name: 'Sacred Oath Feature',
+      description: 'You gain a feature granted by your Sacred Oath.',
+      source: 'Paladin 7',
+      rulesKey: 'archetype_feature'
+    }
+  ],
   8: [
     {
       id: 'asi_paladin_8',
@@ -1011,6 +1561,14 @@ const paladinFeatures: Record<number, Feature[]> = {
       description: 'You can increase one ability score by 2, or two ability scores by 1 each, or take a feat.',
       source: 'Paladin 8',
       rulesKey: 'asi'
+    }
+  ],
+  9: [
+    {
+      id: 'third_level_spells_paladin',
+      name: '3rd-level Spells',
+      description: 'You can now prepare and cast 3rd-level paladin spells.',
+      source: 'Paladin 9'
     }
   ],
   10: [
@@ -1038,12 +1596,29 @@ const paladinFeatures: Record<number, Feature[]> = {
       rulesKey: 'asi'
     }
   ],
+  13: [
+    {
+      id: 'fourth_level_spells_paladin',
+      name: '4th-level Spells',
+      description: 'You can now prepare and cast 4th-level paladin spells.',
+      source: 'Paladin 13'
+    }
+  ],
   14: [
     {
       id: 'cleansing_touch',
       name: 'Cleansing Touch',
       description: 'You can use your action to end one spell on yourself or on one willing creature that you touch.',
       source: 'Paladin 14'
+    }
+  ],
+  15: [
+    {
+      id: 'sacred_oath_feature_15',
+      name: 'Sacred Oath Feature',
+      description: 'You gain a feature granted by your Sacred Oath.',
+      source: 'Paladin 15',
+      rulesKey: 'archetype_feature'
     }
   ],
   16: [
@@ -1053,6 +1628,14 @@ const paladinFeatures: Record<number, Feature[]> = {
       description: 'You can increase one ability score by 2, or two ability scores by 1 each, or take a feat.',
       source: 'Paladin 16',
       rulesKey: 'asi'
+    }
+  ],
+  17: [
+    {
+      id: 'fifth_level_spells_paladin',
+      name: '5th-level Spells',
+      description: 'You can now prepare and cast 5th-level paladin spells.',
+      source: 'Paladin 17'
     }
   ],
   18: [
@@ -1147,6 +1730,29 @@ const rangerFeatures: Record<number, Feature[]> = {
       rulesKey: 'extra_attack'
     }
   ],
+  6: [
+    {
+      id: 'favored_enemy_improvement',
+      name: 'Favored Enemy Improvement',
+      description: 'You choose one additional favored enemy, as well as an associated language.',
+      source: 'Ranger 6'
+    },
+    {
+      id: 'natural_explorer_improvement',
+      name: 'Natural Explorer Improvement',
+      description: 'You choose one additional favored terrain.',
+      source: 'Ranger 6'
+    }
+  ],
+  7: [
+    {
+      id: 'ranger_conclave_feature_7',
+      name: 'Ranger Conclave Feature',
+      description: 'You gain a feature granted by your Ranger Conclave.',
+      source: 'Ranger 7',
+      rulesKey: 'archetype_feature'
+    }
+  ],
   8: [
     {
       id: 'asi_ranger_8',
@@ -1162,12 +1768,29 @@ const rangerFeatures: Record<number, Feature[]> = {
       source: 'Ranger 8'
     }
   ],
+  9: [
+    {
+      id: 'third_level_spells_ranger',
+      name: '3rd-level Spells',
+      description: 'You can now prepare and cast 3rd-level ranger spells.',
+      source: 'Ranger 9'
+    }
+  ],
   10: [
     {
       id: 'hide_in_plain_sight',
       name: 'Hide in Plain Sight',
       description: 'You can spend 1 minute creating camouflage for yourself.',
       source: 'Ranger 10'
+    }
+  ],
+  11: [
+    {
+      id: 'ranger_conclave_feature_11',
+      name: 'Ranger Conclave Feature',
+      description: 'You gain a feature granted by your Ranger Conclave.',
+      source: 'Ranger 11',
+      rulesKey: 'archetype_feature'
     }
   ],
   12: [
@@ -1179,12 +1802,29 @@ const rangerFeatures: Record<number, Feature[]> = {
       rulesKey: 'asi'
     }
   ],
+  13: [
+    {
+      id: 'fourth_level_spells_ranger',
+      name: '4th-level Spells',
+      description: 'You can now prepare and cast 4th-level ranger spells.',
+      source: 'Ranger 13'
+    }
+  ],
   14: [
     {
       id: 'vanish',
       name: 'Vanish',
       description: 'You can use the Hide action as a bonus action.',
       source: 'Ranger 14'
+    }
+  ],
+  15: [
+    {
+      id: 'ranger_conclave_feature_15',
+      name: 'Ranger Conclave Feature',
+      description: 'You gain a feature granted by your Ranger Conclave.',
+      source: 'Ranger 15',
+      rulesKey: 'archetype_feature'
     }
   ],
   16: [
@@ -1194,6 +1834,14 @@ const rangerFeatures: Record<number, Feature[]> = {
       description: 'You can increase one ability score by 2, or two ability scores by 1 each, or take a feat.',
       source: 'Ranger 16',
       rulesKey: 'asi'
+    }
+  ],
+  17: [
+    {
+      id: 'fifth_level_spells_ranger',
+      name: '5th-level Spells',
+      description: 'You can now prepare and cast 5th-level ranger spells.',
+      source: 'Ranger 17'
     }
   ],
   18: [
@@ -1266,6 +1914,31 @@ const sorcererFeatures: Record<number, Feature[]> = {
       rulesKey: 'asi'
     }
   ],
+  5: [
+    {
+      id: 'third_level_spells_sorcerer',
+      name: '3rd-level Spells',
+      description: 'You can now learn and cast 3rd-level sorcerer spells.',
+      source: 'Sorcerer 5'
+    }
+  ],
+  6: [
+    {
+      id: 'sorcerous_origin_feature_6',
+      name: 'Sorcerous Origin Feature',
+      description: 'You gain a feature granted by your Sorcerous Origin.',
+      source: 'Sorcerer 6',
+      rulesKey: 'archetype_feature'
+    }
+  ],
+  7: [
+    {
+      id: 'fourth_level_spells_sorcerer',
+      name: '4th-level Spells',
+      description: 'You can now learn and cast 4th-level sorcerer spells.',
+      source: 'Sorcerer 7'
+    }
+  ],
   8: [
     {
       id: 'asi_sorcerer_8',
@@ -1273,6 +1946,14 @@ const sorcererFeatures: Record<number, Feature[]> = {
       description: 'You can increase one ability score by 2, or two ability scores by 1 each, or take a feat.',
       source: 'Sorcerer 8',
       rulesKey: 'asi'
+    }
+  ],
+  9: [
+    {
+      id: 'fifth_level_spells_sorcerer',
+      name: '5th-level Spells',
+      description: 'You can now learn and cast 5th-level sorcerer spells.',
+      source: 'Sorcerer 9'
     }
   ],
   10: [
@@ -1283,6 +1964,14 @@ const sorcererFeatures: Record<number, Feature[]> = {
       source: 'Sorcerer 10'
     }
   ],
+  11: [
+    {
+      id: 'sixth_level_spells_sorcerer',
+      name: '6th-level Spells',
+      description: 'You can now learn and cast 6th-level sorcerer spells.',
+      source: 'Sorcerer 11'
+    }
+  ],
   12: [
     {
       id: 'asi_sorcerer_12',
@@ -1290,6 +1979,31 @@ const sorcererFeatures: Record<number, Feature[]> = {
       description: 'You can increase one ability score by 2, or two ability scores by 1 each, or take a feat.',
       source: 'Sorcerer 12',
       rulesKey: 'asi'
+    }
+  ],
+  13: [
+    {
+      id: 'seventh_level_spells_sorcerer',
+      name: '7th-level Spells',
+      description: 'You can now learn and cast 7th-level sorcerer spells.',
+      source: 'Sorcerer 13'
+    }
+  ],
+  14: [
+    {
+      id: 'sorcerous_origin_feature_14',
+      name: 'Sorcerous Origin Feature',
+      description: 'You gain a feature granted by your Sorcerous Origin.',
+      source: 'Sorcerer 14',
+      rulesKey: 'archetype_feature'
+    }
+  ],
+  15: [
+    {
+      id: 'eighth_level_spells_sorcerer',
+      name: '8th-level Spells',
+      description: 'You can now learn and cast 8th-level sorcerer spells.',
+      source: 'Sorcerer 15'
     }
   ],
   16: [
@@ -1307,6 +2021,15 @@ const sorcererFeatures: Record<number, Feature[]> = {
       name: 'Metamagic',
       description: 'You learn another metamagic option.',
       source: 'Sorcerer 17'
+    }
+  ],
+  18: [
+    {
+      id: 'sorcerous_origin_feature_18',
+      name: 'Sorcerous Origin Feature',
+      description: 'You gain a feature granted by your Sorcerous Origin.',
+      source: 'Sorcerer 18',
+      rulesKey: 'archetype_feature'
     }
   ],
   19: [
@@ -1371,6 +2094,31 @@ const warlockFeatures: Record<number, Feature[]> = {
       rulesKey: 'asi'
     }
   ],
+  5: [
+    {
+      id: 'third_level_spells_warlock',
+      name: '3rd-level Spells',
+      description: 'Your Pact Magic lets you cast 3rd-level warlock spells using spell slots.',
+      source: 'Warlock 5'
+    }
+  ],
+  6: [
+    {
+      id: 'otherworldly_patron_feature_6',
+      name: 'Otherworldly Patron Feature',
+      description: 'You gain a feature granted by your Otherworldly Patron.',
+      source: 'Warlock 6',
+      rulesKey: 'archetype_feature'
+    }
+  ],
+  7: [
+    {
+      id: 'fourth_level_spells_warlock',
+      name: '4th-level Spells',
+      description: 'Your Pact Magic lets you cast 4th-level warlock spells using spell slots.',
+      source: 'Warlock 7'
+    }
+  ],
   8: [
     {
       id: 'asi_warlock_8',
@@ -1378,6 +2126,23 @@ const warlockFeatures: Record<number, Feature[]> = {
       description: 'You can increase one ability score by 2, or two ability scores by 1 each, or take a feat.',
       source: 'Warlock 8',
       rulesKey: 'asi'
+    }
+  ],
+  9: [
+    {
+      id: 'fifth_level_spells_warlock',
+      name: '5th-level Spells',
+      description: 'Your Pact Magic lets you cast 5th-level warlock spells using spell slots.',
+      source: 'Warlock 9'
+    }
+  ],
+  10: [
+    {
+      id: 'otherworldly_patron_feature_10',
+      name: 'Otherworldly Patron Feature',
+      description: 'You gain a feature granted by your Otherworldly Patron.',
+      source: 'Warlock 10',
+      rulesKey: 'archetype_feature'
     }
   ],
   11: [
@@ -1405,6 +2170,15 @@ const warlockFeatures: Record<number, Feature[]> = {
       source: 'Warlock 13'
     }
   ],
+  14: [
+    {
+      id: 'otherworldly_patron_feature_14',
+      name: 'Otherworldly Patron Feature',
+      description: 'You gain a feature granted by your Otherworldly Patron.',
+      source: 'Warlock 14',
+      rulesKey: 'archetype_feature'
+    }
+  ],
   15: [
     {
       id: 'mystic_arcanum_8',
@@ -1428,6 +2202,14 @@ const warlockFeatures: Record<number, Feature[]> = {
       name: 'Mystic Arcanum (9th level)',
       description: 'Choose one 9th-level spell as an arcanum.',
       source: 'Warlock 17'
+    }
+  ],
+  18: [
+    {
+      id: 'eldritch_invocations_improvement',
+      name: 'Eldritch Invocations',
+      description: 'You learn additional eldritch invocations.',
+      source: 'Warlock 18'
     }
   ],
   19: [
@@ -1556,12 +2338,29 @@ const monkFeatures: Record<number, Feature[]> = {
       rulesKey: 'asi'
     }
   ],
+  9: [
+    {
+      id: 'unarmored_movement_improvement_9',
+      name: 'Unarmored Movement Improvement',
+      description: 'You can move along vertical surfaces and across liquids on your turn without falling during the move.',
+      source: 'Monk 9'
+    }
+  ],
   10: [
     {
       id: 'purity_of_body',
       name: 'Purity of Body',
       description: 'You are immune to disease and poison.',
       source: 'Monk 10'
+    }
+  ],
+  11: [
+    {
+      id: 'monastic_tradition_feature_11',
+      name: 'Monastic Tradition Feature',
+      description: 'You gain a feature granted by your Monastic Tradition.',
+      source: 'Monk 11',
+      rulesKey: 'archetype_feature'
     }
   ],
   12: [
@@ -1604,6 +2403,15 @@ const monkFeatures: Record<number, Feature[]> = {
       description: 'You can increase one ability score by 2, or two ability scores by 1 each, or take a feat.',
       source: 'Monk 16',
       rulesKey: 'asi'
+    }
+  ],
+  17: [
+    {
+      id: 'monastic_tradition_feature_17',
+      name: 'Monastic Tradition Feature',
+      description: 'You gain a feature granted by your Monastic Tradition.',
+      source: 'Monk 17',
+      rulesKey: 'archetype_feature'
     }
   ],
   18: [
@@ -1666,6 +2474,14 @@ const druidFeatures: Record<number, Feature[]> = {
       rulesKey: 'archetype'
     }
   ],
+  3: [
+    {
+      id: 'third_level_spells_druid',
+      name: '3rd-level Spells',
+      description: 'You can now prepare and cast 3rd-level druid spells.',
+      source: 'Druid 3'
+    }
+  ],
   4: [
     {
       id: 'wild_shape_improvement',
@@ -1679,6 +2495,31 @@ const druidFeatures: Record<number, Feature[]> = {
       description: 'You can increase one ability score by 2, or two ability scores by 1 each, or take a feat.',
       source: 'Druid 4',
       rulesKey: 'asi'
+    }
+  ],
+  5: [
+    {
+      id: 'fourth_level_spells_druid',
+      name: '4th-level Spells',
+      description: 'You can now prepare and cast 4th-level druid spells.',
+      source: 'Druid 5'
+    }
+  ],
+  6: [
+    {
+      id: 'druid_circle_feature_6',
+      name: 'Druid Circle Feature',
+      description: 'You gain a feature granted by your Druid Circle.',
+      source: 'Druid 6',
+      rulesKey: 'archetype_feature'
+    }
+  ],
+  7: [
+    {
+      id: 'fifth_level_spells_druid',
+      name: '5th-level Spells',
+      description: 'You can now prepare and cast 5th-level druid spells.',
+      source: 'Druid 7'
     }
   ],
   8: [
@@ -1696,6 +2537,31 @@ const druidFeatures: Record<number, Feature[]> = {
       rulesKey: 'asi'
     }
   ],
+  9: [
+    {
+      id: 'sixth_level_spells_druid',
+      name: '6th-level Spells',
+      description: 'You can now prepare and cast 6th-level druid spells.',
+      source: 'Druid 9'
+    }
+  ],
+  10: [
+    {
+      id: 'druid_circle_feature_10',
+      name: 'Druid Circle Feature',
+      description: 'You gain a feature granted by your Druid Circle.',
+      source: 'Druid 10',
+      rulesKey: 'archetype_feature'
+    }
+  ],
+  11: [
+    {
+      id: 'seventh_level_spells_druid',
+      name: '7th-level Spells',
+      description: 'You can now prepare and cast 7th-level druid spells.',
+      source: 'Druid 11'
+    }
+  ],
   12: [
     {
       id: 'asi_druid_12',
@@ -1705,6 +2571,31 @@ const druidFeatures: Record<number, Feature[]> = {
       rulesKey: 'asi'
     }
   ],
+  13: [
+    {
+      id: 'eighth_level_spells_druid',
+      name: '8th-level Spells',
+      description: 'You can now prepare and cast 8th-level druid spells.',
+      source: 'Druid 13'
+    }
+  ],
+  14: [
+    {
+      id: 'druid_circle_feature_14',
+      name: 'Druid Circle Feature',
+      description: 'You gain a feature granted by your Druid Circle.',
+      source: 'Druid 14',
+      rulesKey: 'archetype_feature'
+    }
+  ],
+  15: [
+    {
+      id: 'ninth_level_spells_druid',
+      name: '9th-level Spells',
+      description: 'You can now prepare and cast 9th-level druid spells, the pinnacle of druidic magic.',
+      source: 'Druid 15'
+    }
+  ],
   16: [
     {
       id: 'asi_druid_16',
@@ -1712,6 +2603,15 @@ const druidFeatures: Record<number, Feature[]> = {
       description: 'You can increase one ability score by 2, or two ability scores by 1 each, or take a feat.',
       source: 'Druid 16',
       rulesKey: 'asi'
+    }
+  ],
+  17: [
+    {
+      id: 'druid_circle_feature_17',
+      name: 'Druid Circle Feature',
+      description: 'You gain a feature granted by your Druid Circle.',
+      source: 'Druid 17',
+      rulesKey: 'archetype_feature'
     }
   ],
   18: [
@@ -1782,6 +2682,16 @@ export const classes: Record<string, ClassDefinition> = {
     skillChoices: ['Arcana', 'History', 'Insight', 'Investigation', 'Medicine', 'Religion'],
     skillChoiceCount: 2,
     features: wizardFeatures
+  },
+  artificer: {
+    id: 'artificer',
+    name: 'Artificer',
+    hitDie: 8,
+    primaryAbilities: ['INT'],
+    savingThrowProficiencies: ['CON', 'INT'],
+    skillChoices: ['Arcana', 'History', 'Investigation', 'Medicine', 'Nature', 'Perception', 'Sleight of Hand'],
+    skillChoiceCount: 2,
+    features: artificerFeatures
   },
   cleric: {
     id: 'cleric',
