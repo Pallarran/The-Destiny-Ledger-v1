@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { Panel, PanelHeader } from '../components/ui/panel'
 import { ChartFrame } from '../components/ui/chart-frame'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs'
@@ -37,6 +37,9 @@ export function DprLab() {
   const [manualBuildSelection, setManualBuildSelection] = useState(false)
   // Track if user has selected a vault build (to prevent auto-override)
   const [hasSelectedVaultBuild, setHasSelectedVaultBuild] = useState(false)
+  
+  // Ref to track if we're already in the process of calculating
+  const isAutoCalculatingRef = useRef(false)
   
   const [localConfig, setLocalConfig] = useState<{
     round0BuffsEnabled: boolean
@@ -108,29 +111,37 @@ export function DprLab() {
     } catch (error) {
       console.error('DPR calculation failed:', error)
     }
-  }, [selectedBuild, isInitialized, fixedConfig, localConfig, calculateDPRCurves, calculatePowerAttackBreakpoints, setResult, setCalculating, setBreakpoints])
+  }, [selectedBuild, isInitialized, fixedConfig, localConfig, calculateDPRCurves, calculatePowerAttackBreakpoints])
   
   // Auto-calculate DPR when build changes or when conditions are met
   useEffect(() => {
-    const autoCalculate = async () => {
-      if (selectedBuild && isInitialized && !isCalculating) {
-        await handleCalculate()
+    const triggerAutoCalculation = () => {
+      if (selectedBuild && isInitialized && !isCalculating && !isAutoCalculatingRef.current) {
+        isAutoCalculatingRef.current = true
+        handleCalculate().finally(() => {
+          isAutoCalculatingRef.current = false
+        })
       }
     }
     
-    autoCalculate()
-  }, [selectedBuild?.id, isInitialized, handleCalculate, isCalculating]) // Trigger when build changes or worker is ready
+    triggerAutoCalculation()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedBuild?.id, isInitialized, isCalculating]) // Only trigger when build ID changes or worker initializes
   
   // Auto-calculate when local config changes (but only if we have a selected build)
   useEffect(() => {
-    const autoCalculate = async () => {
-      if (selectedBuild && isInitialized && !isCalculating) {
-        await handleCalculate()
+    const triggerAutoCalculation = () => {
+      if (selectedBuild && isInitialized && !isCalculating && !isAutoCalculatingRef.current) {
+        isAutoCalculatingRef.current = true
+        handleCalculate().finally(() => {
+          isAutoCalculatingRef.current = false
+        })
       }
     }
     
-    autoCalculate()
-  }, [localConfig.round0BuffsEnabled, localConfig.greedyResourceUse, localConfig.autoGWMSS, selectedBuild, isInitialized, handleCalculate, isCalculating])
+    triggerAutoCalculation()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [localConfig.round0BuffsEnabled, localConfig.greedyResourceUse, localConfig.autoGWMSS, selectedBuild, isInitialized, isCalculating])
   
   // Transform data for chart
   const chartData = currentResult ? 
