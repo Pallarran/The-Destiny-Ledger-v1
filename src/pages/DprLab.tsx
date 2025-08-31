@@ -35,6 +35,8 @@ export function DprLab() {
   
   // Track when user manually wants to select a different build
   const [manualBuildSelection, setManualBuildSelection] = useState(false)
+  // Track if user has selected a vault build (to prevent auto-override)
+  const [hasSelectedVaultBuild, setHasSelectedVaultBuild] = useState(false)
   
   const [localConfig, setLocalConfig] = useState<{
     round0BuffsEnabled: boolean
@@ -64,15 +66,15 @@ export function DprLab() {
     }
   }, [selectedBuild, currentConfig, fixedConfig, localConfig, setConfiguration])
   
-  // Update selectedBuild when builderCurrentBuild changes (only if not manually selecting)
+  // Update selectedBuild when builderCurrentBuild changes (only if not manually selecting a vault build)
   useEffect(() => {
-    if (builderCurrentBuild && !manualBuildSelection) {
+    if (builderCurrentBuild && !manualBuildSelection && !hasSelectedVaultBuild) {
       const exportedBuild = exportToBuildConfiguration()
       if (exportedBuild && exportedBuild.id !== selectedBuild?.id) {
         setSelectedBuild(exportedBuild)
       }
     }
-  }, [builderCurrentBuild, exportToBuildConfiguration, selectedBuild?.id, manualBuildSelection])
+  }, [builderCurrentBuild, exportToBuildConfiguration, selectedBuild?.id, manualBuildSelection, hasSelectedVaultBuild])
   
   const handleCalculate = async () => {
     if (!selectedBuild || !isInitialized) return
@@ -165,6 +167,7 @@ export function DprLab() {
                   onClick={() => {
                     setSelectedBuild(null)
                     setManualBuildSelection(true)
+                    setHasSelectedVaultBuild(false) // Reset vault build selection
                   }}
                   className="px-3 py-1 text-sm bg-muted/10 hover:bg-muted/20 rounded transition-colors"
                 >
@@ -188,6 +191,7 @@ export function DprLab() {
                         if (exportedBuild) {
                           setSelectedBuild(exportedBuild)
                           setManualBuildSelection(false)
+                          setHasSelectedVaultBuild(false) // This is a builder build, not vault
                         }
                       }}
                       className="flex items-center gap-3 p-3 text-left bg-accent/10 hover:bg-accent/20 border border-accent/30 hover:border-accent/50 rounded-lg transition-colors group w-full"
@@ -215,7 +219,8 @@ export function DprLab() {
                           key={build.id}
                           onClick={() => {
                             setSelectedBuild(build)
-                            setManualBuildSelection(false)
+                            setManualBuildSelection(true) // Keep manual selection true for vault builds
+                            setHasSelectedVaultBuild(true) // Mark that user has selected a vault build
                           }}
                           className="flex items-center gap-3 p-3 text-left bg-panel/50 hover:bg-panel border border-border hover:border-accent/50 rounded-lg transition-colors group"
                         >
