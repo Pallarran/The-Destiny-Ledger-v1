@@ -108,10 +108,28 @@ export const useSettingsStore = create<SettingsState>()(
   }))
 )
 
-// Initialize theme on first load
+// Initialize settings from localStorage on first load
 if (typeof window !== 'undefined') {
-  const storedTheme = localStorage.getItem('theme') as AppSettings['theme'] | null
-  if (storedTheme) {
-    document.documentElement.setAttribute('data-theme', storedTheme)
+  try {
+    const storedSettings = localStorage.getItem('destinyLedgerSettings')
+    if (storedSettings) {
+      const parsedSettings = JSON.parse(storedSettings) as AppSettings
+      // Apply settings to the store
+      useSettingsStore.setState(parsedSettings)
+      // Apply theme to document
+      document.documentElement.setAttribute('data-theme', parsedSettings.theme)
+      // Apply reduced motion if needed
+      if (parsedSettings.reducedMotion) {
+        document.documentElement.classList.add('reduce-motion')
+      }
+    } else {
+      // If no stored settings, save defaults
+      localStorage.setItem('destinyLedgerSettings', JSON.stringify(defaultSettings))
+      document.documentElement.setAttribute('data-theme', defaultSettings.theme)
+    }
+  } catch (error) {
+    console.error('Failed to load settings from localStorage:', error)
+    // Fall back to defaults
+    document.documentElement.setAttribute('data-theme', defaultSettings.theme)
   }
 }

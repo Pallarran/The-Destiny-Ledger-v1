@@ -1,5 +1,12 @@
+import { useState, useEffect, useRef } from 'react'
 import { Panel, PanelHeader } from '../components/ui/panel'
 import { Button } from '../components/ui/button'
+import { Slider } from '../components/ui/slider'
+import { Switch } from '../components/ui/switch'
+import { Label } from '../components/ui/label'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select'
+import { useSettingsStore } from '../stores/settingsStore'
+import { useVaultStore } from '../stores/vaultStore'
 import { 
   Settings as SettingsIcon,
   Palette,
@@ -8,14 +15,195 @@ import {
   AlertTriangle,
   Download,
   Upload,
-  Trash2
+  Trash2,
+  CheckCircle,
+  Info
 } from 'lucide-react'
 
 export function Settings() {
+  const {
+    roleWeights,
+    defaultAbilityMethod,
+    defaultPointBuyLimit,
+    autoCalculateGWMSS,
+    greedyResourceUse,
+    theme,
+    reducedMotion,
+    showAdvancedTooltips,
+    updateRoleWeight,
+    updateDefaultAbilityMethod,
+    updateDefaultPointBuyLimit,
+    toggleAutoCalculateGWMSS,
+    toggleGreedyResourceUse,
+    setTheme,
+    toggleReducedMotion,
+    toggleAdvancedTooltips,
+    resetToDefaults
+  } = useSettingsStore()
+
+  const { builds, deleteBuild } = useVaultStore()
+  const [saveNotification, setSaveNotification] = useState(false)
+  const [resetConfirm, setResetConfirm] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // Show save notification when settings change
+  useEffect(() => {
+    setSaveNotification(true)
+    const timer = setTimeout(() => setSaveNotification(false), 2000)
+    return () => clearTimeout(timer)
+  }, [
+    roleWeights,
+    defaultAbilityMethod,
+    defaultPointBuyLimit,
+    autoCalculateGWMSS,
+    greedyResourceUse,
+    theme,
+    reducedMotion,
+    showAdvancedTooltips
+  ])
+
+  // Save settings to localStorage
+  useEffect(() => {
+    const settings = {
+      roleWeights,
+      defaultAbilityMethod,
+      defaultPointBuyLimit,
+      autoCalculateGWMSS,
+      greedyResourceUse,
+      theme,
+      reducedMotion,
+      showAdvancedTooltips
+    }
+    localStorage.setItem('destinyLedgerSettings', JSON.stringify(settings))
+  }, [
+    roleWeights,
+    defaultAbilityMethod,
+    defaultPointBuyLimit,
+    autoCalculateGWMSS,
+    greedyResourceUse,
+    theme,
+    reducedMotion,
+    showAdvancedTooltips
+  ])
+
+  const handleExportBuilds = () => {
+    const exportData = {
+      version: '1.0.0',
+      exportDate: new Date().toISOString(),
+      builds: builds,
+      settings: {
+        roleWeights,
+        defaultAbilityMethod,
+        defaultPointBuyLimit,
+        autoCalculateGWMSS,
+        greedyResourceUse,
+        theme,
+        reducedMotion,
+        showAdvancedTooltips
+      }
+    }
+    
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `destiny-ledger-backup-${new Date().toISOString().split('T')[0]}.json`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  }
+
+  const handleImportBuilds = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      try {
+        const importData = JSON.parse(e.target?.result as string)
+        
+        // Import builds
+        if (importData.builds && Array.isArray(importData.builds)) {
+          const vaultStore = useVaultStore.getState()
+          importData.builds.forEach((build: any) => {
+            // Check if build already exists
+            const existing = builds.find(b => b.id === build.id)
+            if (existing) {
+              vaultStore.updateBuild(build.id, build)
+            } else {
+              vaultStore.addBuild(build)
+            }
+          })
+        }
+
+        // Import settings if available
+        if (importData.settings) {
+          const settingsStore = useSettingsStore.getState()
+          settingsStore.loadSettings(importData.settings)
+        }
+
+        alert(`Successfully imported ${importData.builds?.length || 0} builds and settings!`)
+      } catch (error) {
+        console.error('Import failed:', error)
+        alert('Failed to import file. Please check the file format.')
+      }
+    }
+    reader.readAsText(file)
+    
+    // Reset input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
+    }
+  }
+
+  const handleResetAllData = () => {
+    if (resetConfirm) {
+      // Clear all builds
+      builds.forEach(build => deleteBuild(build.id))
+      
+      // Reset settings
+      resetToDefaults()
+      
+      // Clear localStorage
+      localStorage.removeItem('destinyLedgerSettings')
+      localStorage.removeItem('vaultBuilds')
+      
+      setResetConfirm(false)
+      alert('All data has been reset successfully.')
+    } else {
+      setResetConfirm(true)
+      setTimeout(() => setResetConfirm(false), 5000)
+    }
+  }
+
+  const roleLabels = {
+    social: 'Social',
+    control: 'Control',
+    exploration: 'Exploration',
+    defense: 'Defense',
+    support: 'Support',
+    mobility: 'Mobility/Stealth'
+  }
+
+  const calculateStorageUsed = () => {
+    const stored = JSON.stringify(localStorage)
+    const sizeInBytes = new Blob([stored]).size
+    return (sizeInBytes / 1024).toFixed(2)
+  }
+
   return (
     <div className="space-y-6">
       <Panel>
         <PanelHeader title="SETTINGS" />
+        
+        {/* Save Notification */}
+        {saveNotification && (
+          <div className="fixed top-4 right-4 bg-green-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 z-50 animate-pulse">
+            <CheckCircle className="w-4 h-4" />
+            Settings saved
+          </div>
+        )}
         
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Non-DPR Weights */}
@@ -25,16 +213,29 @@ export function Settings() {
                 <BarChart3 className="w-5 h-5" />
                 Non-DPR Role Weights
               </h3>
+              <div className="p-3 bg-muted/30 rounded-lg text-xs text-muted-foreground mb-4">
+                <div className="flex items-start gap-2">
+                  <Info className="w-4 h-4 mt-0.5" />
+                  <p>Adjust how much weight to give to non-combat roles when evaluating builds.</p>
+                </div>
+              </div>
               <div className="space-y-4">
-                {['Social', 'Control', 'Exploration', 'Defense', 'Support', 'Mobility/Stealth'].map((role) => (
+                {Object.entries(roleWeights).map(([role, weight]) => (
                   <div key={role} className="space-y-2">
                     <div className="flex justify-between">
-                      <label className="text-sm font-medium">{role}</label>
-                      <span className="text-sm text-muted">1.0x</span>
+                      <label className="text-sm font-medium">
+                        {roleLabels[role as keyof typeof roleLabels]}
+                      </label>
+                      <span className="text-sm text-muted">{weight.toFixed(1)}x</span>
                     </div>
-                    <div className="w-full bg-border rounded-full h-2">
-                      <div className="bg-accent h-2 rounded-full w-1/2"></div>
-                    </div>
+                    <Slider
+                      value={[weight]}
+                      onValueChange={([value]) => updateRoleWeight(role as keyof typeof roleWeights, value)}
+                      max={2}
+                      min={0}
+                      step={0.1}
+                      className="w-full"
+                    />
                   </div>
                 ))}
               </div>
@@ -47,31 +248,55 @@ export function Settings() {
               </h3>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium mb-2">Default Ability Score Method</label>
-                  <select className="w-full p-2 border border-border rounded-md bg-transparent">
-                    <option>Point Buy</option>
-                    <option>Standard Array</option>
-                    <option>Manual Entry</option>
-                  </select>
+                  <Label htmlFor="ability-method">Default Ability Score Method</Label>
+                  <Select
+                    value={defaultAbilityMethod}
+                    onValueChange={(value: any) => updateDefaultAbilityMethod(value)}
+                  >
+                    <SelectTrigger id="ability-method">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="pointbuy">Point Buy</SelectItem>
+                      <SelectItem value="standard">Standard Array</SelectItem>
+                      <SelectItem value="manual">Manual Entry</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-2">Default Point Buy Limit</label>
+                  <Label htmlFor="point-buy-limit">Default Point Buy Limit</Label>
                   <input 
+                    id="point-buy-limit"
                     type="number" 
-                    defaultValue={27}
+                    value={defaultPointBuyLimit}
+                    onChange={(e) => updateDefaultPointBuyLimit(Number(e.target.value))}
+                    min={20}
+                    max={40}
                     className="w-full p-2 border border-border rounded-md bg-transparent"
                   />
                 </div>
 
                 <div className="flex items-center justify-between">
-                  <label className="text-sm font-medium">Auto-calculate SS/GWM thresholds</label>
-                  <input type="checkbox" defaultChecked className="rounded" />
+                  <Label htmlFor="auto-gwm" className="flex-1 cursor-pointer">
+                    Auto-calculate SS/GWM thresholds
+                  </Label>
+                  <Switch
+                    id="auto-gwm"
+                    checked={autoCalculateGWMSS}
+                    onCheckedChange={toggleAutoCalculateGWMSS}
+                  />
                 </div>
 
                 <div className="flex items-center justify-between">
-                  <label className="text-sm font-medium">Greedy resource usage by default</label>
-                  <input type="checkbox" defaultChecked className="rounded" />
+                  <Label htmlFor="greedy-resources" className="flex-1 cursor-pointer">
+                    Greedy resource usage by default
+                  </Label>
+                  <Switch
+                    id="greedy-resources"
+                    checked={greedyResourceUse}
+                    onCheckedChange={toggleGreedyResourceUse}
+                  />
                 </div>
               </div>
             </div>
@@ -86,22 +311,42 @@ export function Settings() {
               </h3>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium mb-2">Theme</label>
-                  <select className="w-full p-2 border border-border rounded-md bg-transparent">
-                    <option>Modern Fantasy (Default)</option>
-                    <option>Classic Dark</option>
-                    <option>High Contrast</option>
-                  </select>
+                  <Label htmlFor="theme">Theme</Label>
+                  <Select
+                    value={theme}
+                    onValueChange={(value: any) => setTheme(value)}
+                  >
+                    <SelectTrigger id="theme">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="modern-fantasy">Modern Fantasy (Default)</SelectItem>
+                      <SelectItem value="classic-dark">Classic Dark</SelectItem>
+                      <SelectItem value="high-contrast">High Contrast</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div className="flex items-center justify-between">
-                  <label className="text-sm font-medium">Reduced motion</label>
-                  <input type="checkbox" className="rounded" />
+                  <Label htmlFor="reduced-motion" className="flex-1 cursor-pointer">
+                    Reduced motion
+                  </Label>
+                  <Switch
+                    id="reduced-motion"
+                    checked={reducedMotion}
+                    onCheckedChange={toggleReducedMotion}
+                  />
                 </div>
 
                 <div className="flex items-center justify-between">
-                  <label className="text-sm font-medium">Show advanced tooltips</label>
-                  <input type="checkbox" defaultChecked className="rounded" />
+                  <Label htmlFor="advanced-tooltips" className="flex-1 cursor-pointer">
+                    Show advanced tooltips
+                  </Label>
+                  <Switch
+                    id="advanced-tooltips"
+                    checked={showAdvancedTooltips}
+                    onCheckedChange={toggleAdvancedTooltips}
+                  />
                 </div>
               </div>
             </div>
@@ -113,14 +358,21 @@ export function Settings() {
               </h3>
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
-                  <Button variant="outline">
+                  <Button variant="outline" onClick={handleExportBuilds}>
                     <Download className="w-4 h-4 mr-2" />
-                    Export Builds
+                    Export All Data
                   </Button>
-                  <Button variant="outline">
+                  <Button variant="outline" onClick={() => fileInputRef.current?.click()}>
                     <Upload className="w-4 h-4 mr-2" />
-                    Import Builds
+                    Import Data
                   </Button>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".json"
+                    onChange={handleImportBuilds}
+                    className="hidden"
+                  />
                 </div>
 
                 <div className="p-4 border border-danger/20 rounded-lg bg-danger/5">
@@ -129,11 +381,18 @@ export function Settings() {
                     <h4 className="font-medium text-danger">Danger Zone</h4>
                   </div>
                   <p className="text-sm text-muted mb-4">
-                    This will permanently delete all your saved builds and settings. This action cannot be undone.
+                    {resetConfirm 
+                      ? 'Are you sure? Click again to confirm deletion of ALL data.'
+                      : 'This will permanently delete all your saved builds and settings. This action cannot be undone.'
+                    }
                   </p>
-                  <Button variant="destructive">
+                  <Button 
+                    variant="destructive"
+                    onClick={handleResetAllData}
+                    className={resetConfirm ? 'animate-pulse' : ''}
+                  >
                     <Trash2 className="w-4 h-4 mr-2" />
-                    Reset All Data
+                    {resetConfirm ? 'Click to Confirm Reset' : 'Reset All Data'}
                   </Button>
                 </div>
               </div>
@@ -143,8 +402,8 @@ export function Settings() {
               <div className="text-sm text-muted space-y-1">
                 <p><strong>App Version:</strong> 1.0.0</p>
                 <p><strong>Ruleset Version:</strong> SRD 5.1</p>
-                <p><strong>Builds Stored:</strong> 3</p>
-                <p><strong>Storage Used:</strong> 2.3 KB / 5 MB</p>
+                <p><strong>Builds Stored:</strong> {builds.length}</p>
+                <p><strong>Storage Used:</strong> {calculateStorageUsed()} KB / 5 MB</p>
               </div>
             </div>
           </div>
