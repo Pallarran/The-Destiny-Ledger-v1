@@ -243,7 +243,7 @@ export function CharacterBuilder() {
       </div>
     )
   }
-  
+
   const { isValid, issues } = getValidationStatus()
 
   return (

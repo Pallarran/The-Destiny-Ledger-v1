@@ -24,8 +24,9 @@ export function BuildSummary() {
   }
   
   // Calculate basic stats
-  const totalLevel = Math.max(...currentBuild.enhancedLevelTimeline.map(l => l.level), 1)
-  const classBreakdown = currentBuild.enhancedLevelTimeline.reduce((acc, level) => {
+  const timeline = currentBuild.enhancedLevelTimeline || []
+  const totalLevel = timeline.length > 0 ? Math.max(...timeline.map(l => l.level), 1) : 1
+  const classBreakdown = timeline.reduce((acc, level) => {
     acc[level.classId] = (acc[level.classId] || 0) + 1
     return acc
   }, {} as Record<string, number>)
