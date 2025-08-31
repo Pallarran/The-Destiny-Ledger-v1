@@ -112,7 +112,8 @@ export function CharacterBuilder() {
       console.log('No existing build found - creating new build')
       createNewBuild()
     }
-  }, [currentBuild, storedBuild, createNewBuild, loadFromBuildConfiguration, searchParams])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentBuild, storedBuild, searchParams])
 
   // Update build info state when current build changes
   useEffect(() => {
