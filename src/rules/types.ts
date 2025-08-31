@@ -34,6 +34,8 @@ export interface Equipment {
   armor: string | null
   shield: boolean
   other: string[]
+  magicItems: string[] // IDs of equipped magic items
+  attunedItems: string[] // IDs of attuned magic items (subset of magicItems)
 }
 
 export interface CharacterBuild {
@@ -162,4 +164,29 @@ export interface Buff {
     additionalAttacks?: number
     onHitDamage?: DamageRoll[]
   }
+}
+
+export type MagicItemRarity = 'common' | 'uncommon' | 'rare' | 'very_rare' | 'legendary' | 'artifact'
+export type MagicItemCategory = 'weapon' | 'armor' | 'shield' | 'wondrous' | 'potion' | 'scroll' | 'ring' | 'rod' | 'staff' | 'wand'
+
+export interface MagicItemEffects {
+  acBonus?: number
+  attackBonus?: number
+  damageBonus?: number
+  rangedDamageBonus?: number
+  savingThrowBonus?: number
+  abilityScoreOverride?: Partial<AbilityScoreArray>
+  abilityScoreBonus?: Partial<AbilityScoreArray>
+  onHitDamage?: DamageRoll[]
+}
+
+export interface MagicItem {
+  id: string
+  name: string
+  rarity: MagicItemRarity
+  attunement: boolean
+  description: string
+  category: MagicItemCategory
+  effects?: MagicItemEffects
+  prerequisites?: string[] // e.g., ["Spellcaster", "Wizard only"]
 }

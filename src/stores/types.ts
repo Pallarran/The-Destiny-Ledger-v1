@@ -46,6 +46,8 @@ export interface BuildConfiguration {
   armor?: string
   shield?: boolean
   weaponEnhancements: string[]
+  magicItems?: string[] // IDs of equipped magic items
+  attunedItems?: string[] // IDs of attuned magic items
   
   // Active buffs
   activeBuffs: string[]

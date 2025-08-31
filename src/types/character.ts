@@ -2,7 +2,7 @@
 // Extends existing BuildConfiguration with additional Phase 3 data
 
 import type { BuildConfiguration, LevelEntry } from '../stores/types'
-import type { AbilityScore, AbilityScoreArray } from '../rules/types'
+import type { AbilityScore, AbilityScoreArray, Equipment } from '../rules/types'
 
 // Character creation step progression
 export type BuilderStep = 
@@ -63,6 +63,9 @@ export interface CharacterBuilder extends BuildConfiguration {
   selectedRanged?: string
   selectedArmor?: string
   hasShield?: boolean
+  
+  // Equipment interface for magic items and attunement
+  equipment: Equipment
   
   // Validation state
   isValid: boolean

@@ -28,12 +28,14 @@ import {
 import { getClass } from '../../rules/loaders'
 import { subclasses } from '../../rules/srd/subclasses'
 import { feats } from '../../rules/srd/feats'
+import { getAttunementStatus } from '../../rules/attunement'
 
 // Step components
 import { AbilityScoreAssignment } from './AbilityScoreAssignment'
 import { RaceBackgroundSelection } from './RaceBackgroundSelection' 
 import { EnhancedLevelTimeline } from './EnhancedLevelTimeline'
 import { EquipmentSelection } from './EquipmentSelection'
+import MagicItemSelection from './MagicItemSelection'
 import { BuffSelection } from './BuffSelection'
 import { BuildSummary } from './BuildSummary'
 
@@ -215,6 +217,12 @@ export function CharacterBuilder() {
     
     if (activeConcentrationBuffs.length > 0 && round0ConcentrationBuffs.length > 0) {
       issues.push('Round 0 concentration conflicts with combat concentration')
+    }
+    
+    // Check for attunement limit violations
+    const attunementStatus = getAttunementStatus(currentBuild as any)
+    if (attunementStatus.hasOverlimit) {
+      issues.push(attunementStatus.warning || 'Too many attuned magic items')
     }
     
     const isValid = validateAllSteps() && issues.length === 0
@@ -426,7 +434,10 @@ export function CharacterBuilder() {
                   </TabsList>
                   
                   <TabsContent value="gear" className="mt-4">
-                    <EquipmentSelection />
+                    <div className="space-y-6">
+                      <EquipmentSelection />
+                      <MagicItemSelection />
+                    </div>
                   </TabsContent>
                   
                   <TabsContent value="buffs" className="mt-4">

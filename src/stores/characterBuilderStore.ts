@@ -100,8 +100,21 @@ const createDefaultBuilder = (name: string = 'New Character'): CharacterBuilder 
   offHandWeapon: '',
   rangedWeapon: '',
   weaponEnhancements: [],
+  magicItems: [],
+  attunedItems: [],
   activeBuffs: [],
   round0Buffs: [],
+  
+  // Equipment interface compatibility
+  equipment: {
+    mainHand: null,
+    offHand: null,
+    armor: null,
+    shield: false,
+    other: [],
+    magicItems: [],
+    attunedItems: []
+  },
   
   // Extended CharacterBuilder fields
   currentStep: 'ability-scores',
@@ -225,9 +238,22 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
             selectedArmor: build.armor,
             hasShield: build.shield || false,
             weaponEnhancements: build.weaponEnhancements || [],
+            magicItems: build.magicItems || [],
+            attunedItems: build.attunedItems || [],
             mainHandWeapon: build.mainHandWeapon || '',
             offHandWeapon: build.offHandWeapon || '',
             rangedWeapon: build.rangedWeapon || '',
+            
+            // Equipment interface for magic items
+            equipment: {
+              mainHand: build.mainHandWeapon || null,
+              offHand: build.offHandWeapon || null,
+              armor: build.armor || null,
+              shield: build.shield || false,
+              other: build.weaponEnhancements || [],
+              magicItems: build.magicItems || [],
+              attunedItems: build.attunedItems || []
+            },
             
             // Buffs with defaults
             activeBuffs: build.activeBuffs || [],
@@ -310,6 +336,8 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
         armor: currentBuild.selectedArmor,
         shield: currentBuild.hasShield,
         weaponEnhancements: currentBuild.weaponEnhancements,
+        magicItems: currentBuild.equipment?.magicItems || currentBuild.magicItems || [],
+        attunedItems: currentBuild.equipment?.attunedItems || currentBuild.attunedItems || [],
         activeBuffs: currentBuild.activeBuffs,
         round0Buffs: currentBuild.round0Buffs
       }
