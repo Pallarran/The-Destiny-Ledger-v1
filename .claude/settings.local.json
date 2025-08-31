@@ -22,7 +22,11 @@
       "Bash(grep:*)",
       "Bash(rg:*)",
       "Bash(tree:*)",
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "Bash(node:*)",
+      "Read(C:\\/**)",
+      "mcp__ide__getDiagnostics",
+      "Bash(npx tsc:*)"
     ],
     "deny": [],
     "ask": []
