@@ -1,5 +1,10 @@
 import { CharacterBuilder as Phase3CharacterBuilder } from '../components/builder/CharacterBuilder'
+import ErrorBoundary from '../components/ErrorBoundary'
 
 export function CharacterBuilder() {
-  return <Phase3CharacterBuilder />
+  return (
+    <ErrorBoundary>
+      <Phase3CharacterBuilder />
+    </ErrorBoundary>
+  )
 }
