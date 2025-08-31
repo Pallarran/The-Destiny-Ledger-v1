@@ -310,88 +310,91 @@ export function CharacterBuilder() {
           </div>
         </div>
 
-        {/* Horizontal Steps Navigation */}
-        <div className="border-t border-border/20 pt-4 pb-4">
-          <div className="flex flex-wrap gap-2 justify-center">
-            {BUILDER_STEPS.map((step, index) => {
-              const Icon = STEP_ICONS[step]
-              const isActive = step === currentStep
-              const isCompleted = stepValidation[step]
-              const isPrevious = index < BUILDER_STEPS.indexOf(currentStep)
-              
-              return (
-                <button
-                  key={step}
-                  onClick={() => handleStepChange(step)}
-                  disabled={!isPrevious && !isActive && !isCompleted}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    isActive 
-                      ? 'bg-accent/10 text-accent border border-accent/20' 
-                      : isCompleted 
-                      ? 'bg-emerald/5 text-emerald hover:bg-emerald/10' 
-                      : 'text-muted hover:bg-panel/5 hover:text-panel'
-                  } ${
-                    !isPrevious && !isActive && !isCompleted 
-                      ? 'opacity-50 cursor-not-allowed' 
-                      : 'cursor-pointer'
-                  }`}
-                >
-                  <div className="flex items-center justify-center w-5 h-5 rounded-full bg-current/10">
-                    {isCompleted ? (
-                      <CheckCircle className="w-3 h-3" />
-                    ) : (
-                      <Icon className="w-3 h-3" />
-                    )}
-                  </div>
-                  <span className="hidden sm:inline">{STEP_LABELS[step]}</span>
-                </button>
-              )
-            })}
-          </div>
-        </div>
-
-        {/* Build Status */}
+        {/* Horizontal Steps Navigation & Build Status */}
         <div className="border-t border-border/20 pt-4">
-          {(issues.length > 0 || isValid || globalErrors.length > 0) && (
-            <div className="mt-2">
-              {issues.length > 0 && (
-                <div className="bg-destructive/5 border border-destructive/20 rounded-lg p-2">
-                  <div className="flex items-center gap-2 text-destructive text-xs font-medium mb-1">
-                    <AlertTriangle className="w-3 h-3" />
-                    Issues to Address
-                  </div>
-                  <ul className="text-xs text-destructive space-y-1">
-                    {issues.map((issue, index) => (
-                      <li key={index} className="ml-3">• {issue}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
+          <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+            {/* Step Navigation */}
+            <div className="flex flex-wrap gap-2 justify-center lg:justify-start">
+              {BUILDER_STEPS.map((step, index) => {
+                const Icon = STEP_ICONS[step]
+                const isActive = step === currentStep
+                const isCompleted = stepValidation[step]
+                const isPrevious = index < BUILDER_STEPS.indexOf(currentStep)
+                
+                return (
+                  <button
+                    key={step}
+                    onClick={() => handleStepChange(step)}
+                    disabled={!isPrevious && !isActive && !isCompleted}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                      isActive 
+                        ? 'bg-accent/10 text-accent border border-accent/20' 
+                        : isCompleted 
+                        ? 'bg-emerald/5 text-emerald hover:bg-emerald/10' 
+                        : 'text-muted hover:bg-panel/5 hover:text-panel'
+                    } ${
+                      !isPrevious && !isActive && !isCompleted 
+                        ? 'opacity-50 cursor-not-allowed' 
+                        : 'cursor-pointer'
+                    }`}
+                  >
+                    <div className="flex items-center justify-center w-5 h-5 rounded-full bg-current/10">
+                      {isCompleted ? (
+                        <CheckCircle className="w-3 h-3" />
+                      ) : (
+                        <Icon className="w-3 h-3" />
+                      )}
+                    </div>
+                    <span className="hidden sm:inline">{STEP_LABELS[step]}</span>
+                  </button>
+                )
+              })}
+            </div>
 
-              {isValid && issues.length === 0 && globalErrors.length === 0 && (
-                <div className="bg-emerald/5 border border-emerald/20 rounded-lg p-2">
-                  <div className="flex items-center gap-2 text-emerald text-xs font-medium">
-                    <CheckCircle className="w-3 h-3" />
-                    Build is valid and ready to save!
-                  </div>
-                </div>
-              )}
+            {/* Build Status */}
+            <div className="flex-shrink-0 lg:max-w-sm">
+              {(issues.length > 0 || isValid || globalErrors.length > 0) && (
+                <div>
+                  {issues.length > 0 && (
+                    <div className="bg-destructive/5 border border-destructive/20 rounded-lg p-2">
+                      <div className="flex items-center gap-2 text-destructive text-xs font-medium mb-1">
+                        <AlertTriangle className="w-3 h-3" />
+                        Issues to Address
+                      </div>
+                      <ul className="text-xs text-destructive space-y-1">
+                        {issues.map((issue, index) => (
+                          <li key={index} className="ml-3">• {issue}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
 
-              {globalErrors.length > 0 && (
-                <div className="bg-destructive/5 border border-destructive/20 rounded-lg p-2">
-                  <div className="flex items-center gap-2 text-destructive text-xs font-medium mb-1">
-                    <AlertTriangle className="w-3 h-3" />
-                    Build Validation Errors
-                  </div>
-                  <ul className="text-xs text-destructive space-y-1">
-                    {globalErrors.map((error, index) => (
-                      <li key={index} className="ml-3">• {error}</li>
-                    ))}
-                  </ul>
+                  {isValid && issues.length === 0 && globalErrors.length === 0 && (
+                    <div className="bg-emerald/5 border border-emerald/20 rounded-lg p-2">
+                      <div className="flex items-center gap-2 text-emerald text-xs font-medium">
+                        <CheckCircle className="w-3 h-3" />
+                        Build is valid and ready to save!
+                      </div>
+                    </div>
+                  )}
+
+                  {globalErrors.length > 0 && (
+                    <div className="bg-destructive/5 border border-destructive/20 rounded-lg p-2">
+                      <div className="flex items-center gap-2 text-destructive text-xs font-medium mb-1">
+                        <AlertTriangle className="w-3 h-3" />
+                        Build Validation Errors
+                      </div>
+                      <ul className="text-xs text-destructive space-y-1">
+                        {globalErrors.map((error, index) => (
+                          <li key={index} className="ml-3">• {error}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
-          )}
+          </div>
         </div>
       </Panel>
       
