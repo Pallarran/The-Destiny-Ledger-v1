@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { Panel } from '../ui/panel'
 import { Button } from '../ui/button'
 import { Progress } from '../ui/progress'
@@ -55,6 +55,8 @@ interface CharacterBuilderProps {
 }
 
 export function CharacterBuilder({ buildId }: CharacterBuilderProps) {
+  const location = useLocation()
+  const searchParams = new URLSearchParams(location.search)
   const navigate = useNavigate()
   const { addBuild, updateBuild: updateVaultBuild, builds } = useVaultStore()
   const { loadFromBuildConfiguration } = useCharacterBuilderStore()
@@ -85,27 +87,32 @@ export function CharacterBuilder({ buildId }: CharacterBuilderProps) {
   const [buildNotes, setBuildNotes] = useState(currentBuild?.notes || '')
   
   useEffect(() => {
-    console.log('CharacterBuilder useEffect - currentBuild:', currentBuild?.name, 'storedBuild:', storedBuild?.name, 'buildId:', buildId)
+    const fromVault = searchParams.get('from') === 'vault'
+    const isNew = searchParams.get('new') === 'true'
+    console.log('CharacterBuilder useEffect - currentBuild:', currentBuild?.name, 'storedBuild:', storedBuild?.name, 'buildId:', buildId, 'fromVault:', fromVault, 'isNew:', isNew)
     
-    // If we have a buildId from URL params, we're editing a specific build
-    if (buildId && storedBuild && storedBuild.id === buildId && !currentBuild) {
-      console.log('Loading specific build from URL:', storedBuild.name)
+    // If explicitly creating new build (from vault "New Build" button or direct navigation)
+    if (isNew || (!storedBuild && !buildId && !currentBuild)) {
+      console.log('Creating fresh new build')
+      createNewBuild()
+      return
+    }
+    
+    // If we have a storedBuild and came from vault, load it
+    if (storedBuild && !currentBuild && (fromVault || buildId)) {
+      console.log('Loading build from vault/store:', storedBuild.name)
       loadFromBuildConfiguration(storedBuild)
       // Clear the stored build to prevent reloading on next visit
       setTimeout(() => clearCurrentBuild(), 0)
       return
     }
     
-    // For all other cases (no buildId or buildId doesn't match), create a fresh build
+    // Fallback: create new build if nothing else applies
     if (!currentBuild) {
-      console.log('Creating fresh new build')
-      // Clear any stored build first to prevent conflicts
-      if (storedBuild) {
-        clearCurrentBuild()
-      }
+      console.log('Creating fresh new build - fallback')
       createNewBuild()
     }
-  }, [buildId, currentBuild, storedBuild, createNewBuild, loadFromBuildConfiguration, clearCurrentBuild])
+  }, [buildId, currentBuild, storedBuild, createNewBuild, loadFromBuildConfiguration, clearCurrentBuild, searchParams])
 
   // Update build info state when current build changes
   useEffect(() => {

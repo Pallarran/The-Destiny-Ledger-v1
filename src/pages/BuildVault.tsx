@@ -86,7 +86,7 @@ export function BuildVault() {
         
         console.log('Loading build into builderStore:', build.name)
         loadBuild(build)
-        navigate('/builder')
+        navigate('/builder?from=vault')
       } catch (error) {
         console.error('Error loading build:', error)
         alert(`Failed to load build "${build.name}": ${error instanceof Error ? error.message : 'Unknown error'}. The build data may be corrupted or incompatible.`)
@@ -245,7 +245,7 @@ export function BuildVault() {
                 
                 // Small delay to ensure state clearing completes
                 setTimeout(() => {
-                  navigate('/builder')
+                  navigate('/builder?new=true')
                 }, 10)
               }}
             >
