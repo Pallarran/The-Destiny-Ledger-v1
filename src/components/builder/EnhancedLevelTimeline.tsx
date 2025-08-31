@@ -429,7 +429,7 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
                       <SelectValue placeholder="Select a feat..." />
                     </SelectTrigger>
                     <SelectContent className="max-h-80">
-                      {Object.values(feats).map((feat: any) => (
+                      {Object.values(feats).sort((a: any, b: any) => a.name.localeCompare(b.name)).map((feat: any) => (
                         <SelectItem key={feat.id} value={feat.id}>
                           <div className="flex flex-col gap-1">
                             <div className="font-medium">{feat.name}</div>
