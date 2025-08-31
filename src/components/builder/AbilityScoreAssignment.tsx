@@ -204,7 +204,8 @@ export function AbilityScoreAssignment() {
     return total
   }
   
-  const remainingPoints = 27 - calculatePointBuyTotal()
+  const pointBuyLimit = currentBuild?.pointBuyConfig?.totalPoints || 27
+  const remainingPoints = pointBuyLimit - calculatePointBuyTotal()
   const canIncrease = (score: number) => {
     if (score >= 15) return false
     const nextCost = POINT_BUY_COSTS[(score + 1) as keyof typeof POINT_BUY_COSTS] || 0
@@ -237,7 +238,7 @@ export function AbilityScoreAssignment() {
             className={method === 'pointbuy' ? 'bg-accent text-ink' : ''}
           >
             <Calculator className="w-4 h-4 mr-2" />
-            Point Buy (27pts)
+            Point Buy ({pointBuyLimit}pts)
           </Button>
           <Button
             variant={method === 'standard' ? 'default' : 'outline'}
@@ -262,7 +263,7 @@ export function AbilityScoreAssignment() {
         {/* Method Description */}
         <div className="text-sm text-muted bg-panel/5 rounded-lg p-3">
           {method === 'pointbuy' && (
-            <span><strong>Point Buy:</strong> Spend exactly 27 points to purchase ability scores (8-15 range). Must use all points per D&D 5e rules.</span>
+            <span><strong>Point Buy:</strong> Spend exactly {pointBuyLimit} points to purchase ability scores (8-15 range). Must use all points per D&D 5e rules.</span>
           )}
           {method === 'standard' && (
             <span><strong>Standard Array:</strong> Assign each predetermined score (15, 14, 13, 12, 10, 8) to exactly one ability. Each value must be used once.</span>
@@ -283,7 +284,7 @@ export function AbilityScoreAssignment() {
             </div>
             <div className="flex items-center gap-3">
               <div className="text-sm text-muted">
-                Used: <span className="font-medium">{calculatePointBuyTotal()}/27</span>
+                Used: <span className="font-medium">{calculatePointBuyTotal()}/{pointBuyLimit}</span>
               </div>
               <Badge 
                 variant={remainingPoints === 0 ? "default" : remainingPoints > 0 ? "secondary" : "destructive"}
@@ -294,7 +295,7 @@ export function AbilityScoreAssignment() {
                 <div className="flex items-center gap-1 text-sm">
                   <AlertTriangle className={`w-4 h-4 ${remainingPoints > 0 ? 'text-amber-500' : 'text-destructive'}`} />
                   <span className={remainingPoints > 0 ? 'text-amber-600' : 'text-destructive'}>
-                    {remainingPoints > 0 ? 'Must spend all 27 points' : 'Over 27 point limit'}
+                    {remainingPoints > 0 ? `Must spend all ${pointBuyLimit} points` : `Over ${pointBuyLimit} point limit`}
                   </span>
                 </div>
               )}
