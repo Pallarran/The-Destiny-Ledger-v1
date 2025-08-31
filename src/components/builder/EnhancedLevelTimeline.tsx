@@ -20,7 +20,7 @@ const CLASS_ICONS = {
 
 
 
-function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, updateLevel, selectFeat, selectASI }: {
+function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, updateLevel, selectFeat, selectASI, setSkillProficiencies }: {
   entry: BuilderLevelEntry
   classData?: any
   classLevel: number
@@ -28,6 +28,7 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
   updateLevel: (level: number, updates: any) => void
   selectFeat: (level: number, featId: string) => void
   selectASI: (level: number, abilityIncreases: any) => void
+  setSkillProficiencies: (skills: string[]) => void
 }) {
   const [expandedSection, setExpandedSection] = useState<string | null>(null)
   const Icon = classData ? CLASS_ICONS[classData.id as keyof typeof CLASS_ICONS] || Sword : Clock
@@ -339,7 +340,13 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
                     type="checkbox"
                     checked={section.selectedSkills.includes(skill)}
                     disabled={!section.selectedSkills.includes(skill) && section.selectedSkills.length >= section.skillCount}
-                    onChange={() => {/* Handle skill toggle */}}
+                    onChange={() => {
+                      const currentSkills = section.selectedSkills
+                      const newSkills = currentSkills.includes(skill)
+                        ? currentSkills.filter((s: string) => s !== skill)
+                        : [...currentSkills, skill]
+                      setSkillProficiencies(newSkills)
+                    }}
                   />
                   <span className="text-xs">{skill}</span>
                 </label>
@@ -355,7 +362,7 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
 }
 
 export function EnhancedLevelTimeline() {
-  const { currentBuild, addLevel, selectFeat, selectASI, updateLevel } = useCharacterBuilderStore()
+  const { currentBuild, addLevel, selectFeat, selectASI, updateLevel, setSkillProficiencies } = useCharacterBuilderStore()
   const [selectedClass, setSelectedClass] = useState('')
   
   if (!currentBuild) {
@@ -461,6 +468,7 @@ export function EnhancedLevelTimeline() {
                   updateLevel={updateLevel}
                   selectFeat={selectFeat}
                   selectASI={selectASI}
+                  setSkillProficiencies={setSkillProficiencies}
                 />
               )
             })}
