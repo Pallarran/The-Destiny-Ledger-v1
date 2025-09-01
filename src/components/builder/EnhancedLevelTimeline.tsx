@@ -717,7 +717,10 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
               currentExpertise={section.currentExpertise}
               onExpertiseSelected={(expertise) => {
                 updateLevel(entry.level, { expertiseChoices: expertise })
-                setExpandedSection(null)
+                // Only close when all choices are made
+                if (expertise.length === section.expertiseCount) {
+                  setExpandedSection(null)
+                }
               }}
               className="border-none bg-transparent"
             />
@@ -733,7 +736,10 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
               currentManeuvers={section.currentManeuvers}
               onManeuversSelected={(maneuvers) => {
                 updateLevel(entry.level, { maneuverChoices: maneuvers })
-                setExpandedSection(null)
+                // Only close when all choices are made
+                if (maneuvers.length === section.maneuverCount) {
+                  setExpandedSection(null)
+                }
               }}
               className="border-none bg-transparent"
             />

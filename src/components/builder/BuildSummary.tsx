@@ -279,8 +279,10 @@ export function BuildSummary() {
     const isProficient = currentBuild.skillProficiencies?.includes(skill.name) || 
                         backgroundSkills.includes(skill.name) || 
                         false
-    // TODO: Add expertise tracking
-    const hasExpertise = false
+    // Check expertise from level timeline (class features) and downtime training
+    const hasExpertise = currentBuild?.levelTimeline?.some(entry => 
+      entry.expertiseChoices?.includes(skill.name)
+    ) || currentBuild?.downtimeTraining?.trainedSkillExpertise?.includes(skill.name) || false
     
     let bonus = abilityMod
     if (isProficient) bonus += proficiencyBonus
