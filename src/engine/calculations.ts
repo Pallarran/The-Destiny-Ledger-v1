@@ -253,11 +253,26 @@ export function calculateBuildDPR(
   let gwmssAttackBonus = attackBonus
   const gwmssDamage = { ...baseDamage }
   
-  if ((state.hasGWM && weapon.properties.includes('heavy')) || 
-      (state.hasSharpshooter && weapon.properties.includes('ammunition'))) {
+  const canUseGWM = state.hasGWM && weapon.properties.includes('heavy')
+  const canUseSharpshooter = state.hasSharpshooter && weapon.properties.includes('ammunition')
+  
+  // Debug logging
+  if (config.forceGWMSS) {
+    console.log('Power Attack Logic Debug:', {
+      hasGWM: state.hasGWM,
+      hasSharpshooter: state.hasSharpshooter,
+      weaponProperties: weapon.properties,
+      canUseGWM,
+      canUseSharpshooter,
+      forceGWMSS: config.forceGWMSS
+    })
+  }
+
+  if (canUseGWM || canUseSharpshooter) {
     if (config.forceGWMSS) {
       // Force power attack usage regardless of optimality
       useGWMSS = true
+      console.log('Force GWMSS: Setting useGWMSS to true')
     } else if (config.autoGWMSS) {
       const normalDamage = calculateDamageRoll(baseDamage)
       useGWMSS = shouldUsePowerAttack(attackBonus, normalDamage, config.targetAC, advantageState)
@@ -266,6 +281,12 @@ export function calculateBuildDPR(
     if (useGWMSS) {
       gwmssAttackBonus = attackBonus - 5
       gwmssDamage.bonusDamage += 10
+      console.log('Applied Power Attack:', {
+        originalAttack: attackBonus,
+        newAttack: gwmssAttackBonus,
+        originalDamage: baseDamage.bonusDamage,
+        newDamage: gwmssDamage.bonusDamage
+      })
     }
   }
   
