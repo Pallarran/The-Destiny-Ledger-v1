@@ -149,22 +149,22 @@ export function HeroMetrics({ build, result, config }: HeroMetricsProps) {
   const ratingColors = getRatingColor(metrics.buildRating)
 
   return (
-    <Card className="h-full">
-      <CardContent className="p-6">
-        <div className="grid grid-cols-2 gap-6 h-full">
+    <Card>
+      <CardContent className="p-4">
+        <div className="grid grid-cols-2 gap-4">
           {/* Primary Metrics */}
-          <div className="space-y-4">
+          <div className="space-y-3">
             {/* DPR - Main metric */}
             <div className="text-center">
-              <div className="text-4xl font-bold text-accent mb-1">
+              <div className="text-3xl font-bold text-accent">
                 {metrics.avgDPR.toFixed(1)}
               </div>
-              <div className="text-sm text-muted">Average DPR</div>
+              <div className="text-xs text-muted">Average DPR</div>
             </div>
 
             {/* Hit Chance */}
             <div className="text-center">
-              <div className="text-2xl font-semibold text-blue-600 mb-1">
+              <div className="text-xl font-semibold text-accent/80">
                 {Math.round(metrics.hitChanceVsAC15 * 100)}%
               </div>
               <div className="text-xs text-muted">Hit vs AC 15</div>
@@ -172,12 +172,12 @@ export function HeroMetrics({ build, result, config }: HeroMetricsProps) {
           </div>
 
           {/* Build Assessment */}
-          <div className="space-y-4">
+          <div className="space-y-3">
             {/* Rating */}
-            <div className={`p-3 rounded-lg border flex items-center gap-2 ${ratingColors}`}>
-              <RatingIcon className="w-5 h-5" />
+            <div className={`p-2 rounded-lg border flex items-center gap-2 ${ratingColors}`}>
+              <RatingIcon className="w-4 h-4" />
               <div>
-                <div className="font-medium capitalize text-sm">
+                <div className="font-medium capitalize text-xs">
                   {metrics.buildRating.replace('-', ' ')}
                 </div>
                 <div className="text-xs opacity-80">
@@ -187,7 +187,7 @@ export function HeroMetrics({ build, result, config }: HeroMetricsProps) {
             </div>
 
             {/* Quick Stats */}
-            <div className="space-y-2 text-sm">
+            <div className="space-y-1 text-xs">
               <div className="flex justify-between items-center">
                 <span className="text-muted">Effective vs:</span>
                 <Badge variant="outline" className="text-xs">

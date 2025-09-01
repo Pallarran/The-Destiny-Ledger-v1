@@ -283,11 +283,16 @@ export function DprLab() {
             </TabsList>
             
             {/* Overview Tab - High-level metrics and key insights */}
-            <TabsContent value="overview" className="mt-6 space-y-6">
+            <TabsContent value="overview" className="mt-6">
               <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 lg:gap-6">
-                {/* Left Column: Hero Metrics + Chart */}
+                {/* Left Column: Hero Metrics + Smart Insights */}
                 <div className="space-y-4">
                   <HeroMetrics build={selectedBuild} result={currentResult} config={localConfig} />
+                  <SmartInsights build={selectedBuild} result={currentResult} config={localConfig} />
+                </div>
+                
+                {/* Right Column: DPR Chart + Tactical Advice */}
+                <div className="space-y-4">
                   <ChartFrame title="DPR vs Armor Class">
                     <ResponsiveContainer width="100%" height={280}>
                       <LineChart data={displayData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
@@ -340,11 +345,6 @@ export function DprLab() {
                       </LineChart>
                     </ResponsiveContainer>
                   </ChartFrame>
-                </div>
-                
-                {/* Right Column: Smart Insights + Tactical Advice */}
-                <div className="space-y-4">
-                  <SmartInsights build={selectedBuild} result={currentResult} config={localConfig} />
                   <TacticalAdvice build={selectedBuild} result={currentResult} config={localConfig} />
                 </div>
               </div>

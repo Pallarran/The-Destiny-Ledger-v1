@@ -171,7 +171,7 @@ function generateTacticalAdvice(
   const priorityOrder = { high: 3, medium: 2, low: 1 }
   advice.sort((a, b) => priorityOrder[b.priority] - priorityOrder[a.priority])
   
-  return advice.slice(0, 4)
+  return advice.slice(0, 3)
 }
 
 function getCategoryIcon(category: string) {
@@ -233,7 +233,7 @@ export function TacticalAdvice({ build, result, config }: TacticalAdviceProps) {
           Tactical Advice
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-3">
+      <CardContent className="space-y-2">
         {recommendations.map((rec, index) => {
           const Icon = getCategoryIcon(rec.category)
           const categoryColor = getCategoryColor(rec.category)
@@ -242,7 +242,7 @@ export function TacticalAdvice({ build, result, config }: TacticalAdviceProps) {
           return (
             <div 
               key={index} 
-              className={`p-3 rounded-lg border ${priorityColor}`}
+              className={`p-2 rounded-lg border ${priorityColor}`}
             >
               <div className="flex items-start gap-2">
                 <div className={`p-1.5 rounded ${categoryColor} flex-shrink-0`}>

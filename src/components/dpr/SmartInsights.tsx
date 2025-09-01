@@ -170,8 +170,8 @@ function generateInsights(
   const priorityOrder = { high: 3, medium: 2, low: 1 }
   insights.sort((a, b) => priorityOrder[b.priority] - priorityOrder[a.priority])
   
-  // Limit to top 4 insights
-  return insights.slice(0, 4)
+  // Limit to top 3 insights to fit better
+  return insights.slice(0, 3)
 }
 
 function getInsightIcon(type: string) {
@@ -224,7 +224,7 @@ export function SmartInsights({ build, result, config }: SmartInsightsProps) {
           Smart Insights
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-3">
+      <CardContent className="space-y-2">
         {insights.map((insight, index) => {
           const Icon = getInsightIcon(insight.type)
           const colors = getInsightColor(insight.type)
@@ -232,7 +232,7 @@ export function SmartInsights({ build, result, config }: SmartInsightsProps) {
           return (
             <div 
               key={index} 
-              className={`p-3 rounded-lg border ${colors}`}
+              className={`p-2 rounded-lg border ${colors}`}
             >
               <div className="flex items-start gap-2">
                 <Icon className={`w-4 h-4 mt-0.5 flex-shrink-0 ${
