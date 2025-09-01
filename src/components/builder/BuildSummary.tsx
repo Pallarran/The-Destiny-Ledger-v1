@@ -116,8 +116,20 @@ function calculateTotalSpellSlots(timeline: any[]) {
   timeline.forEach(entry => {
     const key = `${entry.classId}`
     classLevels[key] = (classLevels[key] || 0) + 1
+    // Store subclass info (later entries will overwrite earlier ones, which is fine)
     if (entry.subclassId) {
       subclassInfo[key] = entry.subclassId
+    }
+  })
+
+  // For Fighter and Rogue, look for subclass in later levels if not found
+  Object.keys(classLevels).forEach(classId => {
+    if ((classId === 'fighter' || classId === 'rogue') && !subclassInfo[classId]) {
+      // Search through timeline for subclass selection (usually at level 3+)
+      const subclassEntry = timeline.find(entry => entry.classId === classId && entry.subclassId)
+      if (subclassEntry) {
+        subclassInfo[classId] = subclassEntry.subclassId
+      }
     }
   })
 
