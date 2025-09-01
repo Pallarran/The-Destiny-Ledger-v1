@@ -329,19 +329,31 @@ export function DprLab() {
           return
         }
         
-        // Calculate power attack DPR manually for each advantage state and AC point
+        // Calculate power attack DPR by modifying the normal curve results
         const normalPAData = currentResult.normalCurve.map(point => {
-          // Calculate power attack DPR manually
-          const powerAttackDPR = calculateManualPowerAttackDPR(
-            combatState, 
-            weaponConfig, 
-            point.ac, 
-            'normal'
-          )
+          // Calculate the ratio between power attack and normal attack DPR
+          const normalAttackBonus = combatState.proficiencyBonus + combatState.abilityModifier + weaponConfig.enhancement
+          const powerAttackBonus = normalAttackBonus - 5
+          
+          // Get hit probabilities
+          const normalHitProbs = calculateHitProbability(normalAttackBonus, point.ac, 'normal')
+          const powerHitProbs = calculateHitProbability(powerAttackBonus, point.ac, 'normal')
+          
+          // Calculate the damage multiplier (power attack adds +10 damage)
+          const normalExpectedHit = normalHitProbs.hit + normalHitProbs.crit
+          const powerExpectedHit = powerHitProbs.hit + powerHitProbs.crit
+          
+          // Power attack DPR = Normal DPR * (power hit rate / normal hit rate) * (power damage / normal damage)
+          // Since power attack adds +10 damage, we need to estimate the damage increase ratio
+          const baseDamage = 9.5 // Approximate base damage for level 4
+          const damageRatio = (baseDamage + 10) / baseDamage
+          const hitRatio = powerExpectedHit / normalExpectedHit
+          
+          const powerAttackDPR = point.dpr * hitRatio * damageRatio
           
           // Debug logging for first few AC values
           if (point.ac <= 12) {
-            console.log(`AC ${point.ac}: Normal=${point.dpr.toFixed(2)}, PowerAttack=${powerAttackDPR.toFixed(2)}`)
+            console.log(`AC ${point.ac}: Normal=${point.dpr.toFixed(2)}, PowerAttack=${powerAttackDPR.toFixed(2)}, Ratio=${(powerAttackDPR/point.dpr).toFixed(2)}`)
           }
           
           return {
@@ -351,13 +363,21 @@ export function DprLab() {
         })
 
         const advantagePAData = currentResult.advantageCurve.map(point => {
-          // Calculate power attack DPR manually with advantage
-          const powerAttackDPR = calculateManualPowerAttackDPR(
-            combatState, 
-            weaponConfig, 
-            point.ac, 
-            'advantage'
-          )
+          // Calculate power attack DPR by modifying advantage curve results
+          const normalAttackBonus = combatState.proficiencyBonus + combatState.abilityModifier + weaponConfig.enhancement
+          const powerAttackBonus = normalAttackBonus - 5
+          
+          const normalHitProbs = calculateHitProbability(normalAttackBonus, point.ac, 'advantage')
+          const powerHitProbs = calculateHitProbability(powerAttackBonus, point.ac, 'advantage')
+          
+          const normalExpectedHit = normalHitProbs.hit + normalHitProbs.crit
+          const powerExpectedHit = powerHitProbs.hit + powerHitProbs.crit
+          
+          const baseDamage = 9.5
+          const damageRatio = (baseDamage + 10) / baseDamage
+          const hitRatio = powerExpectedHit / normalExpectedHit
+          
+          const powerAttackDPR = point.dpr * hitRatio * damageRatio
           
           return {
             ac: point.ac,
@@ -366,13 +386,21 @@ export function DprLab() {
         })
 
         const disadvantagePAData = currentResult.disadvantageCurve.map(point => {
-          // Calculate power attack DPR manually with disadvantage
-          const powerAttackDPR = calculateManualPowerAttackDPR(
-            combatState, 
-            weaponConfig, 
-            point.ac, 
-            'disadvantage'
-          )
+          // Calculate power attack DPR by modifying disadvantage curve results
+          const normalAttackBonus = combatState.proficiencyBonus + combatState.abilityModifier + weaponConfig.enhancement
+          const powerAttackBonus = normalAttackBonus - 5
+          
+          const normalHitProbs = calculateHitProbability(normalAttackBonus, point.ac, 'disadvantage')
+          const powerHitProbs = calculateHitProbability(powerAttackBonus, point.ac, 'disadvantage')
+          
+          const normalExpectedHit = normalHitProbs.hit + normalHitProbs.crit
+          const powerExpectedHit = powerHitProbs.hit + powerHitProbs.crit
+          
+          const baseDamage = 9.5
+          const damageRatio = (baseDamage + 10) / baseDamage
+          const hitRatio = powerExpectedHit / normalExpectedHit
+          
+          const powerAttackDPR = point.dpr * hitRatio * damageRatio
           
           return {
             ac: point.ac,
