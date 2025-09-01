@@ -40,7 +40,7 @@ function calculateHeroMetrics(
 
   const combatState = buildToCombatState(build)
   const weaponId = build.rangedWeapon || build.mainHandWeapon || 'longsword'
-  const weaponConfig = getWeaponConfig(weaponId, build.weaponEnhancementBonus || 0)
+  const weaponConfig = getWeaponConfig(weaponId, build.weaponEnhancementBonus || 0, combatState)
   
   if (!weaponConfig) return null
   
@@ -192,7 +192,7 @@ function getRatingColor(rating: string): string {
 function getHitBonusBreakdown(metrics: HeroMetricsData, build: BuildConfiguration): { components: Array<{label: string, value: string}>, total: number } {
   const combatState = buildToCombatState(build)
   const weaponId = build.rangedWeapon || build.mainHandWeapon || 'longsword'
-  const weaponConfig = getWeaponConfig(weaponId, build.weaponEnhancementBonus || 0)
+  const weaponConfig = getWeaponConfig(weaponId, build.weaponEnhancementBonus || 0, combatState)
   
   const components: Array<{label: string, value: string}> = []
   
@@ -233,7 +233,7 @@ function getHitBonusBreakdown(metrics: HeroMetricsData, build: BuildConfiguratio
 function getDamageBonusBreakdown(metrics: HeroMetricsData, build: BuildConfiguration): { components: Array<{label: string, value: string}>, total: number } {
   const combatState = buildToCombatState(build)
   const weaponId = build.rangedWeapon || build.mainHandWeapon || 'longsword'
-  const weaponConfig = getWeaponConfig(weaponId, build.weaponEnhancementBonus || 0)
+  const weaponConfig = getWeaponConfig(weaponId, build.weaponEnhancementBonus || 0, combatState)
   
   const components: Array<{label: string, value: string}> = []
   

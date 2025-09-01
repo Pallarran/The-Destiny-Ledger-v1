@@ -30,7 +30,7 @@ function generateInsights(
   const insights: Insight[] = []
   const combatState = buildToCombatState(build)
   const weaponId = build.rangedWeapon || build.mainHandWeapon || 'longsword'
-  const weaponConfig = getWeaponConfig(weaponId, 0)
+  const weaponConfig = getWeaponConfig(weaponId, build.weaponEnhancementBonus || 0, combatState)
   
   if (!weaponConfig) return insights
 

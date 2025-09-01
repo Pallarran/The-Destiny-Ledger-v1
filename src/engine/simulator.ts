@@ -57,11 +57,22 @@ export function buildToCombatState(build: BuildConfiguration, level?: number): C
     hasElementalWeapon: false
   }
   
-  // Process level timeline
+  // Calculate class levels first
+  const classLevels = new Map<string, number>()
+  for (const entry of build.levelTimeline) {
+    if (entry.level > targetLevel) break
+    classLevels.set(entry.classId, (classLevels.get(entry.classId) || 0) + 1)
+  }
+  
+  // Set sneak attack based on rogue levels
+  const rogueLevel = classLevels.get('rogue') || 0
+  state.sneakAttackDice = Math.ceil(rogueLevel / 2)
+  
+  // Process level timeline for features and fighting styles
   for (const entry of build.levelTimeline) {
     if (entry.level > targetLevel) break
     
-    // Check for Extra Attack
+    // Check for class features
     const classData = getClass(entry.classId)
     if (classData) {
       const features = classData.features[entry.level] || []
@@ -74,24 +85,12 @@ export function buildToCombatState(build: BuildConfiguration, level?: number): C
           state.extraAttacks = 3
         } else if (feature.rulesKey === 'action_surge') {
           state.actionSurge = true
-        } else if (feature.rulesKey === 'sneak_attack') {
-          // Calculate sneak attack dice based on rogue level
-          const rogueLevels = build.levelTimeline.filter(e => 
-            e.classId === 'rogue' && e.level <= targetLevel
-          ).length
-          state.sneakAttackDice = Math.ceil(rogueLevels / 2)
         }
       }
       
-      // Check for fighting styles
-      if (entry.classId === 'fighter' && entry.level >= 1) {
-        // Would need to track which fighting style was chosen
-        // For now, assume archery if using ranged weapon
-        if (build.rangedWeapon) {
-          state.fightingStyles.push('archery')
-        } else if (build.mainHandWeapon && !build.offHandWeapon) {
-          state.fightingStyles.push('dueling')
-        }
+      // Check for fighting styles from actual build data
+      if (entry.fightingStyle) {
+        state.fightingStyles.push(entry.fightingStyle as any)
       }
     }
     
@@ -152,13 +151,13 @@ export function buildToCombatState(build: BuildConfiguration, level?: number): C
 }
 
 // Convert weapon ID to weapon config
-export function getWeaponConfig(weaponId: string, enhancement: number = 0): WeaponConfig | null {
+export function getWeaponConfig(weaponId: string, enhancement: number = 0, combatState?: CombatState): WeaponConfig | null {
   const weapon = weapons[weaponId]
   if (!weapon) return null
   
   // Check if weapon has Great Weapon Fighting style applicable
   const isHeavyTwoHanded = weapon.properties.includes('heavy') && weapon.properties.includes('two-handed')
-  const hasGWF = false // TODO: Track fighting style selection in build
+  const hasGWF = combatState?.fightingStyles.includes('gwf') || false
   
   return {
     baseDamage: {
@@ -182,7 +181,7 @@ export function generateDPRCurves(
   
   // Determine which weapon to use
   const weaponId = build.rangedWeapon || build.mainHandWeapon || 'longsword'
-  const weaponConfig = getWeaponConfig(weaponId, 0) // TODO: Handle weapon enhancements
+  const weaponConfig = getWeaponConfig(weaponId, build.weaponEnhancementBonus || 0, combatState)
   
   if (!weaponConfig) {
     throw new Error(`Invalid weapon: ${weaponId}`)
