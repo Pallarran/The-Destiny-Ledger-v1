@@ -1,7 +1,6 @@
 import { Card, CardContent } from '../ui/card'
 import { Badge } from '../ui/badge'
-import { TrendingUp, Target, Zap, Shield, Info } from 'lucide-react'
-import { useState } from 'react'
+import { TrendingUp, Target, Zap, Shield } from 'lucide-react'
 import { buildToCombatState, getWeaponConfig } from '../../engine/simulator'
 import { calculateBuildDPR } from '../../engine/calculations'
 import { getBuildRating } from '../../utils/dprThresholds'
@@ -18,18 +17,24 @@ interface HeroMetricsProps {
   }
 }
 
-interface HeroMetricsData {
-  avgDPR: number
-  hitChanceVsAC15: number
-  bestACRange: string
-  powerAttackAdvice: string
-  buildRating: 'excellent' | 'good' | 'average' | 'needs-work'
-  keyStrength: string
-  weaponName: string
+interface AttackMetrics {
   hitBonus: number
   damageDice: string
   damageBonus: number
+  hitChanceVsAC15: number
+  avgDPR: number
+}
+
+interface HeroMetricsData {
+  weaponName: string
+  buildRating: 'excellent' | 'good' | 'average' | 'needs-work'
+  keyStrength: string
+  bestACRange: string
   additionalDamage: Array<{ source: string; dice: string }>
+  normalAttack: AttackMetrics
+  powerAttack?: AttackMetrics
+  powerAttackAdvice?: string
+  hasPowerAttack: boolean
 }
 
 function calculateHeroMetrics(
@@ -102,16 +107,36 @@ function calculateHeroMetrics(
     additionalDamage.push({ source: 'Frostbrand', dice: '1d6' })
   }
 
-  // Calculate hit chance vs AC 15 (typical enemy)
-  const simConfig: SimulationConfig = {
+  // Calculate normal attack metrics vs AC 15
+  const normalSimConfig: SimulationConfig = {
     targetAC: 15,
     rounds: 3,
     round0Buffs: config.round0BuffsEnabled,
     greedyResourceUse: config.greedyResourceUse,
-    autoGWMSS: config.autoGWMSS
+    autoGWMSS: false // Force normal attacks
   }
   
-  const ac15Result = calculateBuildDPR(combatState, weaponConfig, simConfig)
+  const normalAC15Result = calculateBuildDPR(combatState, weaponConfig, normalSimConfig)
+  
+  // Calculate power attack metrics if applicable
+  let powerAC15Result = null
+  let powerHitBonus = hitBonus
+  let powerDamageBonus = damageBonus
+  
+  if (combatState.hasGWM || combatState.hasSharpshooter) {
+    const powerSimConfig: SimulationConfig = {
+      targetAC: 15,
+      rounds: 3,
+      round0Buffs: config.round0BuffsEnabled,
+      greedyResourceUse: config.greedyResourceUse,
+      autoGWMSS: false,
+      forceGWMSS: true // Force power attacks
+    }
+    
+    powerAC15Result = calculateBuildDPR(combatState, weaponConfig, powerSimConfig)
+    powerHitBonus = hitBonus - 5 // -5 to hit for power attacks
+    powerDamageBonus = damageBonus + 10 // +10 damage for power attacks
+  }
   
   // Determine optimal AC range where DPR > 80% of max (where build excels)
   const maxDPR = Math.max(...result.normalCurve.map(point => point.dpr))
@@ -127,10 +152,10 @@ function calculateHeroMetrics(
     const featName = combatState.hasGWM ? 'GWM' : 'SS'
     const paBreakpoint = result.normalCurve.find(point => {
       const withoutPA = calculateBuildDPR(combatState, weaponConfig, { 
-        ...simConfig, targetAC: point.ac, autoGWMSS: false 
+        ...normalSimConfig, targetAC: point.ac, autoGWMSS: false 
       })
       const withPA = calculateBuildDPR(combatState, weaponConfig, { 
-        ...simConfig, targetAC: point.ac, autoGWMSS: true 
+        ...normalSimConfig, targetAC: point.ac, autoGWMSS: true 
       })
       return withPA.expectedDPR <= withoutPA.expectedDPR
     })
@@ -145,30 +170,44 @@ function calculateHeroMetrics(
   // Get character level for scaling baselines
   const characterLevel = Math.max(...(build.levelTimeline?.map(l => l.level) || [1]))
   
-  // Build rating based on unified system
-  const avgDPR = result.averageDPR
-  const hitChance = ac15Result.hitChance
-  const buildRating = getBuildRating(avgDPR, hitChance, characterLevel)
+  // Build rating based on best available DPR (power attack if better, otherwise normal)
+  const bestDPR = powerAC15Result && powerAC15Result.expectedDPR > normalAC15Result.expectedDPR 
+    ? powerAC15Result.expectedDPR 
+    : normalAC15Result.expectedDPR
+  const bestHitChance = powerAC15Result && powerAC15Result.expectedDPR > normalAC15Result.expectedDPR
+    ? powerAC15Result.hitChance
+    : normalAC15Result.hitChance
+  const buildRating = getBuildRating(bestDPR, bestHitChance, characterLevel)
 
   // Identify key strength
   let keyStrength = 'Consistent damage'
   if (combatState.sneakAttackDice > 0) keyStrength = 'Burst damage'
   else if (combatState.extraAttacks >= 2) keyStrength = 'Multiple attacks'
-  else if (hitChance > 0.8) keyStrength = 'High accuracy'
+  else if (normalAC15Result.hitChance > 0.8) keyStrength = 'High accuracy'
   else if (combatState.hasGWM || combatState.hasSharpshooter) keyStrength = 'Power attacks'
 
   return {
-    avgDPR,
-    hitChanceVsAC15: hitChance,
-    bestACRange,
-    powerAttackAdvice,
+    weaponName,
     buildRating,
     keyStrength,
-    weaponName,
-    hitBonus,
-    damageDice,
-    damageBonus,
-    additionalDamage
+    bestACRange,
+    additionalDamage,
+    normalAttack: {
+      hitBonus,
+      damageDice,
+      damageBonus,
+      hitChanceVsAC15: normalAC15Result.hitChance,
+      avgDPR: normalAC15Result.expectedDPR
+    },
+    powerAttack: powerAC15Result ? {
+      hitBonus: powerHitBonus,
+      damageDice,
+      damageBonus: powerDamageBonus,
+      hitChanceVsAC15: powerAC15Result.hitChance,
+      avgDPR: powerAC15Result.expectedDPR
+    } : undefined,
+    powerAttackAdvice,
+    hasPowerAttack: combatState.hasGWM || combatState.hasSharpshooter
   }
 }
 
@@ -182,86 +221,6 @@ function getRatingColor(rating: string): string {
   }
 }
 
-function getHitBonusBreakdown(metrics: HeroMetricsData, build: BuildConfiguration): { components: Array<{label: string, value: string}>, total: number } {
-  const combatState = buildToCombatState(build)
-  const weaponId = build.rangedWeapon || build.mainHandWeapon || 'longsword'
-  const weaponConfig = getWeaponConfig(weaponId, build.weaponEnhancementBonus || 0, combatState)
-  
-  const components: Array<{label: string, value: string}> = []
-  
-  if (!weaponConfig) {
-    return { components: [{label: 'Error', value: 'N/A'}], total: 0 }
-  }
-  
-  // Get fighting styles directly from build data
-  const selectedFightingStyles = build.levelTimeline
-    .filter(entry => entry.fightingStyle)
-    .map(entry => entry.fightingStyle!)
-  
-  // Base components
-  components.push({label: 'Proficiency', value: `+${combatState.proficiencyBonus}`})
-  components.push({label: 'Ability', value: `+${combatState.abilityModifier}`})
-  
-  // Fighting style bonuses from actual build data
-  if (selectedFightingStyles.includes('archery')) {
-    components.push({label: 'Archery Style', value: '+2'})
-  }
-  
-  // Additional bonuses
-  if (combatState.attackBonuses.length > 0) {
-    const totalAttackBonuses = combatState.attackBonuses.reduce((sum, bonus) => sum + bonus, 0)
-    if (totalAttackBonuses !== 0) {
-      components.push({label: 'Features/Buffs', value: `${totalAttackBonuses >= 0 ? '+' : ''}${totalAttackBonuses}`})
-    }
-  }
-  
-  // Weapon enhancement
-  if (build.weaponEnhancementBonus && build.weaponEnhancementBonus > 0) {
-    components.push({label: 'Enhancement', value: `+${build.weaponEnhancementBonus}`})
-  }
-  
-  return { components, total: metrics.hitBonus }
-}
-
-function getDamageBonusBreakdown(metrics: HeroMetricsData, build: BuildConfiguration): { components: Array<{label: string, value: string}>, total: number } {
-  const combatState = buildToCombatState(build)
-  const weaponId = build.rangedWeapon || build.mainHandWeapon || 'longsword'
-  const weaponConfig = getWeaponConfig(weaponId, build.weaponEnhancementBonus || 0, combatState)
-  
-  const components: Array<{label: string, value: string}> = []
-  
-  if (!weaponConfig) {
-    return { components: [{label: 'Error', value: 'N/A'}], total: 0 }
-  }
-  
-  // Get fighting styles directly from build data
-  const selectedFightingStyles = build.levelTimeline
-    .filter(entry => entry.fightingStyle)
-    .map(entry => entry.fightingStyle!)
-  
-  // Base components
-  components.push({label: 'Ability', value: `+${combatState.abilityModifier}`})
-  
-  // Fighting style bonuses from actual build data
-  if (selectedFightingStyles.includes('dueling') && !build.offHandWeapon) {
-    components.push({label: 'Dueling Style', value: '+2'})
-  }
-  
-  // Additional bonuses
-  if (combatState.damageBonuses.length > 0) {
-    const totalDamageBonuses = combatState.damageBonuses.reduce((sum, bonus) => sum + bonus, 0)
-    if (totalDamageBonuses !== 0) {
-      components.push({label: 'Features/Buffs', value: `${totalDamageBonuses >= 0 ? '+' : ''}${totalDamageBonuses}`})
-    }
-  }
-  
-  // Weapon enhancement
-  if (build.weaponEnhancementBonus && build.weaponEnhancementBonus > 0) {
-    components.push({label: 'Enhancement', value: `+${build.weaponEnhancementBonus}`})
-  }
-  
-  return { components, total: metrics.damageBonus }
-}
 
 function getRatingIcon(rating: string) {
   switch (rating) {
@@ -274,8 +233,6 @@ function getRatingIcon(rating: string) {
 }
 
 export function HeroMetrics({ build, result, config }: HeroMetricsProps) {
-  const [showHitTooltip, setShowHitTooltip] = useState(false)
-  const [showDamageTooltip, setShowDamageTooltip] = useState(false)
   
   if (!build || !result) {
     return (
@@ -303,161 +260,120 @@ export function HeroMetrics({ build, result, config }: HeroMetricsProps) {
     )
   }
   
-  const hitBreakdown = getHitBonusBreakdown(metrics, build)
-  const damageBreakdown = getDamageBonusBreakdown(metrics, build)
 
   const RatingIcon = getRatingIcon(metrics.buildRating)
   const ratingColors = getRatingColor(metrics.buildRating)
 
   return (
     <Card>
-      <CardContent className="p-4 space-y-3">
-        {/* Weapon Info Row - Enhanced */}
-        <div className="bg-accent/5 border border-accent/20 rounded-lg p-3">
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-accent"></div>
-              <span className="font-semibold text-foreground">{metrics.weaponName}</span>
-            </div>
-            <div className="flex items-center gap-4 text-sm">
-              {/* Hit Bonus with Info Icon */}
-              <div className="flex items-center gap-1 px-2 py-1 bg-accent/10 rounded border border-accent/30">
-                <span className="text-muted">Hit:</span>
-                <span className="font-semibold text-accent">+{metrics.hitBonus}</span>
-                <div 
-                  className="relative inline-flex items-center"
-                  onMouseEnter={() => setShowHitTooltip(true)}
-                  onMouseLeave={() => setShowHitTooltip(false)}
-                >
-                  <Info className="w-3 h-3 text-muted/40 hover:text-muted/70 transition-colors cursor-help ml-1" />
-                  
-                  {/* Hit Bonus Tooltip */}
-                  {showHitTooltip && (
-                    <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 z-50 bg-ink text-panel text-xs rounded-lg border border-border/20 shadow-lg p-3 min-w-48">
-                      <div className="space-y-1">
-                        <div className="font-medium mb-2 text-accent">Hit Bonus Breakdown</div>
-                        {hitBreakdown.components.map((comp, idx) => (
-                          <div key={idx} className="flex justify-between">
-                            <span className="text-muted">{comp.label}:</span>
-                            <span className="font-mono">{comp.value}</span>
-                          </div>
-                        ))}
-                        <div className="mt-2 pt-2 border-t border-border/20 flex justify-between font-medium">
-                          <span>Total:</span>
-                          <span className="text-accent">+{hitBreakdown.total}</span>
-                        </div>
-                      </div>
-                      
-                      {/* Tooltip arrow */}
-                      <div className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-ink border-l border-t border-border/20 rotate-45"></div>
-                    </div>
-                  )}
-                </div>
-              </div>
-              
-              {/* Damage with Info Icon */}
-              <div className="flex items-center gap-1 px-2 py-1 bg-emerald/10 rounded border border-emerald/30">
-                <span className="text-muted">{metrics.damageDice}</span>
-                <span className="font-semibold text-emerald">
-                  {metrics.damageBonus >= 0 ? '+' : ''}{metrics.damageBonus}
-                </span>
-                <div 
-                  className="relative inline-flex items-center"
-                  onMouseEnter={() => setShowDamageTooltip(true)}
-                  onMouseLeave={() => setShowDamageTooltip(false)}
-                >
-                  <Info className="w-3 h-3 text-muted/40 hover:text-muted/70 transition-colors cursor-help ml-1" />
-                  
-                  {/* Damage Bonus Tooltip */}
-                  {showDamageTooltip && (
-                    <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 z-50 bg-ink text-panel text-xs rounded-lg border border-border/20 shadow-lg p-3 min-w-48">
-                      <div className="space-y-1">
-                        <div className="font-medium mb-2 text-emerald">Damage Bonus Breakdown</div>
-                        {damageBreakdown.components.map((comp, idx) => (
-                          <div key={idx} className="flex justify-between">
-                            <span className="text-muted">{comp.label}:</span>
-                            <span className="font-mono">{comp.value}</span>
-                          </div>
-                        ))}
-                        <div className="mt-2 pt-2 border-t border-border/20 flex justify-between font-medium">
-                          <span>Total:</span>
-                          <span className="text-emerald">{damageBreakdown.total >= 0 ? '+' : ''}{damageBreakdown.total}</span>
-                        </div>
-                      </div>
-                      
-                      {/* Tooltip arrow */}
-                      <div className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-ink border-l border-t border-border/20 rotate-45"></div>
-                    </div>
-                  )}
-                </div>
+      <CardContent className="p-4 space-y-4">
+        {/* Header: Weapon and Build Rating */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-accent"></div>
+            <span className="font-semibold text-foreground">{metrics.weaponName}</span>
+          </div>
+          <div className={`px-3 py-1 rounded-lg border flex items-center gap-2 ${ratingColors}`}>
+            <RatingIcon className="w-4 h-4" />
+            <div>
+              <div className="font-medium capitalize text-xs">
+                {metrics.buildRating.replace('-', ' ')}
               </div>
             </div>
           </div>
-          {metrics.additionalDamage.length > 0 && (
-            <div className="flex items-center gap-3 text-xs">
+        </div>
+
+        {/* Normal Attack Section */}
+        <div className="space-y-2">
+          <div className="text-xs font-medium text-muted uppercase tracking-wider">Normal Attack</div>
+          <div className="bg-muted/5 border border-border/20 rounded-lg p-3">
+            <div className="grid grid-cols-3 gap-3 text-sm">
+              <div className="text-center">
+                <div className="text-xs text-muted mb-1">To Hit</div>
+                <div className="font-semibold text-accent">+{metrics.normalAttack.hitBonus}</div>
+              </div>
+              <div className="text-center">
+                <div className="text-xs text-muted mb-1">Damage</div>
+                <div className="font-semibold text-emerald">
+                  {metrics.normalAttack.damageDice}{metrics.normalAttack.damageBonus >= 0 ? '+' : ''}{metrics.normalAttack.damageBonus}
+                </div>
+              </div>
+              <div className="text-center">
+                <div className="text-xs text-muted mb-1">Avg DPR</div>
+                <div className="font-semibold text-foreground">{metrics.normalAttack.avgDPR.toFixed(1)}</div>
+              </div>
+            </div>
+            <div className="mt-2 pt-2 border-t border-border/10 text-center">
+              <span className="text-xs text-muted">Hit vs AC 15: </span>
+              <span className="text-xs font-medium text-accent">{Math.round(metrics.normalAttack.hitChanceVsAC15 * 100)}%</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Power Attack Section - Only show if available */}
+        {metrics.hasPowerAttack && metrics.powerAttack && (
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="text-xs font-medium text-muted uppercase tracking-wider">Power Attack (-5/+10)</div>
+              {metrics.powerAttackAdvice && (
+                <Badge variant="outline" className="text-[10px] px-1.5 py-0">
+                  {metrics.powerAttackAdvice}
+                </Badge>
+              )}
+            </div>
+            <div className="bg-purple/5 border border-purple/20 rounded-lg p-3">
+              <div className="grid grid-cols-3 gap-3 text-sm">
+                <div className="text-center">
+                  <div className="text-xs text-muted mb-1">To Hit</div>
+                  <div className="font-semibold text-purple">
+                    +{metrics.powerAttack.hitBonus}
+                    <span className="text-[10px] text-red-500 ml-1">(-5)</span>
+                  </div>
+                </div>
+                <div className="text-center">
+                  <div className="text-xs text-muted mb-1">Damage</div>
+                  <div className="font-semibold text-purple">
+                    {metrics.powerAttack.damageDice}{metrics.powerAttack.damageBonus >= 0 ? '+' : ''}{metrics.powerAttack.damageBonus}
+                    <span className="text-[10px] text-green-500 ml-1">(+10)</span>
+                  </div>
+                </div>
+                <div className="text-center">
+                  <div className="text-xs text-muted mb-1">Avg DPR</div>
+                  <div className="font-semibold text-foreground">{metrics.powerAttack.avgDPR.toFixed(1)}</div>
+                </div>
+              </div>
+              <div className="mt-2 pt-2 border-t border-border/10 text-center">
+                <span className="text-xs text-muted">Hit vs AC 15: </span>
+                <span className="text-xs font-medium text-purple">{Math.round(metrics.powerAttack.hitChanceVsAC15 * 100)}%</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Additional Damage Sources */}
+        {metrics.additionalDamage.length > 0 && (
+          <div className="space-y-2">
+            <div className="text-xs font-medium text-muted uppercase tracking-wider">Additional Damage</div>
+            <div className="flex flex-wrap gap-2">
               {metrics.additionalDamage.map((dmg, idx) => (
-                <div key={idx} className="flex items-center gap-1 px-2 py-1 bg-purple/10 rounded border border-purple/20">
+                <div key={idx} className="flex items-center gap-1 px-2 py-1 bg-purple/10 rounded border border-purple/20 text-xs">
                   <span className="text-muted">{dmg.source}:</span>
                   <span className="font-medium text-purple">{dmg.dice}</span>
                 </div>
               ))}
             </div>
-          )}
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          {/* Primary Metrics */}
-          <div className="space-y-3">
-            {/* DPR - Main metric */}
-            <div className="text-center">
-              <div className="text-3xl font-bold text-accent">
-                {metrics.avgDPR.toFixed(1)}
-              </div>
-              <div className="text-xs text-muted">Average DPR</div>
-            </div>
-
-            {/* Hit Chance */}
-            <div className="text-center">
-              <div className="text-xl font-semibold text-accent/80">
-                {Math.round(metrics.hitChanceVsAC15 * 100)}%
-              </div>
-              <div className="text-xs text-muted">Hit vs AC 15</div>
-            </div>
           </div>
+        )}
 
-          {/* Build Assessment */}
-          <div className="space-y-3">
-            {/* Rating */}
-            <div className={`p-2 rounded-lg border flex items-center gap-2 ${ratingColors}`}>
-              <RatingIcon className="w-4 h-4" />
-              <div>
-                <div className="font-medium capitalize text-xs">
-                  {metrics.buildRating.replace('-', ' ')}
-                </div>
-                <div className="text-xs opacity-80">
-                  {metrics.keyStrength}
-                </div>
-              </div>
-            </div>
-
-            {/* Quick Stats */}
-            <div className="space-y-1 text-xs">
-              <div className="flex justify-between items-center">
-                <span className="text-muted">Best vs:</span>
-                <Badge variant="outline" className="text-xs">
-                  {metrics.bestACRange}
-                </Badge>
-              </div>
-              
-              {metrics.powerAttackAdvice !== 'Not applicable' && (
-                <div className="flex justify-between items-center">
-                  <span className="text-muted">Power Attack:</span>
-                  <span className="text-xs font-medium">
-                    {metrics.powerAttackAdvice}
-                  </span>
-                </div>
-              )}
-            </div>
+        {/* Summary Stats */}
+        <div className="grid grid-cols-2 gap-3 text-xs">
+          <div className="text-center p-2 bg-muted/5 rounded">
+            <div className="text-muted mb-1">Best vs</div>
+            <div className="font-medium">{metrics.bestACRange}</div>
+          </div>
+          <div className="text-center p-2 bg-muted/5 rounded">
+            <div className="text-muted mb-1">Key Strength</div>
+            <div className="font-medium">{metrics.keyStrength}</div>
           </div>
         </div>
       </CardContent>
