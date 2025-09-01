@@ -18,11 +18,30 @@ interface PowerAttackGuidanceProps {
 
 interface PowerAttackBreakpoint {
   ac: number
-  usePowerAttack: boolean
-  withPowerAttack: number
-  withoutPowerAttack: number
-  advantage: number
-  description: string
+  normal: {
+    withPowerAttack: number
+    withoutPowerAttack: number
+    usePowerAttack: boolean
+    advantage: number
+  }
+  withAdvantage: {
+    withPowerAttack: number
+    withoutPowerAttack: number
+    usePowerAttack: boolean
+    advantage: number
+  }
+  withDisadvantage: {
+    withPowerAttack: number
+    withoutPowerAttack: number
+    usePowerAttack: boolean
+    advantage: number
+  }
+}
+
+interface ACRange {
+  start: number
+  end: number
+  recommendation: 'power' | 'normal'
 }
 
 function calculatePowerAttackBreakpoints(
@@ -42,8 +61,11 @@ function calculatePowerAttackBreakpoints(
 
   const breakpoints: PowerAttackBreakpoint[] = []
 
-  // Test key AC values
-  const testACs = [10, 12, 14, 15, 16, 18, 20, 22, 25]
+  // Test comprehensive AC range
+  const testACs = []
+  for (let ac = 10; ac <= 30; ac++) {
+    testACs.push(ac)
+  }
 
   for (const ac of testACs) {
     const simConfig: SimulationConfig = {
@@ -51,82 +73,80 @@ function calculatePowerAttackBreakpoints(
       rounds: 3,
       round0Buffs: config.round0BuffsEnabled,
       greedyResourceUse: config.greedyResourceUse,
-      autoGWMSS: false // Test both modes explicitly
+      autoGWMSS: false // We'll calculate both explicitly
     }
 
-    // Calculate without power attack
-    const withoutPA = calculateBuildDPR(combatState, weaponConfig, simConfig)
+    // Normal attacks
+    const normalState = combatState
+    const normalResult = calculateBuildDPR(normalState, weaponConfig, simConfig)
     
-    // Calculate with power attack
-    const withPA = calculateBuildDPR(combatState, weaponConfig, { ...simConfig, autoGWMSS: true })
-
-    const usePowerAttack = withPA.expectedDPR > withoutPA.expectedDPR
-    const advantage = withPA.expectedDPR - withoutPA.expectedDPR
-
-    let description = ''
-    if (ac <= 12) description = 'Low AC - Easy targets'
-    else if (ac <= 15) description = 'Medium AC - Typical enemies'
-    else if (ac <= 18) description = 'High AC - Armored foes'
-    else description = 'Very High AC - Tough enemies'
+    // Advantage
+    const advState = { ...combatState, hasAdvantage: true, hasDisadvantage: false }
+    const advResult = calculateBuildDPR(advState, weaponConfig, simConfig)
+    
+    // Disadvantage
+    const disState = { ...combatState, hasAdvantage: false, hasDisadvantage: true }
+    const disResult = calculateBuildDPR(disState, weaponConfig, simConfig)
 
     breakpoints.push({
       ac,
-      usePowerAttack,
-      withPowerAttack: withPA.expectedDPR,
-      withoutPowerAttack: withoutPA.expectedDPR,
-      advantage,
-      description
+      normal: {
+        withPowerAttack: normalResult.withPowerAttack || 0,
+        withoutPowerAttack: normalResult.withoutPowerAttack || 0,
+        usePowerAttack: (normalResult.withPowerAttack || 0) > (normalResult.withoutPowerAttack || 0),
+        advantage: (normalResult.withPowerAttack || 0) - (normalResult.withoutPowerAttack || 0)
+      },
+      withAdvantage: {
+        withPowerAttack: advResult.withPowerAttack || 0,
+        withoutPowerAttack: advResult.withoutPowerAttack || 0,
+        usePowerAttack: (advResult.withPowerAttack || 0) > (advResult.withoutPowerAttack || 0),
+        advantage: (advResult.withPowerAttack || 0) - (advResult.withoutPowerAttack || 0)
+      },
+      withDisadvantage: {
+        withPowerAttack: disResult.withPowerAttack || 0,
+        withoutPowerAttack: disResult.withoutPowerAttack || 0,
+        usePowerAttack: (disResult.withPowerAttack || 0) > (disResult.withoutPowerAttack || 0),
+        advantage: (disResult.withPowerAttack || 0) - (disResult.withoutPowerAttack || 0)
+      }
     })
   }
 
   return breakpoints
 }
 
-function getBestStrategy(breakpoints: PowerAttackBreakpoint[]): {
-  optimalRange: string
-  recommendation: string
-  explanation: string
-} {
-  const powerAttackGood = breakpoints.filter(bp => bp.usePowerAttack)
-  const normalAttackGood = breakpoints.filter(bp => !bp.usePowerAttack)
-
-  if (powerAttackGood.length === 0) {
-    return {
-      optimalRange: 'Never use power attack',
-      recommendation: 'Always use normal attacks',
-      explanation: 'Your build\'s accuracy is too low to benefit from the -5/+10 trade-off against any AC.'
+function findACRanges(breakpoints: PowerAttackBreakpoint[], state: 'normal' | 'withAdvantage' | 'withDisadvantage'): ACRange[] {
+  const ranges: ACRange[] = []
+  let currentRange: ACRange | null = null
+  
+  for (const bp of breakpoints) {
+    const usePowerAttack = bp[state].usePowerAttack
+    const recommendation = usePowerAttack ? 'power' : 'normal'
+    
+    if (!currentRange || currentRange.recommendation !== recommendation) {
+      if (currentRange) {
+        ranges.push(currentRange)
+      }
+      currentRange = {
+        start: bp.ac,
+        end: bp.ac,
+        recommendation
+      }
+    } else {
+      currentRange.end = bp.ac
     }
   }
-
-  if (normalAttackGood.length === 0) {
-    return {
-      optimalRange: 'Always use power attack',
-      recommendation: 'Use GWM/SS consistently',
-      explanation: 'Your build has high enough accuracy to benefit from power attacks against all targets.'
-    }
+  
+  if (currentRange) {
+    ranges.push(currentRange)
   }
-
-  // Find the transition point
-  const lastPowerAttackAC = Math.max(...powerAttackGood.map(bp => bp.ac))
-  const firstNormalAttackAC = Math.min(...normalAttackGood.map(bp => bp.ac))
-
-  if (lastPowerAttackAC < firstNormalAttackAC) {
-    return {
-      optimalRange: `Use power attack vs AC ${Math.min(...powerAttackGood.map(bp => bp.ac))}-${lastPowerAttackAC}`,
-      recommendation: 'Switch tactics by AC',
-      explanation: `Use power attack against lower AC enemies (${Math.min(...powerAttackGood.map(bp => bp.ac))}-${lastPowerAttackAC}), normal attacks against higher AC (${firstNormalAttackAC}+).`
-    }
-  }
-
-  return {
-    optimalRange: 'Mixed effectiveness',
-    recommendation: 'Situational use',
-    explanation: 'Power attack effectiveness varies. Check specific AC values for optimal strategy.'
-  }
+  
+  return ranges
 }
+
 
 export function PowerAttackGuidance({ build, config }: PowerAttackGuidanceProps) {
   const [showDetailed, setShowDetailed] = useState(false)
+  const [selectedAdvantageState, setSelectedAdvantageState] = useState<'normal' | 'withAdvantage' | 'withDisadvantage'>('normal')
 
   if (!build) {
     return (
@@ -134,7 +154,7 @@ export function PowerAttackGuidance({ build, config }: PowerAttackGuidanceProps)
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Zap className="w-5 h-5" />
-            Power Attack Guidance
+            Power Attack Analysis
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -155,14 +175,14 @@ export function PowerAttackGuidance({ build, config }: PowerAttackGuidanceProps)
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Zap className="w-5 h-5" />
-            Power Attack Guidance
+            Power Attack Analysis
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="text-center text-muted py-4">
             <AlertCircle className="w-8 h-8 mx-auto mb-2 text-muted" />
             <p>No power attack feats detected</p>
-            <p className="text-xs mt-1">This guidance requires Great Weapon Master or Sharpshooter</p>
+            <p className="text-xs mt-1">This analysis requires Great Weapon Master or Sharpshooter</p>
           </div>
         </CardContent>
       </Card>
@@ -170,134 +190,209 @@ export function PowerAttackGuidance({ build, config }: PowerAttackGuidanceProps)
   }
 
   const breakpoints = calculatePowerAttackBreakpoints(build, config)
-  const strategy = getBestStrategy(breakpoints)
   const featName = combatState.hasGWM ? 'Great Weapon Master' : 'Sharpshooter'
+  
+  // Get AC ranges for each advantage state
+  const normalRanges = findACRanges(breakpoints, 'normal')
+  const advantageRanges = findACRanges(breakpoints, 'withAdvantage')
+  const disadvantageRanges = findACRanges(breakpoints, 'withDisadvantage')
+  
+  // Get currently selected ranges
+  const currentRanges = selectedAdvantageState === 'normal' ? normalRanges :
+                       selectedAdvantageState === 'withAdvantage' ? advantageRanges :
+                       disadvantageRanges
 
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Zap className="w-5 h-5" />
-          Power Attack Guidance
+          Power Attack Analysis
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-4">
         {/* Feat Detection */}
-        <div className="flex items-center gap-2 text-sm">
-          <CheckCircle className="w-4 h-4 text-green-600" />
-          <span className="text-foreground">{featName} detected</span>
-          <Badge variant="secondary" className="text-xs">
-            -5 hit / +10 damage
-          </Badge>
-        </div>
-
-        {/* Strategy Recommendation */}
-        <div className="p-4 bg-accent/10 rounded-lg border border-accent/20">
-          <div className="flex items-start gap-3">
-            <Target className="w-5 h-5 text-accent mt-0.5 flex-shrink-0" />
-            <div>
-              <h4 className="font-medium text-foreground mb-1">{strategy.recommendation}</h4>
-              <p className="text-sm text-muted mb-2">{strategy.explanation}</p>
-              <div className="text-xs font-medium text-accent">
-                {strategy.optimalRange}
-              </div>
-            </div>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2 text-sm">
+            <CheckCircle className="w-4 h-4 text-green-600" />
+            <span className="text-foreground">{featName}</span>
+            <Badge variant="secondary" className="text-xs">
+              -5 hit / +10 damage
+            </Badge>
           </div>
         </div>
 
-        {/* Quick Reference */}
-        <div>
-          <div className="flex items-center justify-between mb-3">
-            <h4 className="text-sm font-medium text-foreground">Quick Reference</h4>
-            <button
-              onClick={() => setShowDetailed(!showDetailed)}
-              className="text-xs text-accent hover:text-accent-foreground underline"
-            >
-              {showDetailed ? 'Hide Details' : 'Show Details'}
-            </button>
-          </div>
+        {/* Advantage State Selector */}
+        <div className="flex gap-2 p-1 bg-muted/20 rounded-lg">
+          <button
+            onClick={() => setSelectedAdvantageState('withDisadvantage')}
+            className={`flex-1 px-3 py-2 text-xs font-medium rounded transition-colors ${
+              selectedAdvantageState === 'withDisadvantage' 
+                ? 'bg-background text-foreground shadow-sm' 
+                : 'text-muted hover:text-foreground'
+            }`}
+          >
+            Disadvantage
+          </button>
+          <button
+            onClick={() => setSelectedAdvantageState('normal')}
+            className={`flex-1 px-3 py-2 text-xs font-medium rounded transition-colors ${
+              selectedAdvantageState === 'normal' 
+                ? 'bg-background text-foreground shadow-sm' 
+                : 'text-muted hover:text-foreground'
+            }`}
+          >
+            Normal
+          </button>
+          <button
+            onClick={() => setSelectedAdvantageState('withAdvantage')}
+            className={`flex-1 px-3 py-2 text-xs font-medium rounded transition-colors ${
+              selectedAdvantageState === 'withAdvantage' 
+                ? 'bg-background text-foreground shadow-sm' 
+                : 'text-muted hover:text-foreground'
+            }`}
+          >
+            Advantage
+          </button>
+        </div>
+
+        {/* AC Range Recommendations */}
+        <div className="space-y-3">
+          <h4 className="text-sm font-medium text-foreground flex items-center gap-2">
+            <Target className="w-4 h-4" />
+            Optimal AC Ranges for {selectedAdvantageState === 'normal' ? 'Normal Attacks' : 
+                                   selectedAdvantageState === 'withAdvantage' ? 'Attacks with Advantage' :
+                                   'Attacks with Disadvantage'}
+          </h4>
           
           <div className="space-y-2">
-            {breakpoints.slice(0, showDetailed ? breakpoints.length : 4).map((bp, index) => (
+            {currentRanges.map((range, index) => (
               <div 
-                key={index} 
-                className={`flex items-center justify-between p-3 rounded border ${
-                  bp.usePowerAttack 
-                    ? 'bg-green-500/5 border-green-500/20' 
-                    : 'bg-red-500/5 border-red-500/20'
+                key={index}
+                className={`flex items-center justify-between p-3 rounded-lg border ${
+                  range.recommendation === 'power'
+                    ? 'bg-green-500/5 border-green-500/20'
+                    : 'bg-blue-500/5 border-blue-500/20'
                 }`}
               >
                 <div className="flex items-center gap-3">
-                  <div className="text-sm font-medium min-w-0">
-                    AC {bp.ac}
-                  </div>
-                  <div className="text-xs text-muted">
-                    {bp.description}
-                  </div>
-                </div>
-                
-                <div className="flex items-center gap-2">
-                  <div className="text-right">
-                    <div className={`text-sm font-medium ${
-                      bp.usePowerAttack ? 'text-green-600' : 'text-red-600'
-                    }`}>
-                      {bp.usePowerAttack ? 'Use Power Attack' : 'Use Normal Attack'}
-                    </div>
-                    <div className="text-xs text-muted">
-                      {bp.advantage > 0 ? '+' : ''}{bp.advantage.toFixed(1)} DPR advantage
-                    </div>
-                  </div>
-                  
-                  {bp.usePowerAttack ? (
+                  {range.recommendation === 'power' ? (
                     <TrendingUp className="w-4 h-4 text-green-600" />
                   ) : (
-                    <TrendingDown className="w-4 h-4 text-red-600" />
+                    <TrendingDown className="w-4 h-4 text-blue-600" />
                   )}
+                  <div>
+                    <div className="text-sm font-medium">
+                      AC {range.start}{range.start !== range.end ? `-${range.end}` : ''}
+                    </div>
+                    <div className="text-xs text-muted">
+                      {range.end - range.start + 1} AC value{range.end !== range.start ? 's' : ''}
+                    </div>
+                  </div>
+                </div>
+                <div className={`text-sm font-medium ${
+                  range.recommendation === 'power' ? 'text-green-600' : 'text-blue-600'
+                }`}>
+                  {range.recommendation === 'power' ? 'Use Power Attack' : 'Use Normal Attack'}
                 </div>
               </div>
             ))}
           </div>
+        </div>
 
-          {!showDetailed && breakpoints.length > 4 && (
-            <div className="text-center text-xs text-muted mt-2">
-              +{breakpoints.length - 4} more AC values...
-            </div>
-          )}
+        {/* Detailed Analysis Toggle */}
+        <div>
+          <button
+            onClick={() => setShowDetailed(!showDetailed)}
+            className="flex items-center gap-2 text-sm text-accent hover:text-accent-foreground"
+          >
+            <span>{showDetailed ? 'Hide' : 'Show'} Detailed Analysis</span>
+            <span className="text-xs">({breakpoints.length} AC values)</span>
+          </button>
         </div>
 
         {/* Detailed Breakdown */}
         {showDetailed && (
-          <div>
-            <h4 className="text-sm font-medium text-foreground mb-3">Damage Comparison</h4>
-            <div className="space-y-2 text-xs">
-              {breakpoints.map((bp, index) => (
-                <div key={index} className="flex items-center justify-between py-1 border-b border-border/10 last:border-b-0">
-                  <span className="font-mono">AC {bp.ac}</span>
-                  <div className="flex items-center gap-4 text-right">
-                    <div>
-                      <span className="text-muted">Normal:</span>
-                      <span className="ml-1 font-medium">{bp.withoutPowerAttack.toFixed(1)}</span>
-                    </div>
-                    <div>
-                      <span className="text-muted">Power:</span>
-                      <span className="ml-1 font-medium">{bp.withPowerAttack.toFixed(1)}</span>
-                    </div>
-                    <div className={`font-medium min-w-0 ${bp.advantage > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                      {bp.advantage > 0 ? '+' : ''}{bp.advantage.toFixed(1)}
-                    </div>
-                  </div>
+          <div className="space-y-4">
+            <h4 className="text-sm font-medium text-foreground">
+              Complete DPR Analysis - {selectedAdvantageState === 'normal' ? 'Normal' : 
+                                       selectedAdvantageState === 'withAdvantage' ? 'Advantage' :
+                                       'Disadvantage'}
+            </h4>
+            
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="border-b border-border/20">
+                    <th className="text-left py-2 px-2">AC</th>
+                    <th className="text-right py-2 px-2">Normal</th>
+                    <th className="text-right py-2 px-2">Power</th>
+                    <th className="text-right py-2 px-2">Diff</th>
+                    <th className="text-center py-2 px-2">Best</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {breakpoints.map((bp, index) => {
+                    const data = bp[selectedAdvantageState]
+                    return (
+                      <tr key={index} className="border-b border-border/10 hover:bg-muted/20">
+                        <td className="py-1.5 px-2 font-mono">{bp.ac}</td>
+                        <td className="text-right py-1.5 px-2">{data.withoutPowerAttack.toFixed(1)}</td>
+                        <td className="text-right py-1.5 px-2">{data.withPowerAttack.toFixed(1)}</td>
+                        <td className={`text-right py-1.5 px-2 font-medium ${
+                          data.advantage > 0 ? 'text-green-600' : 'text-red-600'
+                        }`}>
+                          {data.advantage > 0 ? '+' : ''}{data.advantage.toFixed(1)}
+                        </td>
+                        <td className="text-center py-1.5 px-2">
+                          <Badge variant={data.usePowerAttack ? 'default' : 'secondary'} className="text-[10px] px-1.5 py-0">
+                            {data.usePowerAttack ? 'PWR' : 'NRM'}
+                          </Badge>
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+            
+            {/* Comparison Summary */}
+            <div className="grid grid-cols-3 gap-2 pt-2">
+              <div className="text-center p-2 bg-muted/20 rounded">
+                <div className="text-[10px] text-muted uppercase">Disadvantage</div>
+                <div className="text-xs font-medium mt-1">
+                  {disadvantageRanges.filter(r => r.recommendation === 'power').length > 0 
+                    ? `AC ${Math.min(...disadvantageRanges.filter(r => r.recommendation === 'power').map(r => r.start))}-${Math.max(...disadvantageRanges.filter(r => r.recommendation === 'power').map(r => r.end))}`
+                    : 'Never'}
                 </div>
-              ))}
+              </div>
+              <div className="text-center p-2 bg-muted/20 rounded">
+                <div className="text-[10px] text-muted uppercase">Normal</div>
+                <div className="text-xs font-medium mt-1">
+                  {normalRanges.filter(r => r.recommendation === 'power').length > 0 
+                    ? `AC ${Math.min(...normalRanges.filter(r => r.recommendation === 'power').map(r => r.start))}-${Math.max(...normalRanges.filter(r => r.recommendation === 'power').map(r => r.end))}`
+                    : 'Never'}
+                </div>
+              </div>
+              <div className="text-center p-2 bg-muted/20 rounded">
+                <div className="text-[10px] text-muted uppercase">Advantage</div>
+                <div className="text-xs font-medium mt-1">
+                  {advantageRanges.filter(r => r.recommendation === 'power').length > 0 
+                    ? `AC ${Math.min(...advantageRanges.filter(r => r.recommendation === 'power').map(r => r.start))}-${Math.max(...advantageRanges.filter(r => r.recommendation === 'power').map(r => r.end))}`
+                    : 'Never'}
+                </div>
+              </div>
             </div>
           </div>
         )}
 
-        {/* Tips */}
+        {/* Key Insights */}
         <div className="pt-3 border-t border-border/20">
           <div className="text-xs text-muted space-y-1">
-            <p>💡 <strong>Tip:</strong> Power attacks trade accuracy for damage (-5 to hit, +10 damage)</p>
-            <p>🎯 <strong>Best when:</strong> High attack bonus or advantage on attacks</p>
-            <p>⚠️ <strong>Avoid when:</strong> Low accuracy or against high-AC enemies</p>
+            <p>📊 <strong>Three-Phase Pattern:</strong> Power attack typically excels at low AC, struggles mid-range, then improves at very high AC</p>
+            <p>🎯 <strong>Advantage Impact:</strong> Advantage significantly extends the viable power attack range</p>
+            <p>⚠️ <strong>Disadvantage Impact:</strong> Disadvantage severely limits power attack effectiveness</p>
+            <p>💡 <strong>Rule of Thumb:</strong> If you hit on 8+ normally, power attack is often worth it below AC 15</p>
           </div>
         </div>
       </CardContent>
