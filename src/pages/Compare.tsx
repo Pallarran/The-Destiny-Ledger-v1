@@ -2,13 +2,16 @@ import { useState, useMemo } from 'react'
 import { Panel, PanelHeader } from '../components/ui/panel'
 import { ChartFrame } from '../components/ui/chart-frame'
 import { Button } from '../components/ui/button'
+import { Switch } from '../components/ui/switch'
+import { Badge } from '../components/ui/badge'
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
 import { useVaultStore } from '../stores/vaultStore'
 import { buildToCombatState, getWeaponConfig } from '../engine/simulator'
 import { calculateBuildDPR } from '../engine/calculations'
 import { getBuildRating } from '../utils/dprThresholds'
 import type { BuildConfiguration } from '../stores/types'
 import type { SimulationConfig } from '../engine/types'
-import { Plus, X } from 'lucide-react'
+import { Plus, X, TrendingUp, TrendingDown, Download, Eye, EyeOff, Minus } from 'lucide-react'
 // Icons imported from recharts components
 import { 
   LineChart, 
@@ -87,6 +90,7 @@ export function Compare() {
   const { builds: vaultBuilds } = useVaultStore()
   const [selectedBuildIds, setSelectedBuildIds] = useState<string[]>([])
   const [showBuildSelector, setShowBuildSelector] = useState(false)
+  const [showOnlyDifferences, setShowOnlyDifferences] = useState(false)
 
   // Get selected builds with comparison data
   const selectedBuilds = useMemo(() => {
@@ -132,6 +136,63 @@ export function Compare() {
         ? prev.filter(id => id !== buildId)
         : prev.length < 3 ? [...prev, buildId] : prev
     )
+  }
+
+  // Calculate comparison metrics with change indicators
+  const getComparisonMetrics = useMemo(() => {
+    if (selectedBuilds.length < 2) return []
+
+    const metrics = [
+      { key: 'level', label: 'Level', getValue: (build: any) => Math.max(...(build.levelTimeline?.map((l: any) => l.level) || [1])) },
+      { key: 'ac15Dpr', label: 'DPR vs AC 15', getValue: (build: any) => calculateDprEstimate(build, 15), format: (val: number) => val.toFixed(1) },
+      { key: 'ac20Dpr', label: 'DPR vs AC 20', getValue: (build: any) => calculateDprEstimate(build, 20), format: (val: number) => val.toFixed(1) },
+      { key: 'featCount', label: 'Feats', getValue: (build: any) => build.levelTimeline?.filter((l: any) => l.asiOrFeat === 'feat').length || 0 },
+      { key: 'social', label: 'Social Score', getValue: (build: any) => Math.round(build.roleScores.social) },
+      { key: 'defense', label: 'Defense Score', getValue: (build: any) => Math.round(build.roleScores.defense) },
+      { key: 'mobility', label: 'Mobility Score', getValue: (build: any) => Math.round(build.roleScores.mobility) }
+    ]
+
+    return metrics.map(metric => {
+      const values = selectedBuilds.map(build => metric.getValue(build))
+      const min = Math.min(...values)
+      const max = Math.max(...values)
+      const hasDifference = min !== max
+
+      return {
+        ...metric,
+        values,
+        min,
+        max,
+        hasDifference,
+        differences: values.map(val => val === max ? 'high' : val === min ? 'low' : 'mid')
+      }
+    })
+  }, [selectedBuilds])
+
+  // Export functionality
+  const exportComparison = () => {
+    const exportData = {
+      builds: selectedBuilds.map(build => ({
+        name: build.name,
+        race: build.race,
+        level: Math.max(...(build.levelTimeline?.map(l => l.level) || [1])),
+        metrics: getComparisonMetrics.reduce((acc, metric) => {
+          acc[metric.key] = metric.getValue(build)
+          return acc
+        }, {} as Record<string, any>)
+      })),
+      timestamp: new Date().toISOString()
+    }
+
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `build-comparison-${new Date().toISOString().split('T')[0]}.json`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
   }
 
   // Show empty state when no builds selected
@@ -190,35 +251,67 @@ export function Compare() {
       <Panel>
         <PanelHeader title="COMPARE BUILDS" />
         
-        {/* Build Selection Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-4">
-            {selectedBuilds.map((build) => (
-              <div key={build.id} className="flex items-center gap-2">
-                <div 
-                  className="w-3 h-3 rounded-full" 
-                  style={{ backgroundColor: build.color }}
-                />
-                <span className="text-sm font-medium">{build.name}</span>
-                <button
-                  onClick={() => setSelectedBuildIds(prev => prev.filter(id => id !== build.id))}
-                  className="text-muted hover:text-destructive ml-1"
-                >
-                  <X className="w-3 h-3" />
-                </button>
-              </div>
-            ))}
+        {/* Enhanced Build Selection Header with Controls */}
+        <div className="sticky top-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-10 -mx-6 px-6 py-4 border-b border-border">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              {selectedBuilds.map((build) => (
+                <div key={build.id} className="flex items-center gap-2">
+                  <div 
+                    className="w-3 h-3 rounded-full" 
+                    style={{ backgroundColor: build.color }}
+                  />
+                  <span className="text-sm font-medium">{build.name}</span>
+                  <button
+                    onClick={() => setSelectedBuildIds(prev => prev.filter(id => id !== build.id))}
+                    className="text-muted hover:text-destructive ml-1"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              ))}
+            </div>
+            
+            <div className="flex items-center gap-4">
+              {selectedBuilds.length >= 2 && (
+                <>
+                  {/* Show Differences Toggle */}
+                  <div className="flex items-center gap-2">
+                    <Switch
+                      checked={showOnlyDifferences}
+                      onCheckedChange={setShowOnlyDifferences}
+                      id="show-differences"
+                    />
+                    <label htmlFor="show-differences" className="text-sm text-muted cursor-pointer">
+                      {showOnlyDifferences ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+                      <span className="ml-1">Differences only</span>
+                    </label>
+                  </div>
+                  
+                  {/* Export Button */}
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    onClick={exportComparison}
+                    className="gap-2"
+                  >
+                    <Download className="w-4 h-4" />
+                    Export
+                  </Button>
+                </>
+              )}
+              
+              <Button 
+                size="sm" 
+                variant="outline" 
+                onClick={() => setShowBuildSelector(!showBuildSelector)}
+                disabled={selectedBuilds.length >= 3}
+              >
+                <Plus className="w-4 h-4 mr-1" />
+                Add Build
+              </Button>
+            </div>
           </div>
-          
-          <Button 
-            size="sm" 
-            variant="outline" 
-            onClick={() => setShowBuildSelector(!showBuildSelector)}
-            disabled={selectedBuilds.length >= 3}
-          >
-            <Plus className="w-4 h-4 mr-1" />
-            Add Build
-          </Button>
         </div>
         
         {showBuildSelector && (
@@ -325,104 +418,124 @@ export function Compare() {
           </div>
         </div>
 
-        {/* Build Comparison Summary */}
-        <div className="mt-6">
-          <ChartFrame title="Build Statistics">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {selectedBuilds.map((build) => {
-                const level = Math.max(...(build.levelTimeline?.map(l => l.level) || [1]))
-                const classBreakdown = build.levelTimeline?.reduce((acc: Record<string, number>, levelEntry) => {
-                  acc[levelEntry.classId] = (acc[levelEntry.classId] || 0) + 1
-                  return acc
-                }, {} as Record<string, number>) || {}
-                const mainClass = Object.entries(classBreakdown).sort(([,a], [,b]) => (b as number) - (a as number))[0]?.[0] || 'None'
-                const featCount = build.levelTimeline?.filter(l => l.asiOrFeat === 'feat').length || 0
-                const avgDpr = dprData.reduce((sum, point) => sum + (point[build.id] || 0), 0) / dprData.length
-                
-                // Get build rating
-                const ac15Dpr = calculateDprEstimate(build, 15)
-                const combatState = buildToCombatState(build)
-                const weaponId = build.rangedWeapon || build.mainHandWeapon || 'longsword'
-                const weaponConfig = getWeaponConfig(weaponId, build.weaponEnhancementBonus || 0, combatState)
-                let hitChance = 0.5 // fallback
-                if (weaponConfig) {
-                  try {
-                    const result = calculateBuildDPR(combatState, weaponConfig, {
-                      targetAC: 15, rounds: 3, round0Buffs: false, greedyResourceUse: true, autoGWMSS: true
-                    })
-                    hitChance = result.hitChance
-                  } catch (e) {
-                    console.warn('Hit chance calculation failed')
-                  }
-                }
-                const buildRating = getBuildRating(ac15Dpr, hitChance, level)
-
-                return (
-                  <div key={build.id} className="space-y-3">
-                    <div className="flex items-center gap-2 mb-3">
-                      <div 
-                        className="w-4 h-4 rounded-full" 
-                        style={{ backgroundColor: build.color }}
-                      />
-                      <h4 className="font-semibold">{build.name}</h4>
-                      <div className={`px-2 py-0.5 text-xs rounded capitalize ${
-                        buildRating === 'excellent' ? 'bg-green-500/10 text-green-600' :
-                        buildRating === 'good' ? 'bg-blue-500/10 text-blue-600' :
-                        buildRating === 'average' ? 'bg-yellow-500/10 text-yellow-600' :
-                        'bg-red-500/10 text-red-600'
-                      }`}>
-                        {buildRating.replace('-', ' ')}
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span className="text-muted">Race:</span>
-                        <span className="capitalize">{(build.race || 'Unknown').replace('_', ' ')}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted">Level:</span>
-                        <span>{level}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted">Main Class:</span>
-                        <span className="capitalize">{mainClass.replace('_', ' ')}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted">Feats:</span>
-                        <span>{featCount}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted">DPR vs AC 15:</span>
-                        <span className="font-medium">{ac15Dpr.toFixed(1)}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted">Hit vs AC 15:</span>
-                        <span className="font-medium">{Math.round(hitChance * 100)}%</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted">Avg DPR:</span>
-                        <span className="font-medium">{avgDpr.toFixed(1)}</span>
-                      </div>
-                      
-                      <div className="pt-2 mt-2 border-t border-border/20">
-                        <div className="text-xs text-muted mb-1">Role Scores</div>
-                        {Object.entries(build.roleScores)
-                          .sort(([,a], [,b]) => b - a)
-                          .map(([role, score]) => (
-                            <div key={role} className="flex justify-between text-xs">
-                              <span className="capitalize">{role}:</span>
-                              <span>{Math.round(score)}</span>
+        {/* Enhanced Comparison Table */}
+        {selectedBuilds.length >= 2 && (
+          <div className="mt-6">
+            <Card>
+              <CardHeader className="sticky top-20 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-10">
+                <CardTitle>Side-by-Side Comparison</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-border">
+                        <th className="text-left py-3 px-2 font-medium text-muted">Metric</th>
+                        {selectedBuilds.map((build) => (
+                          <th key={build.id} className="text-center py-3 px-2">
+                            <div className="flex items-center justify-center gap-2">
+                              <div 
+                                className="w-3 h-3 rounded-full" 
+                                style={{ backgroundColor: build.color }}
+                              />
+                              <span className="font-medium">{build.name}</span>
                             </div>
-                          ))}
-                      </div>
-                    </div>
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {getComparisonMetrics
+                        .filter(metric => !showOnlyDifferences || metric.hasDifference)
+                        .map((metric) => (
+                          <tr key={metric.key} className="border-b border-border/50">
+                            <td className="py-3 px-2 text-muted">{metric.label}</td>
+                            {selectedBuilds.map((build, buildIndex) => {
+                              const value = metric.getValue(build)
+                              const difference = metric.differences[buildIndex]
+                              const isHighest = difference === 'high'
+                              const isLowest = difference === 'low'
+                              
+                              return (
+                                <td key={build.id} className="py-3 px-2 text-center">
+                                  <div className="flex items-center justify-center gap-1">
+                                    <span className={`font-medium ${
+                                      isHighest ? 'text-green-600' : 
+                                      isLowest && metric.hasDifference ? 'text-red-600' : 
+                                      'text-foreground'
+                                    }`}>
+                                      {metric.format ? metric.format(value) : value}
+                                    </span>
+                                    {metric.hasDifference && isHighest && (
+                                      <TrendingUp className="w-3 h-3 text-green-600" />
+                                    )}
+                                    {metric.hasDifference && isLowest && (
+                                      <TrendingDown className="w-3 h-3 text-red-600" />
+                                    )}
+                                    {metric.hasDifference && difference === 'mid' && selectedBuilds.length > 2 && (
+                                      <Minus className="w-3 h-3 text-muted" />
+                                    )}
+                                  </div>
+                                </td>
+                              )
+                            })}
+                          </tr>
+                        ))}
+                      
+                      {/* Build Ratings */}
+                      <tr className="border-b border-border/50">
+                        <td className="py-3 px-2 text-muted">Build Rating</td>
+                        {selectedBuilds.map((build) => {
+                          const level = Math.max(...(build.levelTimeline?.map(l => l.level) || [1]))
+                          const ac15Dpr = calculateDprEstimate(build, 15)
+                          const combatState = buildToCombatState(build)
+                          const weaponId = build.rangedWeapon || build.mainHandWeapon || 'longsword'
+                          const weaponConfig = getWeaponConfig(weaponId, build.weaponEnhancementBonus || 0, combatState)
+                          let hitChance = 0.5
+                          if (weaponConfig) {
+                            try {
+                              const result = calculateBuildDPR(combatState, weaponConfig, {
+                                targetAC: 15, rounds: 3, round0Buffs: false, greedyResourceUse: true, autoGWMSS: true
+                              })
+                              hitChance = result.hitChance
+                            } catch (e) {
+                              console.warn('Hit chance calculation failed')
+                            }
+                          }
+                          const buildRating = getBuildRating(ac15Dpr, hitChance, level)
+                          
+                          return (
+                            <td key={build.id} className="py-3 px-2 text-center">
+                              <Badge 
+                                variant="outline" 
+                                className={`capitalize ${
+                                  buildRating === 'excellent' ? 'bg-green-500/10 text-green-600 border-green-500/20' :
+                                  buildRating === 'good' ? 'bg-blue-500/10 text-blue-600 border-blue-500/20' :
+                                  buildRating === 'average' ? 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20' :
+                                  'bg-red-500/10 text-red-600 border-red-500/20'
+                                }`}
+                              >
+                                {buildRating.replace('-', ' ')}
+                              </Badge>
+                            </td>
+                          )
+                        })}
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                
+                {showOnlyDifferences && getComparisonMetrics.filter(m => m.hasDifference).length === 0 && (
+                  <div className="text-center py-8 text-muted">
+                    <EyeOff className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                    <p>No significant differences found between selected builds</p>
+                    <p className="text-xs mt-1">Try disabling "Differences only" to see all metrics</p>
                   </div>
-                )
-              })}
-            </div>
-          </ChartFrame>
-        </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        )}
       </Panel>
     </div>
   )

@@ -3,6 +3,79 @@ import type { DowntimeTraining } from '../types/downtimeTraining'
 
 export type AbilityScoreMethod = 'standard' | 'pointbuy' | 'manual'
 
+// Canonical Build type IDs from review document
+export type ClassId = string
+export type SubclassId = string
+export type FeatureId = string
+export type FeatId = string
+export type StyleId = string
+export type SpellId = string
+export type WeaponId = string
+export type ArmorId = string
+export type SkillId = string
+export type AbilityId = 'STR' | 'DEX' | 'CON' | 'INT' | 'WIS' | 'CHA'
+
+// Canonical Build type from review document
+export interface CanonicalBuild {
+  identity: {
+    name: string
+    level: number
+    classPath: Array<{
+      cls: ClassId
+      levels: number
+      subclass?: SubclassId
+    }>
+  }
+  abilities: {
+    STR: number
+    DEX: number
+    CON: number
+    INT: number
+    WIS: number
+    CHA: number
+  }
+  profs: {
+    skills: SkillId[]
+    saves: AbilityId[]
+    expertise: SkillId[]
+  }
+  features: FeatureId[]
+  feats: FeatId[]
+  fightingStyles: StyleId[]
+  spells: Array<{
+    spell: SpellId
+    prepared?: boolean
+    known?: boolean
+  }>
+  equipment: {
+    weapons: WeaponId[]
+    ammo?: number
+    armor?: ArmorId
+    shield?: boolean
+  }
+  resources: {
+    actionSurge?: number
+    superiorityDice?: {
+      count: number
+      die: number
+    }
+    pactSlots?: {
+      level: number
+      count: number
+    }
+  }
+  toggles: {
+    advantage: 'normal' | 'adv' | 'disadv' | 'elven-accuracy'
+    cover?: 0 | 2 | 5
+    sharpshooter?: boolean
+    greatWeaponMaster?: boolean
+    hex?: boolean
+    huntersMark?: boolean
+    bless?: boolean
+    faerieFire?: boolean
+  }
+}
+
 export interface LevelEntry {
   level: number
   classId: string
@@ -16,6 +89,7 @@ export interface LevelEntry {
   archetype?: string
 }
 
+// Legacy BuildConfiguration - will migrate to CanonicalBuild gradually
 export interface BuildConfiguration {
   id: string
   name: string
@@ -60,6 +134,9 @@ export interface BuildConfiguration {
   
   // Downtime training (optional - for campaigns that allow between-chapter training)
   downtimeTraining?: DowntimeTraining
+  
+  // Migration fields toward canonical build
+  canonicalBuild?: CanonicalBuild
 }
 
 export interface DPRConfiguration {
@@ -70,11 +147,14 @@ export interface DPRConfiguration {
   acMax: number
   acStep: number
   
-  // Combat state
-  advantageState: 'normal' | 'advantage' | 'disadvantage'
+  // Combat state - aligned with canonical build toggles
+  advantageState: 'normal' | 'advantage' | 'disadvantage' | 'elven-accuracy'
   round0BuffsEnabled: boolean
   greedyResourceUse: boolean
   autoGWMSS: boolean
+  
+  // Combat conditions from canonical build
+  cover?: 0 | 2 | 5
   
   // Manual overrides
   customAttackBonus?: number

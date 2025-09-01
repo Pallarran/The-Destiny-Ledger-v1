@@ -4,11 +4,13 @@ import { Label } from '../ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select'
 import { Switch } from '../ui/switch'
 import { DeltaPill } from '../ui/delta-pill'
+import { ContextualReveal } from '../ui/contextual-reveal'
 import { useCharacterBuilderStore } from '../../stores/characterBuilderStore'
 import { useDPRDelta } from '../../hooks/useDPRDelta'
 import { useDPRStore } from '../../stores/dprStore'
 import { useSettingsStore } from '../../stores/settingsStore'
-import { Sword, Shield, Info } from 'lucide-react'
+import { useContextualFields } from '../../hooks/useContextualFields'
+import { Sword, Shield, Info, Target, Crown } from 'lucide-react'
 import { weapons } from '../../rules/srd/weapons'
 import { armor } from '../../rules/srd/armor'
 import { useEffect } from 'react'
@@ -94,6 +96,9 @@ export function EquipmentSelection() {
   const { calculateDelta, getDelta } = useDPRDelta()
   const { currentConfig } = useDPRStore()
   const { greedyResourceUse: defaultGreedy, autoCalculateGWMSS: defaultAutoGWMSS } = useSettingsStore()
+  
+  // Contextual field visibility
+  const contextualFields = useContextualFields(currentBuild)
   
   const shieldDeltaId = 'shield-toggle'
   const shieldDelta = getDelta(shieldDeltaId)
@@ -458,6 +463,109 @@ export function EquipmentSelection() {
             </Card>
           </div>
         </div>
+        
+        {/* Contextual Feat Recommendations */}
+        <div className="mt-6 space-y-4">
+          <h3 className="text-lg font-semibold text-panel">Recommended Feats</h3>
+          <p className="text-sm text-muted-foreground">
+            Based on your weapon choices, these feats would synergize well with your build
+          </p>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <ContextualReveal
+              show={contextualFields.showGWMFeats}
+              title="Great Weapon Master"
+              description="Perfect for heavy weapons like greatswords"
+            >
+              <Card className="border-red-500/20 bg-red-500/5">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Sword className="w-4 h-4 text-red-600" />
+                    <span className="font-medium">Great Weapon Master</span>
+                    <Badge variant="outline" className="text-xs bg-red-500/10 text-red-600">
+                      Heavy Weapons
+                    </Badge>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    -5 attack for +10 damage with heavy weapons. Works great with your current weapon choice.
+                  </p>
+                </CardContent>
+              </Card>
+            </ContextualReveal>
+            
+            <ContextualReveal
+              show={contextualFields.showSharpshooterFeats}
+              title="Sharpshooter"
+              description="Essential for ranged weapon builds"
+            >
+              <Card className="border-green-500/20 bg-green-500/5">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Target className="w-4 h-4 text-green-600" />
+                    <span className="font-medium">Sharpshooter</span>
+                    <Badge variant="outline" className="text-xs bg-green-500/10 text-green-600">
+                      Ranged Weapons
+                    </Badge>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    -5 attack for +10 damage with ranged weapons. Ignore cover and long range penalties.
+                  </p>
+                </CardContent>
+              </Card>
+            </ContextualReveal>
+            
+            <ContextualReveal
+              show={contextualFields.showPolearmMasterFeats}
+              title="Polearm Master"
+              description="Excellent with reach weapons"
+            >
+              <Card className="border-purple-500/20 bg-purple-500/5">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Crown className="w-4 h-4 text-purple-600" />
+                    <span className="font-medium">Polearm Master</span>
+                    <Badge variant="outline" className="text-xs bg-purple-500/10 text-purple-600">
+                      Polearms
+                    </Badge>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Bonus action attack and opportunity attacks when enemies enter reach.
+                  </p>
+                </CardContent>
+              </Card>
+            </ContextualReveal>
+            
+            <ContextualReveal
+              show={contextualFields.showCrossbowExpertFeats}
+              title="Crossbow Expert"
+              description="Specialized for crossbow users"
+            >
+              <Card className="border-blue-500/20 bg-blue-500/5">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Target className="w-4 h-4 text-blue-600" />
+                    <span className="font-medium">Crossbow Expert</span>
+                    <Badge variant="outline" className="text-xs bg-blue-500/10 text-blue-600">
+                      Crossbows
+                    </Badge>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Ignore loading property, no disadvantage at close range, bonus action hand crossbow attack.
+                  </p>
+                </CardContent>
+              </Card>
+            </ContextualReveal>
+          </div>
+          
+          {!(contextualFields.showGWMFeats || contextualFields.showSharpshooterFeats || contextualFields.showPolearmMasterFeats || contextualFields.showCrossbowExpertFeats) && (
+            <div className="text-center py-6 text-muted-foreground">
+              <Info className="w-6 h-6 mx-auto mb-2 opacity-50" />
+              <p className="text-sm">Select weapons to see feat recommendations</p>
+              <p className="text-xs">Feat suggestions will appear based on weapon properties and synergies</p>
+            </div>
+          )}
+        </div>
+        
       </div>
     </div>
   )
