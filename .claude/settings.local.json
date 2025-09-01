@@ -28,7 +28,8 @@
       "mcp__ide__getDiagnostics",
       "Bash(npx tsc:*)",
       "Bash(git rm:*)",
-      "Bash(npx eslint:*)"
+      "Bash(npx eslint:*)",
+      "Bash(del test_power_attack.js)"
     ],
     "deny": [],
     "ask": []

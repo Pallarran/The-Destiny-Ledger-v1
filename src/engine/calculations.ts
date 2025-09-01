@@ -274,6 +274,13 @@ export function calculateBuildDPR(
     if (useGWMSS) {
       gwmssAttackBonus = attackBonus - 5
       gwmssDamage.bonusDamage += 10
+      console.log('Applied Power Attack:', {
+        originalAttack: attackBonus,
+        newAttack: gwmssAttackBonus,
+        originalDamage: baseDamage.bonusDamage,
+        newDamage: gwmssDamage.bonusDamage,
+        targetAC: config.targetAC
+      })
     }
   }
   
@@ -293,6 +300,21 @@ export function calculateBuildDPR(
     config.targetAC,
     advantageState
   )
+  
+  // Debug logging for DPR calculation
+  if (config.forceGWMSS && useGWMSS) {
+    // Test both calculations directly
+    const normalDPR = calculateSingleAttackDPR(attackBonus, baseDamage, config.targetAC, advantageState)
+    const powerDPR = calculateSingleAttackDPR(gwmssAttackBonus, gwmssDamage, config.targetAC, advantageState)
+    
+    console.log('DPR Calculation Debug:', {
+      targetAC: config.targetAC,
+      normal: { attack: attackBonus, damage: calculateDamageRoll(baseDamage), dpr: normalDPR },
+      power: { attack: gwmssAttackBonus, damage: calculateDamageRoll(gwmssDamage), dpr: powerDPR },
+      finalUsed: dprPerAttack,
+      shouldBeDifferent: normalDPR !== powerDPR
+    })
+  }
   
   
   // Calculate rounds
