@@ -135,6 +135,13 @@ export function DprLab() {
     disadvantage: Array<{ac: number, powerAttack: number}>
   } | null>(null)
   const [hasPowerAttack, setHasPowerAttack] = useState(false)
+  
+  // State for curve visibility
+  const [curveVisibility, setCurveVisibility] = useState({
+    normal: true,
+    advantage: true,
+    disadvantage: true
+  })
 
   // Calculate power attack data when build or result changes
   useEffect(() => {
@@ -441,6 +448,43 @@ export function DprLab() {
               <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 lg:gap-6">
                 <HeroMetrics build={selectedBuild} result={currentResult} config={localConfig} />
                 <ChartFrame title="DPR vs Armor Class">
+                  {/* Visibility Toggles */}
+                  <div className="flex gap-2 p-2 border-b border-border/20">
+                    <button
+                      onClick={() => setCurveVisibility(prev => ({ ...prev, normal: !prev.normal }))}
+                      className={`flex items-center gap-1.5 px-2 py-1 text-xs font-medium rounded transition-colors ${
+                        curveVisibility.normal 
+                          ? 'bg-ink/10 text-foreground' 
+                          : 'bg-muted/20 text-muted line-through'
+                      }`}
+                    >
+                      <span className="w-2 h-2 rounded-full" style={{ backgroundColor: 'var(--ink)' }} />
+                      Normal
+                    </button>
+                    <button
+                      onClick={() => setCurveVisibility(prev => ({ ...prev, advantage: !prev.advantage }))}
+                      className={`flex items-center gap-1.5 px-2 py-1 text-xs font-medium rounded transition-colors ${
+                        curveVisibility.advantage 
+                          ? 'bg-accent/10 text-foreground' 
+                          : 'bg-muted/20 text-muted line-through'
+                      }`}
+                    >
+                      <span className="w-2 h-2 rounded-full" style={{ backgroundColor: 'var(--accent)' }} />
+                      Advantage
+                    </button>
+                    <button
+                      onClick={() => setCurveVisibility(prev => ({ ...prev, disadvantage: !prev.disadvantage }))}
+                      className={`flex items-center gap-1.5 px-2 py-1 text-xs font-medium rounded transition-colors ${
+                        curveVisibility.disadvantage 
+                          ? 'bg-danger/10 text-foreground' 
+                          : 'bg-muted/20 text-muted line-through'
+                      }`}
+                    >
+                      <span className="w-2 h-2 rounded-full" style={{ backgroundColor: 'var(--danger)' }} />
+                      Disadvantage
+                    </button>
+                  </div>
+                  
                   <ResponsiveContainer width="100%" height={280}>
                     <LineChart data={displayData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
@@ -458,6 +502,7 @@ export function DprLab() {
                         label={{ value: 'DPR', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fill: 'var(--muted)' } }}
                       />
                       <Tooltip 
+                        formatter={(value: number) => value.toFixed(1)}
                         contentStyle={{
                           backgroundColor: 'var(--panel)',
                           border: '1px solid var(--border)',
@@ -465,59 +510,71 @@ export function DprLab() {
                           color: 'var(--ink)'
                         }}
                       />
-                      <Line 
-                        type="monotone" 
-                        dataKey="normal" 
-                        stroke="var(--ink)" 
-                        strokeWidth={3}
-                        name="Normal"
-                        dot={{ fill: 'var(--ink)', strokeWidth: 0, r: 3 }}
-                      />
-                      <Line 
-                        type="monotone" 
-                        dataKey="advantage" 
-                        stroke="var(--accent)" 
-                        strokeWidth={3}
-                        name="Advantage"
-                        dot={{ fill: 'var(--accent)', strokeWidth: 0, r: 3 }}
-                      />
-                      <Line 
-                        type="monotone" 
-                        dataKey="disadvantage" 
-                        stroke="var(--danger)" 
-                        strokeWidth={3}
-                        name="Disadvantage"
-                        dot={{ fill: 'var(--danger)', strokeWidth: 0, r: 3 }}
-                      />
+                      {curveVisibility.normal && (
+                        <Line 
+                          type="monotone" 
+                          dataKey="normal" 
+                          stroke="var(--ink)" 
+                          strokeWidth={3}
+                          name="Normal"
+                          dot={{ fill: 'var(--ink)', strokeWidth: 0, r: 3 }}
+                        />
+                      )}
+                      {curveVisibility.advantage && (
+                        <Line 
+                          type="monotone" 
+                          dataKey="advantage" 
+                          stroke="var(--accent)" 
+                          strokeWidth={3}
+                          name="Advantage"
+                          dot={{ fill: 'var(--accent)', strokeWidth: 0, r: 3 }}
+                        />
+                      )}
+                      {curveVisibility.disadvantage && (
+                        <Line 
+                          type="monotone" 
+                          dataKey="disadvantage" 
+                          stroke="var(--danger)" 
+                          strokeWidth={3}
+                          name="Disadvantage"
+                          dot={{ fill: 'var(--danger)', strokeWidth: 0, r: 3 }}
+                        />
+                      )}
                       {hasPowerAttack && (
                         <>
-                          <Line 
-                            type="monotone" 
-                            dataKey="normalPA" 
-                            stroke="var(--ink)" 
-                            strokeWidth={3}
-                            strokeDasharray="5 5"
-                            name="Normal (PA)"
-                            dot={{ fill: 'var(--ink)', strokeWidth: 0, r: 3 }}
-                          />
-                          <Line 
-                            type="monotone" 
-                            dataKey="advantagePA" 
-                            stroke="var(--accent)" 
-                            strokeWidth={3}
-                            strokeDasharray="5 5"
-                            name="Advantage (PA)"
-                            dot={{ fill: 'var(--accent)', strokeWidth: 0, r: 3 }}
-                          />
-                          <Line 
-                            type="monotone" 
-                            dataKey="disadvantagePA" 
-                            stroke="var(--danger)" 
-                            strokeWidth={3}
-                            strokeDasharray="5 5"
-                            name="Disadvantage (PA)"
-                            dot={{ fill: 'var(--danger)', strokeWidth: 0, r: 3 }}
-                          />
+                          {curveVisibility.normal && (
+                            <Line 
+                              type="monotone" 
+                              dataKey="normalPA" 
+                              stroke="var(--ink)" 
+                              strokeWidth={3}
+                              strokeDasharray="5 5"
+                              name="Normal (PA)"
+                              dot={{ fill: 'var(--ink)', strokeWidth: 0, r: 3 }}
+                            />
+                          )}
+                          {curveVisibility.advantage && (
+                            <Line 
+                              type="monotone" 
+                              dataKey="advantagePA" 
+                              stroke="var(--accent)" 
+                              strokeWidth={3}
+                              strokeDasharray="5 5"
+                              name="Advantage (PA)"
+                              dot={{ fill: 'var(--accent)', strokeWidth: 0, r: 3 }}
+                            />
+                          )}
+                          {curveVisibility.disadvantage && (
+                            <Line 
+                              type="monotone" 
+                              dataKey="disadvantagePA" 
+                              stroke="var(--danger)" 
+                              strokeWidth={3}
+                              strokeDasharray="5 5"
+                              name="Disadvantage (PA)"
+                              dot={{ fill: 'var(--danger)', strokeWidth: 0, r: 3 }}
+                            />
+                          )}
                         </>
                       )}
                     </LineChart>
