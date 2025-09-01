@@ -1,6 +1,7 @@
 import { Card, CardContent } from '../ui/card'
 import { Badge } from '../ui/badge'
-import { TrendingUp, Target, Zap, Shield } from 'lucide-react'
+import { TrendingUp, Target, Zap, Shield, Info } from 'lucide-react'
+import { useState } from 'react'
 import { buildToCombatState, getWeaponConfig } from '../../engine/simulator'
 import { calculateBuildDPR } from '../../engine/calculations'
 import type { BuildConfiguration, DPRResult } from '../../stores/types'
@@ -45,13 +46,28 @@ function calculateHeroMetrics(
   
   // Calculate weapon info
   const weaponName = weaponId.charAt(0).toUpperCase() + weaponId.slice(1).replace(/_/g, ' ')
-  const hitBonus = combatState.proficiencyBonus + combatState.abilityModifier + 
+  
+  // Calculate hit bonus including fighting styles
+  let hitBonus = combatState.proficiencyBonus + combatState.abilityModifier + 
     combatState.attackBonuses.reduce((sum, bonus) => sum + bonus, 0) + 
     (weaponConfig.enhancement || 0)
+  
+  // Add fighting style bonuses to hit
+  if (combatState.fightingStyles.includes('archery')) {
+    hitBonus += 2
+  }
+  
   const damageDice = `${weaponConfig.baseDamage.count}d${weaponConfig.baseDamage.die}`
-  const damageBonus = combatState.abilityModifier + 
+  
+  // Calculate damage bonus including fighting styles
+  let damageBonus = combatState.abilityModifier + 
     combatState.damageBonuses.reduce((sum, bonus) => sum + bonus, 0) + 
     (weaponConfig.enhancement || 0)
+  
+  // Add fighting style bonuses to damage
+  if (combatState.fightingStyles.includes('dueling') && !build.offHandWeapon) {
+    damageBonus += 2
+  }
   
   // Collect additional damage sources
   const additionalDamage: Array<{ source: string; dice: string }> = []
@@ -168,61 +184,75 @@ function getRatingColor(rating: string): string {
   }
 }
 
-function getHitBonusBreakdown(metrics: HeroMetricsData, build: BuildConfiguration): string {
+function getHitBonusBreakdown(metrics: HeroMetricsData, build: BuildConfiguration): { components: Array<{label: string, value: string}>, total: number } {
   const combatState = buildToCombatState(build)
   const weaponId = build.rangedWeapon || build.mainHandWeapon || 'longsword'
   const weaponConfig = getWeaponConfig(weaponId, 0)
   
-  if (!weaponConfig) return 'Hit bonus breakdown unavailable'
+  const components: Array<{label: string, value: string}> = []
   
-  const breakdown: string[] = []
+  if (!weaponConfig) {
+    return { components: [{label: 'Error', value: 'N/A'}], total: 0 }
+  }
   
   // Base components
-  breakdown.push(`Proficiency: +${combatState.proficiencyBonus}`)
-  breakdown.push(`Ability: +${combatState.abilityModifier}`)
+  components.push({label: 'Proficiency', value: `+${combatState.proficiencyBonus}`})
+  components.push({label: 'Ability', value: `+${combatState.abilityModifier}`})
+  
+  // Fighting style bonuses
+  if (combatState.fightingStyles.includes('archery')) {
+    components.push({label: 'Archery Style', value: '+2'})
+  }
   
   // Additional bonuses
   if (combatState.attackBonuses.length > 0) {
     const totalAttackBonuses = combatState.attackBonuses.reduce((sum, bonus) => sum + bonus, 0)
     if (totalAttackBonuses !== 0) {
-      breakdown.push(`Features/Buffs: ${totalAttackBonuses >= 0 ? '+' : ''}${totalAttackBonuses}`)
+      components.push({label: 'Features/Buffs', value: `${totalAttackBonuses >= 0 ? '+' : ''}${totalAttackBonuses}`})
     }
   }
   
   // Weapon enhancement
   if (weaponConfig.enhancement && weaponConfig.enhancement > 0) {
-    breakdown.push(`Enhancement: +${weaponConfig.enhancement}`)
+    components.push({label: 'Enhancement', value: `+${weaponConfig.enhancement}`})
   }
   
-  return `Hit Bonus Breakdown:\n${breakdown.join('\n')}\nTotal: +${metrics.hitBonus}`
+  return { components, total: metrics.hitBonus }
 }
 
-function getDamageBonusBreakdown(metrics: HeroMetricsData, build: BuildConfiguration): string {
+function getDamageBonusBreakdown(metrics: HeroMetricsData, build: BuildConfiguration): { components: Array<{label: string, value: string}>, total: number } {
   const combatState = buildToCombatState(build)
   const weaponId = build.rangedWeapon || build.mainHandWeapon || 'longsword'
   const weaponConfig = getWeaponConfig(weaponId, 0)
   
-  if (!weaponConfig) return 'Damage bonus breakdown unavailable'
+  const components: Array<{label: string, value: string}> = []
   
-  const breakdown: string[] = []
+  if (!weaponConfig) {
+    return { components: [{label: 'Error', value: 'N/A'}], total: 0 }
+  }
   
   // Base components
-  breakdown.push(`Ability: +${combatState.abilityModifier}`)
+  components.push({label: 'Ability', value: `+${combatState.abilityModifier}`})
+  
+  // Fighting style bonuses
+  if (combatState.fightingStyles.includes('dueling') && !build.offHandWeapon) {
+    components.push({label: 'Dueling Style', value: '+2'})
+  }
   
   // Additional bonuses
   if (combatState.damageBonuses.length > 0) {
     const totalDamageBonuses = combatState.damageBonuses.reduce((sum, bonus) => sum + bonus, 0)
     if (totalDamageBonuses !== 0) {
-      breakdown.push(`Features/Buffs: ${totalDamageBonuses >= 0 ? '+' : ''}${totalDamageBonuses}`)
+      components.push({label: 'Features/Buffs', value: `${totalDamageBonuses >= 0 ? '+' : ''}${totalDamageBonuses}`})
     }
   }
   
   // Weapon enhancement
   if (weaponConfig.enhancement && weaponConfig.enhancement > 0) {
-    breakdown.push(`Enhancement: +${weaponConfig.enhancement}`)
+    components.push({label: 'Enhancement', value: `+${weaponConfig.enhancement}`})
   }
   
-  return `Damage Bonus Breakdown:\n${breakdown.join('\n')}\nTotal: ${metrics.damageBonus >= 0 ? '+' : ''}${metrics.damageBonus}`
+  return { components, total: metrics.damageBonus }
 }
 
 function getRatingIcon(rating: string) {
@@ -236,6 +266,9 @@ function getRatingIcon(rating: string) {
 }
 
 export function HeroMetrics({ build, result, config }: HeroMetricsProps) {
+  const [showHitTooltip, setShowHitTooltip] = useState(false)
+  const [showDamageTooltip, setShowDamageTooltip] = useState(false)
+  
   if (!build || !result) {
     return (
       <Card className="h-full">
@@ -261,6 +294,9 @@ export function HeroMetrics({ build, result, config }: HeroMetricsProps) {
       </Card>
     )
   }
+  
+  const hitBreakdown = getHitBonusBreakdown(metrics, build)
+  const damageBreakdown = getDamageBonusBreakdown(metrics, build)
 
   const RatingIcon = getRatingIcon(metrics.buildRating)
   const ratingColors = getRatingColor(metrics.buildRating)
@@ -276,23 +312,76 @@ export function HeroMetrics({ build, result, config }: HeroMetricsProps) {
               <span className="font-semibold text-foreground">{metrics.weaponName}</span>
             </div>
             <div className="flex items-center gap-4 text-sm">
-              {/* Hit Bonus with Tooltip */}
-              <div 
-                className="flex items-center gap-1 px-2 py-1 bg-accent/10 rounded border border-accent/30 cursor-help" 
-                title={getHitBonusBreakdown(metrics, build)}
-              >
+              {/* Hit Bonus with Info Icon */}
+              <div className="flex items-center gap-1 px-2 py-1 bg-accent/10 rounded border border-accent/30">
                 <span className="text-muted">Hit:</span>
                 <span className="font-semibold text-accent">+{metrics.hitBonus}</span>
+                <div 
+                  className="relative inline-flex items-center"
+                  onMouseEnter={() => setShowHitTooltip(true)}
+                  onMouseLeave={() => setShowHitTooltip(false)}
+                >
+                  <Info className="w-3 h-3 text-muted/40 hover:text-muted/70 transition-colors cursor-help ml-1" />
+                  
+                  {/* Hit Bonus Tooltip */}
+                  {showHitTooltip && (
+                    <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 z-50 bg-ink text-panel text-xs rounded-lg border border-border/20 shadow-lg p-3 min-w-48">
+                      <div className="space-y-1">
+                        <div className="font-medium mb-2 text-accent">Hit Bonus Breakdown</div>
+                        {hitBreakdown.components.map((comp, idx) => (
+                          <div key={idx} className="flex justify-between">
+                            <span className="text-muted">{comp.label}:</span>
+                            <span className="font-mono">{comp.value}</span>
+                          </div>
+                        ))}
+                        <div className="mt-2 pt-2 border-t border-border/20 flex justify-between font-medium">
+                          <span>Total:</span>
+                          <span className="text-accent">+{hitBreakdown.total}</span>
+                        </div>
+                      </div>
+                      
+                      {/* Tooltip arrow */}
+                      <div className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-ink border-l border-t border-border/20 rotate-45"></div>
+                    </div>
+                  )}
+                </div>
               </div>
-              {/* Damage with Tooltip */}
-              <div 
-                className="flex items-center gap-1 px-2 py-1 bg-emerald/10 rounded border border-emerald/30 cursor-help"
-                title={getDamageBonusBreakdown(metrics, build)}
-              >
+              
+              {/* Damage with Info Icon */}
+              <div className="flex items-center gap-1 px-2 py-1 bg-emerald/10 rounded border border-emerald/30">
                 <span className="text-muted">{metrics.damageDice}</span>
                 <span className="font-semibold text-emerald">
                   {metrics.damageBonus >= 0 ? '+' : ''}{metrics.damageBonus}
                 </span>
+                <div 
+                  className="relative inline-flex items-center"
+                  onMouseEnter={() => setShowDamageTooltip(true)}
+                  onMouseLeave={() => setShowDamageTooltip(false)}
+                >
+                  <Info className="w-3 h-3 text-muted/40 hover:text-muted/70 transition-colors cursor-help ml-1" />
+                  
+                  {/* Damage Bonus Tooltip */}
+                  {showDamageTooltip && (
+                    <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 z-50 bg-ink text-panel text-xs rounded-lg border border-border/20 shadow-lg p-3 min-w-48">
+                      <div className="space-y-1">
+                        <div className="font-medium mb-2 text-emerald">Damage Bonus Breakdown</div>
+                        {damageBreakdown.components.map((comp, idx) => (
+                          <div key={idx} className="flex justify-between">
+                            <span className="text-muted">{comp.label}:</span>
+                            <span className="font-mono">{comp.value}</span>
+                          </div>
+                        ))}
+                        <div className="mt-2 pt-2 border-t border-border/20 flex justify-between font-medium">
+                          <span>Total:</span>
+                          <span className="text-emerald">{damageBreakdown.total >= 0 ? '+' : ''}{damageBreakdown.total}</span>
+                        </div>
+                      </div>
+                      
+                      {/* Tooltip arrow */}
+                      <div className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-ink border-l border-t border-border/20 rotate-45"></div>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </div>
