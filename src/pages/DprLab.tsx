@@ -9,6 +9,9 @@ import { BuildFeaturesPanel } from '../components/dpr/BuildFeaturesPanel'
 import { ActiveEffectsDisplay } from '../components/dpr/ActiveEffectsDisplay'
 import { ACAnalysisPanel } from '../components/dpr/ACAnalysisPanel'
 import { PowerAttackGuidance } from '../components/dpr/PowerAttackGuidance'
+import { HeroMetrics } from '../components/dpr/HeroMetrics'
+import { SmartInsights } from '../components/dpr/SmartInsights'
+import { TacticalAdvice } from '../components/dpr/TacticalAdvice'
 import { 
   PlayIcon,
   Loader2
@@ -52,12 +55,12 @@ export function DprLab() {
     greedyResourceUse: boolean
     autoGWMSS: boolean
   }>({
-    round0BuffsEnabled: true,
+    round0BuffsEnabled: false,
     greedyResourceUse: defaultGreedy,
     autoGWMSS: defaultAutoGWMSS
   })
   
-  // Fixed config per specification
+  // Fixed config for DPR calculations (AC range etc.)
   const fixedConfig = {
     acMin: 10,
     acMax: 30,
@@ -72,32 +75,34 @@ export function DprLab() {
       const config = createDPRConfig(selectedBuild.id)
       setConfiguration({ ...config, ...fixedConfig, ...localConfig })
     }
-  }, [selectedBuild, currentConfig, fixedConfig, localConfig, setConfiguration])
-  
-  // Update selectedBuild when builderCurrentBuild changes (only if not manually selecting a vault build)
+  }, [selectedBuild, currentConfig, setConfiguration, fixedConfig, localConfig])
+
+  // Sync local config changes to DPR store
+  useEffect(() => {
+    if (currentConfig) {
+      const updatedConfig = { ...currentConfig, ...localConfig }
+      setConfiguration(updatedConfig)
+    }
+  }, [localConfig, currentConfig, setConfiguration])
+
+  // Handle auto-switching from builder build (but not if user has manually selected vault build)
   useEffect(() => {
     if (builderCurrentBuild && !manualBuildSelection && !hasSelectedVaultBuild) {
       const exportedBuild = exportToBuildConfiguration()
-      if (exportedBuild && exportedBuild.id !== selectedBuild?.id) {
+      if (exportedBuild) {
         setSelectedBuild(exportedBuild)
       }
     }
-  }, [builderCurrentBuild, exportToBuildConfiguration, selectedBuild?.id, manualBuildSelection, hasSelectedVaultBuild])
-  
+  }, [builderCurrentBuild, exportToBuildConfiguration, manualBuildSelection, hasSelectedVaultBuild])
+
+  // Calculate DPR when build or config changes
   const handleCalculate = useCallback(async () => {
     if (!selectedBuild || !isInitialized) return
     
-    const config = {
-      buildId: selectedBuild.id,
-      ...fixedConfig,
-      ...localConfig
-    }
-    
     setCalculating(true)
-    
     try {
-      // Calculate DPR curves
-      const result = await calculateDPRCurves(selectedBuild, config)
+      const config = createDPRConfig(selectedBuild.id)
+      const result = await calculateDPRCurves(selectedBuild, { ...config, ...fixedConfig, ...localConfig })
       if (result) {
         setResult(result)
       }
@@ -117,78 +122,41 @@ export function DprLab() {
         })
       }
     }
-    
     triggerAutoCalculation()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedBuild?.id, isInitialized, isCalculating]) // Only trigger when build ID changes or worker initializes
-  
-  // Auto-calculate when local config changes (but only if we have a selected build)
-  useEffect(() => {
-    const triggerAutoCalculation = () => {
-      if (selectedBuild && isInitialized && !isCalculating && !isAutoCalculatingRef.current) {
-        isAutoCalculatingRef.current = true
-        handleCalculate().finally(() => {
-          isAutoCalculatingRef.current = false
-        })
-      }
-    }
-    
-    triggerAutoCalculation()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [localConfig.round0BuffsEnabled, localConfig.greedyResourceUse, localConfig.autoGWMSS, selectedBuild, isInitialized, isCalculating])
-  
-  // Transform data for chart
-  const chartData = currentResult ? 
-    currentResult.normalCurve.map((point, index) => ({
+  }, [selectedBuild?.id, isInitialized, isCalculating])
+
+  // Format display data for the chart
+  const displayData = currentResult ? 
+    currentResult.normalCurve.map(point => ({
       ac: point.ac,
-      normal: Math.round(point.dpr * 10) / 10,
-      advantage: currentResult.advantageCurve[index] ? Math.round(currentResult.advantageCurve[index].dpr * 10) / 10 : 0,
-      disadvantage: currentResult.disadvantageCurve[index] ? Math.round(currentResult.disadvantageCurve[index].dpr * 10) / 10 : 0
+      normal: point.dpr,
+      advantage: currentResult.advantageCurve.find(advPoint => advPoint.ac === point.ac)?.dpr || 0,
+      disadvantage: currentResult.disadvantageCurve.find(disPoint => disPoint.ac === point.ac)?.dpr || 0
     })) : []
-  
-  // Get typical DPR at AC 15
-  const typicalDPR = chartData.find(point => point.ac === 15)
-  
-  // Debug logging for DPR display values
-  if (typicalDPR && typicalDPR.normal > 30) {
-    console.log('DPR Display Debug - High value detected:', {
-      typicalDPR,
-      rawCurrentResult: currentResult,
-      selectedBuild: selectedBuild?.name
-    })
-  }
-  
-  // Placeholder data if no results
-  const displayData = chartData.length > 0 ? chartData : [
-    { ac: 10, normal: 12, advantage: 15, disadvantage: 9 },
-    { ac: 15, normal: 10, advantage: 13, disadvantage: 7 },
-    { ac: 20, normal: 6, advantage: 9, disadvantage: 3 },
-    { ac: 25, normal: 3, advantage: 5, disadvantage: 1 },
-    { ac: 30, normal: 1, advantage: 2, disadvantage: 0.5 }
-  ]
 
   return (
     <div className="space-y-6">
       <Panel>
-        <PanelHeader title="DPR LAB" />
+        <PanelHeader title="D&D 5e DPR Lab" />
         
-        {/* Build Selection Header */}
-        <div className="mb-6">
+        <div className="space-y-6">
+          {/* Build Selection */}
           {selectedBuild ? (
-            <div className="flex items-center justify-between p-4 bg-accent/5 border border-accent/20 rounded-lg">
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 bg-accent/10 text-accent rounded-full flex items-center justify-center text-sm font-bold">
+            <div className="bg-accent/5 border border-accent/20 rounded-lg p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-accent/20 text-accent rounded-full flex items-center justify-center text-lg font-bold">
                     {Math.max(...(selectedBuild.levelTimeline?.map(l => l.level) || [1]))}
                   </div>
                   <div>
-                    <h3 className="font-semibold text-foreground">{selectedBuild.name}</h3>
-                    <p className="text-sm text-muted capitalize">
-                      {selectedBuild.race?.replace('_', ' ') || 'Unknown'} • 
+                    <h3 className="font-semibold text-lg text-foreground">{selectedBuild.name}</h3>
+                    <p className="text-sm text-muted">
+                      <span className="capitalize">{selectedBuild.race?.replace('_', ' ') || 'Unknown'}</span>
                       {selectedBuild.levelTimeline && selectedBuild.levelTimeline.length > 0 && (
-                        <span className="ml-1">
-                          {Object.entries(
-                            selectedBuild.levelTimeline.reduce((acc: Record<string, number>, level) => {
+                        <span> • {
+                          Object.entries(
+                            selectedBuild.levelTimeline.reduce((acc, level) => {
                               acc[level.classId] = (acc[level.classId] || 0) + 1
                               return acc
                             }, {} as Record<string, number>)
@@ -287,282 +255,302 @@ export function DprLab() {
         </div>
         
         {selectedBuild && (
-          <Tabs defaultValue="dpr-analysis" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="dpr-analysis">DPR Analysis</TabsTrigger>
-              <TabsTrigger value="combat-optimizer">Combat Optimizer</TabsTrigger>
+          <Tabs defaultValue="overview" className="w-full">
+            <TabsList className="grid w-full grid-cols-4 h-auto">
+              <TabsTrigger value="overview" className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground text-sm px-3 py-2">
+                <span className="hidden sm:inline">Overview</span>
+                <span className="sm:hidden">Info</span>
+              </TabsTrigger>
+              <TabsTrigger value="analysis" className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground text-sm px-3 py-2">
+                <span className="hidden sm:inline">Analysis</span>
+                <span className="sm:hidden">Chart</span>
+              </TabsTrigger>
+              <TabsTrigger value="advanced" className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground text-sm px-3 py-2">
+                <span className="hidden sm:inline">Advanced</span>
+                <span className="sm:hidden">Config</span>
+              </TabsTrigger>
+              <TabsTrigger value="combat-optimizer" className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground text-sm px-3 py-2">
+                <span className="hidden sm:inline">Optimizer</span>
+                <span className="sm:hidden">Opt</span>
+              </TabsTrigger>
             </TabsList>
             
-            <TabsContent value="dpr-analysis" className="mt-6">
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            {/* Left Column: Build Information */}
-            <div className="lg:col-span-5 space-y-6">
-              {/* Weapon Information Panels */}
-              <WeaponInfoPanel build={selectedBuild} />
-              <AttackBreakdownDisplay build={selectedBuild} />
-              
-              {/* Configuration Panel */}
-              <Panel className="bg-ink text-panel">
-                <PanelHeader title="Simulation Config" className="text-panel bg-ink border-b border-border/20" />
+            {/* Overview Tab - High-level metrics and key insights */}
+            <TabsContent value="overview" className="mt-6">
+              <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 lg:gap-6">
+                {/* Top Row: Hero Metrics + Primary Chart */}
+                <div className="space-y-6">
+                  <HeroMetrics build={selectedBuild} result={currentResult} config={localConfig} />
+                  <SmartInsights build={selectedBuild} result={currentResult} config={localConfig} />
+                </div>
                 
                 <div className="space-y-6">
-                {/* Auto-Calculation Status */}
-                <div className="mb-6">
-                  <div className="w-full flex items-center justify-center gap-2 bg-accent/10 text-accent px-4 py-2 rounded font-medium border border-accent/30">
-                    {isCalculating ? (
-                      <>
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                        Calculating...
-                      </>
-                    ) : currentResult ? (
-                      <>
-                        <PlayIcon className="w-4 h-4" />
-                        Auto-Calculated
-                      </>
-                    ) : (
-                      <>
-                        <PlayIcon className="w-4 h-4" />
-                        Ready for Auto-Calculation
-                      </>
-                    )}
-                  </div>
-                  
-                  {/* Manual recalculate button (optional) */}
-                  <button
-                    onClick={handleCalculate}
-                    disabled={!selectedBuild || !isInitialized || isCalculating}
-                    className="w-full mt-2 text-sm text-muted hover:text-accent disabled:opacity-50 disabled:cursor-not-allowed underline"
-                  >
-                    Recalculate Manually
-                  </button>
-                  
-                </div>
-
-                {/* Fixed Parameters Info */}
-                <div>
-                  <h4 className="font-medium mb-3">Analysis Parameters</h4>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-muted">AC Range:</span>
-                      <span>10-30 (fixed)</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted">Curves:</span>
-                      <span>Normal/Advantage/Disadvantage</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted">Combat Duration:</span>
-                      <span>3 Rounds (nova)</span>
-                    </div>
-                  </div>
-                </div>
-
-
-                {/* Simulation Options */}
-                <div>
-                  <h4 className="font-medium mb-3">Options</h4>
-                  <div className="space-y-3">
-                    <label className="flex items-center justify-between">
-                      <span className="text-sm font-medium">Round 0 Buffs</span>
-                      <input 
-                        type="checkbox" 
-                        checked={localConfig.round0BuffsEnabled}
-                        onChange={(e) => setLocalConfig(prev => ({ ...prev, round0BuffsEnabled: e.target.checked }))}
-                        className="rounded"
-                      />
-                    </label>
-                    <label className="flex items-center justify-between">
-                      <span className="text-sm font-medium">Greedy Resource Use</span>
-                      <input 
-                        type="checkbox" 
-                        checked={localConfig.greedyResourceUse}
-                        onChange={(e) => setLocalConfig(prev => ({ ...prev, greedyResourceUse: e.target.checked }))}
-                        className="rounded"
-                      />
-                    </label>
-                    <label className="flex items-center justify-between">
-                      <span className="text-sm font-medium">Auto GWM/SS Optimization</span>
-                      <input 
-                        type="checkbox" 
-                        checked={localConfig.autoGWMSS}
-                        onChange={(e) => setLocalConfig(prev => ({ ...prev, autoGWMSS: e.target.checked }))}
-                        className="rounded"
-                      />
-                    </label>
-                  </div>
+                  <ChartFrame title="DPR vs Armor Class">
+                    <ResponsiveContainer width="100%" height={280}>
+                      <LineChart data={displayData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                        <XAxis 
+                          dataKey="ac" 
+                          axisLine={false}
+                          tickLine={false}
+                          tick={{ fontSize: 12, fill: 'var(--muted)' }}
+                          label={{ value: 'Target AC', position: 'insideBottom', offset: -10, style: { textAnchor: 'middle', fill: 'var(--muted)' } }}
+                        />
+                        <YAxis 
+                          axisLine={false}
+                          tickLine={false}
+                          tick={{ fontSize: 12, fill: 'var(--muted)' }}
+                          label={{ value: 'DPR', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fill: 'var(--muted)' } }}
+                        />
+                        <Tooltip 
+                          contentStyle={{
+                            backgroundColor: 'var(--panel)',
+                            border: '1px solid var(--border)',
+                            borderRadius: 'var(--radius)',
+                            color: 'var(--ink)'
+                          }}
+                        />
+                        <Line 
+                          type="monotone" 
+                          dataKey="normal" 
+                          stroke="var(--ink)" 
+                          strokeWidth={3}
+                          name="Normal"
+                          dot={{ fill: 'var(--ink)', strokeWidth: 0, r: 3 }}
+                        />
+                        <Line 
+                          type="monotone" 
+                          dataKey="advantage" 
+                          stroke="var(--accent)" 
+                          strokeWidth={3}
+                          name="Advantage"
+                          dot={{ fill: 'var(--accent)', strokeWidth: 0, r: 3 }}
+                        />
+                        <Line 
+                          type="monotone" 
+                          dataKey="disadvantage" 
+                          stroke="var(--danger)" 
+                          strokeWidth={3}
+                          name="Disadvantage"
+                          dot={{ fill: 'var(--danger)', strokeWidth: 0, r: 3 }}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </ChartFrame>
+                  <TacticalAdvice build={selectedBuild} result={currentResult} config={localConfig} />
                 </div>
               </div>
-            </Panel>
-          </div>
+            </TabsContent>
 
-          {/* Chart Panel */}
-          <div className="lg:col-span-7">
-            <ChartFrame title="Expected Damage Per Round (DPR)">
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={displayData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                  <XAxis 
-                    dataKey="ac" 
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fontSize: 12, fill: 'var(--muted)' }}
-                    label={{ value: 'Target AC', position: 'insideBottom', offset: -10, style: { textAnchor: 'middle', fill: 'var(--muted)' } }}
-                  />
-                  <YAxis 
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fontSize: 12, fill: 'var(--muted)' }}
-                    label={{ value: 'DPR', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fill: 'var(--muted)' } }}
-                  />
-                  <Tooltip 
-                    contentStyle={{
-                      backgroundColor: 'var(--panel)',
-                      border: '1px solid var(--border)',
-                      borderRadius: 'var(--radius)',
-                      color: 'var(--ink)'
-                    }}
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey="normal" 
-                    stroke="var(--ink)" 
-                    strokeWidth={3}
-                    name="Normal"
-                    dot={{ fill: 'var(--ink)', strokeWidth: 0, r: 3 }}
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey="advantage" 
-                    stroke="var(--accent)" 
-                    strokeWidth={3}
-                    name="Advantage"
-                    dot={{ fill: 'var(--accent)', strokeWidth: 0, r: 3 }}
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey="disadvantage" 
-                    stroke="var(--danger)" 
-                    strokeWidth={3}
-                    name="Disadvantage"
-                    dot={{ fill: 'var(--danger)', strokeWidth: 0, r: 3 }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </ChartFrame>
-          </div>
-        </div>
-        
-        {/* Build Features Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-          {/* Combat Features */}
-          <BuildFeaturesPanel build={selectedBuild} />
-          
-          {/* Active Effects */}
-          <ActiveEffectsDisplay build={selectedBuild} />
-        </div>
-        
-        {/* AC-Specific Analysis Section */}
-        <div className="mt-6">
-          <ACAnalysisPanel build={selectedBuild} config={localConfig} />
-        </div>
-        
-        {/* Results Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-          {/* Power Attack Guidance */}
-          <PowerAttackGuidance build={selectedBuild} config={localConfig} />
-
-          {/* DPR Summary */}
-          <Panel className="bg-panel">
-            <PanelHeader title="Combat Performance Analysis" />
-            {currentResult ? (
-              <div className="space-y-4">
-                {/* Key Metrics */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="text-center p-3 bg-accent/5 rounded-lg border border-accent/10">
-                    <div className="text-2xl font-bold text-accent">{Math.round(currentResult.totalDPR * 10) / 10}</div>
-                    <div className="text-xs text-muted">Total 3-Round DPR</div>
-                  </div>
-                  <div className="text-center p-3 bg-emerald/5 rounded-lg border border-emerald/10">
-                    <div className="text-2xl font-bold text-emerald">{Math.round(currentResult.averageDPR * 10) / 10}</div>
-                    <div className="text-xs text-muted">Average per Round</div>
-                  </div>
+            {/* Analysis Tab - Detailed breakdowns and analysis */}
+            <TabsContent value="analysis" className="mt-6">
+              <div className="space-y-6">
+                {/* Build Features Section */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
+                  <BuildFeaturesPanel build={selectedBuild} />
+                  <ActiveEffectsDisplay build={selectedBuild} />
                 </div>
                 
-                {/* Round by Round */}
-                {currentResult.roundBreakdown && (
-                  <div>
-                    <div className="text-sm font-medium text-panel mb-2">Round-by-Round Breakdown</div>
-                    <div className="space-y-2">
-                      {currentResult.roundBreakdown.map((roundDPR, index) => (
-                        <div key={index} className="flex items-center justify-between text-sm">
-                          <span className="flex items-center gap-2">
-                            <div className="w-6 h-6 rounded-full bg-accent/10 text-accent text-xs font-medium flex items-center justify-center">
-                              {index + 1}
-                            </div>
-                            Round {index + 1}
-                            {index === 0 && ' (Action Surge)'}
-                          </span>
-                          <div className="flex items-center gap-2">
-                            <span className="font-mono">{Math.round(roundDPR * 10) / 10}</span>
-                            <div className="w-16 bg-border/20 rounded-full h-2">
-                              <div 
-                                className="bg-accent rounded-full h-2 transition-all"
-                                style={{width: `${Math.min(100, (roundDPR / Math.max(...currentResult.roundBreakdown)) * 100)}%`}}
-                              />
-                            </div>
+                {/* AC-Specific Analysis */}
+                <ACAnalysisPanel build={selectedBuild} config={localConfig} />
+                
+                {/* Power Attack and Performance */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
+                  <PowerAttackGuidance build={selectedBuild} config={localConfig} />
+                  
+                  {/* Detailed Performance Metrics */}
+                  <Panel className="bg-panel">
+                    <PanelHeader title="Performance Breakdown" />
+                    {currentResult ? (
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div className="text-center p-3 bg-accent/5 rounded-lg border border-accent/10">
+                            <div className="text-2xl font-bold text-accent">{Math.round(currentResult.totalDPR * 10) / 10}</div>
+                            <div className="text-xs text-muted">3-Round Total</div>
+                          </div>
+                          <div className="text-center p-3 bg-emerald/5 rounded-lg border border-emerald/10">
+                            <div className="text-2xl font-bold text-emerald">{Math.round(currentResult.averageDPR * 10) / 10}</div>
+                            <div className="text-xs text-muted">Average/Round</div>
                           </div>
                         </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                
-                {/* AC Performance */}
-                {typicalDPR && (
-                  <div className="pt-3 border-t border-border/20">
-                    <div className="text-sm font-medium text-panel mb-2">Performance vs AC 15 (Typical Enemy)</div>
-                    <div className="grid grid-cols-3 gap-3">
-                      <div className="text-center p-2 bg-panel/30 rounded">
-                        <div className="text-sm font-medium">{typicalDPR.normal}</div>
-                        <div className="text-xs text-muted">Normal</div>
+                        
+                        {currentResult.roundBreakdown && (
+                          <div>
+                            <div className="text-sm font-medium text-panel mb-2">Round-by-Round</div>
+                            <div className="space-y-2">
+                              {currentResult.roundBreakdown.map((roundDPR, index) => (
+                                <div key={index} className="flex items-center justify-between text-sm">
+                                  <span className="flex items-center gap-2">
+                                    <div className="w-6 h-6 rounded-full bg-accent/10 text-accent text-xs font-medium flex items-center justify-center">
+                                      {index + 1}
+                                    </div>
+                                    Round {index + 1}
+                                  </span>
+                                  <span className="font-mono">{Math.round(roundDPR * 10) / 10}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       </div>
-                      <div className="text-center p-2 bg-accent/10 rounded border border-accent/20">
-                        <div className="text-sm font-medium text-accent">{typicalDPR.advantage}</div>
-                        <div className="text-xs text-muted">Advantage</div>
+                    ) : (
+                      <div className="text-center text-muted py-8">
+                        <div className="text-sm">Run analysis to see detailed breakdown</div>
                       </div>
-                      <div className="text-center p-2 bg-danger/10 rounded border border-danger/20">
-                        <div className="text-sm font-medium text-danger">{typicalDPR.disadvantage}</div>
-                        <div className="text-xs text-muted">Disadvantage</div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-                
-                {/* Performance Insights */}
-                <div className="pt-3 border-t border-border/20">
-                  <div className="text-sm font-medium text-panel mb-2">Performance Insights</div>
-                  <div className="space-y-1 text-xs text-muted">
-                    {typicalDPR && (
-                      <>
-                        <div>• Advantage increases DPR by {Math.round(((typicalDPR.advantage - typicalDPR.normal) / typicalDPR.normal) * 100)}%</div>
-                        <div>• Disadvantage reduces DPR by {Math.round(((typicalDPR.normal - typicalDPR.disadvantage) / typicalDPR.normal) * 100)}%</div>
-                      </>
                     )}
-                    {currentResult.roundBreakdown && currentResult.roundBreakdown[0] > currentResult.roundBreakdown[1] && (
-                      <div>• Round 1 is strongest due to Action Surge/nova resources</div>
-                    )}
-                  </div>
+                  </Panel>
                 </div>
               </div>
-            ) : (
-              <div className="text-sm text-muted py-8 text-center">
-                <div className="mb-2">⚡ Run calculation to see detailed combat analysis</div>
-                <div className="text-xs">DPR curves, round breakdowns, and optimization tips</div>
+            </TabsContent>
+
+            {/* Advanced Tab - Raw data and configuration */}
+            <TabsContent value="advanced" className="mt-6">
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6">
+                {/* Configuration Panel */}
+                <div className="lg:col-span-5 space-y-6">
+                  <WeaponInfoPanel build={selectedBuild} />
+                  <AttackBreakdownDisplay build={selectedBuild} />
+                  
+                  <Panel className="bg-ink text-panel">
+                    <PanelHeader title="Advanced Configuration" className="text-panel bg-ink border-b border-border/20" />
+                    
+                    <div className="space-y-6">
+                      <div className="mb-6">
+                        <div className="w-full flex items-center justify-center gap-2 bg-accent/10 text-accent px-4 py-2 rounded font-medium border border-accent/30">
+                          {isCalculating ? (
+                            <>
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                              Calculating...
+                            </>
+                          ) : currentResult ? (
+                            <>
+                              <PlayIcon className="w-4 h-4" />
+                              Auto-Calculated
+                            </>
+                          ) : (
+                            <>
+                              <PlayIcon className="w-4 h-4" />
+                              Ready for Calculation
+                            </>
+                          )}
+                        </div>
+                        
+                        <button
+                          onClick={handleCalculate}
+                          disabled={!selectedBuild || !isInitialized || isCalculating}
+                          className="w-full mt-2 text-sm text-muted hover:text-accent disabled:opacity-50 disabled:cursor-not-allowed underline"
+                        >
+                          Recalculate Manually
+                        </button>
+                      </div>
+
+                      <div>
+                        <h4 className="font-medium mb-3">Analysis Parameters</h4>
+                        <div className="space-y-2 text-sm">
+                          <div className="flex justify-between">
+                            <span className="text-muted">AC Range:</span>
+                            <span>10-30 (fixed)</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-muted">Combat Duration:</span>
+                            <span>3 Rounds (nova)</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <h4 className="font-medium mb-3">Simulation Options</h4>
+                        <div className="space-y-3">
+                          <label className="flex items-center justify-between">
+                            <span className="text-sm font-medium">Round 0 Buffs</span>
+                            <input 
+                              type="checkbox" 
+                              checked={localConfig.round0BuffsEnabled}
+                              onChange={(e) => setLocalConfig(prev => ({ ...prev, round0BuffsEnabled: e.target.checked }))}
+                              className="rounded"
+                            />
+                          </label>
+                          <label className="flex items-center justify-between">
+                            <span className="text-sm font-medium">Greedy Resource Use</span>
+                            <input 
+                              type="checkbox" 
+                              checked={localConfig.greedyResourceUse}
+                              onChange={(e) => setLocalConfig(prev => ({ ...prev, greedyResourceUse: e.target.checked }))}
+                              className="rounded"
+                            />
+                          </label>
+                          <label className="flex items-center justify-between">
+                            <span className="text-sm font-medium">Auto GWM/SS Optimization</span>
+                            <input 
+                              type="checkbox" 
+                              checked={localConfig.autoGWMSS}
+                              onChange={(e) => setLocalConfig(prev => ({ ...prev, autoGWMSS: e.target.checked }))}
+                              className="rounded"
+                            />
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                  </Panel>
+                </div>
+
+                {/* Full Chart */}
+                <div className="lg:col-span-7">
+                  <ChartFrame title="Complete DPR Analysis (AC 10-30)">
+                    <ResponsiveContainer width="100%" height={400}>
+                      <LineChart data={displayData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                        <XAxis 
+                          dataKey="ac" 
+                          axisLine={false}
+                          tickLine={false}
+                          tick={{ fontSize: 12, fill: 'var(--muted)' }}
+                          label={{ value: 'Target AC', position: 'insideBottom', offset: -10, style: { textAnchor: 'middle', fill: 'var(--muted)' } }}
+                        />
+                        <YAxis 
+                          axisLine={false}
+                          tickLine={false}
+                          tick={{ fontSize: 12, fill: 'var(--muted)' }}
+                          label={{ value: 'DPR', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fill: 'var(--muted)' } }}
+                        />
+                        <Tooltip 
+                          contentStyle={{
+                            backgroundColor: 'var(--panel)',
+                            border: '1px solid var(--border)',
+                            borderRadius: 'var(--radius)',
+                            color: 'var(--ink)'
+                          }}
+                        />
+                        <Line 
+                          type="monotone" 
+                          dataKey="normal" 
+                          stroke="var(--ink)" 
+                          strokeWidth={3}
+                          name="Normal"
+                          dot={{ fill: 'var(--ink)', strokeWidth: 0, r: 3 }}
+                        />
+                        <Line 
+                          type="monotone" 
+                          dataKey="advantage" 
+                          stroke="var(--accent)" 
+                          strokeWidth={3}
+                          name="Advantage"
+                          dot={{ fill: 'var(--accent)', strokeWidth: 0, r: 3 }}
+                        />
+                        <Line 
+                          type="monotone" 
+                          dataKey="disadvantage" 
+                          stroke="var(--danger)" 
+                          strokeWidth={3}
+                          name="Disadvantage"
+                          dot={{ fill: 'var(--danger)', strokeWidth: 0, r: 3 }}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </ChartFrame>
+                </div>
               </div>
-            )}
-          </Panel>
-        </div>
-              </TabsContent>
+            </TabsContent>
             
             <TabsContent value="combat-optimizer" className="mt-6">
               <CombatRoundOptimizer />

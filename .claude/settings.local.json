@@ -26,7 +26,8 @@
       "Bash(node:*)",
       "Read(C:\\/**)",
       "mcp__ide__getDiagnostics",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(git rm:*)"
     ],
     "deny": [],
     "ask": []
