@@ -360,6 +360,9 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
           
           updateNavigationState(state)
           
+          // Ensure downtime training totals are computed after loading
+          get().recomputeTrainingTotals()
+          
           console.log('Build loaded successfully')
         } catch (error) {
           console.error('Error loading build configuration:', error)
@@ -372,6 +375,9 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
     exportToBuildConfiguration: (): BuildConfiguration | null => {
       const { currentBuild } = get()
       if (!currentBuild) return null
+      
+      // Ensure downtime training totals are up to date
+      get().recomputeTrainingTotals()
       
       // Convert CharacterBuilder back to BuildConfiguration
       return {
