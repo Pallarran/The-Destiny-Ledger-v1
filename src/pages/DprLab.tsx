@@ -22,24 +22,18 @@ import { useVaultStore } from '../stores/vaultStore'
 import { useCharacterBuilderStore } from '../stores/characterBuilderStore'
 import { useSettingsStore } from '../stores/settingsStore'
 import { createDPRConfig } from '../stores/dprStore'
-import type { BuildConfiguration } from '../stores/types'
 
 export function DprLab() {
   const { builds: vaultBuilds } = useVaultStore()
   const { currentBuild: builderCurrentBuild, exportToBuildConfiguration } = useCharacterBuilderStore()
-  const { currentResult, currentConfig, setConfiguration, setResult, setCalculating } = useDPRStore()
+  const { currentResult, currentConfig, selectedBuild: storeSelectedBuild, setConfiguration, setResult, setCalculating, setSelectedBuild } = useDPRStore()
   const { isInitialized, isCalculating, calculateDPRCurves } = useDPRWorker()
   
   // Get default settings from settings store
   const { greedyResourceUse: defaultGreedy, autoCalculateGWMSS: defaultAutoGWMSS } = useSettingsStore()
   
-  // State for selected build - convert current builder build to BuildConfiguration format
-  const [selectedBuild, setSelectedBuild] = useState<BuildConfiguration | null>(() => {
-    if (builderCurrentBuild) {
-      return exportToBuildConfiguration()
-    }
-    return null
-  })
+  // Use selected build from store, fallback to builder build if available
+  const selectedBuild = storeSelectedBuild || (builderCurrentBuild ? exportToBuildConfiguration() : null)
   
   // Track when user manually wants to select a different build
   const [manualBuildSelection, setManualBuildSelection] = useState(false)
@@ -89,11 +83,11 @@ export function DprLab() {
   useEffect(() => {
     if (builderCurrentBuild && !manualBuildSelection && !hasSelectedVaultBuild) {
       const exportedBuild = exportToBuildConfiguration()
-      if (exportedBuild) {
+      if (exportedBuild && !storeSelectedBuild) {
         setSelectedBuild(exportedBuild)
       }
     }
-  }, [builderCurrentBuild, exportToBuildConfiguration, manualBuildSelection, hasSelectedVaultBuild])
+  }, [builderCurrentBuild, exportToBuildConfiguration, manualBuildSelection, hasSelectedVaultBuild, storeSelectedBuild, setSelectedBuild])
 
   // Calculate DPR when build or config changes
   const handleCalculate = useCallback(async () => {

@@ -1,10 +1,11 @@
 import { create } from 'zustand'
 import { immer } from 'zustand/middleware/immer'
-import type { DPRConfiguration, DPRResult } from './types'
+import type { DPRConfiguration, DPRResult, BuildConfiguration } from './types'
 
 interface DPRState {
   currentConfig: DPRConfiguration | null
   currentResult: DPRResult | null
+  selectedBuild: BuildConfiguration | null
   isCalculating: boolean
   resultHistory: DPRResult[]
   
@@ -12,6 +13,7 @@ interface DPRState {
   setConfiguration: (config: DPRConfiguration) => void
   updateConfiguration: (updates: Partial<DPRConfiguration>) => void
   setResult: (result: DPRResult) => void
+  setSelectedBuild: (build: BuildConfiguration | null) => void
   setCalculating: (calculating: boolean) => void
   clearResults: () => void
   removeFromHistory: (buildId: string) => void
@@ -32,6 +34,7 @@ export const useDPRStore = create<DPRState>()(
   immer((set) => ({
     currentConfig: null,
     currentResult: null,
+    selectedBuild: null,
     isCalculating: false,
     resultHistory: [],
     
@@ -46,6 +49,12 @@ export const useDPRStore = create<DPRState>()(
         if (state.currentConfig) {
           Object.assign(state.currentConfig, updates)
         }
+      })
+    },
+    
+    setSelectedBuild: (build) => {
+      set((state) => {
+        state.selectedBuild = build
       })
     },
     
