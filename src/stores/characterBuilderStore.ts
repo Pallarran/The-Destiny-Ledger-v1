@@ -758,8 +758,31 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
           const entry = (state.currentBuild.enhancedLevelTimeline || []).find(e => e.level === level)
           if (entry) {
             console.log('Found entry before update:', entry)
+            
+            // Check if subclassId is being updated
+            const subclassChanged = updates.subclassId && updates.subclassId !== entry.subclassId
+            
             Object.assign(entry, updates)
             console.log('Entry after update:', entry)
+            
+            // If subclass changed, refresh features for all levels of this class
+            if (subclassChanged && updates.subclassId) {
+              console.log('Subclass changed, refreshing features for all levels of class:', entry.classId)
+              
+              // Update all levels of the same class with the new subclass and features
+              const samClassLevels = (state.currentBuild.enhancedLevelTimeline || [])
+                .filter(e => e.classId === entry.classId)
+              
+              samClassLevels.forEach(classEntry => {
+                // Calculate class level for this entry
+                const classLevels = (state.currentBuild?.enhancedLevelTimeline || [])
+                  .filter(e => e.classId === entry.classId && e.level <= classEntry.level)
+                const classLevel = classLevels.length
+                
+                classEntry.subclassId = updates.subclassId
+                classEntry.features = getFeaturesForLevel(entry.classId, classLevel, classEntry.level, updates.subclassId)
+              })
+            }
             
             // Update legacy levelTimeline
             const legacyEntry = state.currentBuild.levelTimeline.find(e => e.level === level)

@@ -329,7 +329,7 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
         description: subclass.description
       })),
       onChoice: (archetypeId: string) => {
-        updateLevel(entry.level, { archetype: archetypeId })
+        updateLevel(entry.level, { archetype: archetypeId, subclassId: archetypeId })
         setExpandedSection(null)
       }
     })
