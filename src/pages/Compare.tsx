@@ -3,7 +3,11 @@ import { Panel, PanelHeader } from '../components/ui/panel'
 import { ChartFrame } from '../components/ui/chart-frame'
 import { Button } from '../components/ui/button'
 import { useVaultStore } from '../stores/vaultStore'
+import { buildToCombatState, getWeaponConfig } from '../engine/simulator'
+import { calculateBuildDPR } from '../engine/calculations'
+import { getBuildRating } from '../utils/dprThresholds'
 import type { BuildConfiguration } from '../stores/types'
+import type { SimulationConfig } from '../engine/types'
 import { Plus, X } from 'lucide-react'
 // Icons imported from recharts components
 import { 
@@ -46,19 +50,37 @@ const calculateRoleScores = (build: BuildConfiguration) => {
   return { social, defense, mobility, support, exploration, control }
 }
 
-// Calculate DPR estimates (simplified for now)
+// Calculate accurate DPR using the actual calculation engine
 const calculateDprEstimate = (build: BuildConfiguration, ac: number) => {
-  const level = Math.max(...(build.levelTimeline?.map(l => l.level) || [1]), 1)
-  const strMod = Math.floor(((build.abilityScores?.STR || 10) - 10) / 2)
-  const dexMod = Math.floor(((build.abilityScores?.DEX || 10) - 10) / 2)
-  
-  // Very basic DPR calculation - this would be much more sophisticated in reality
-  const profBonus = Math.ceil(level / 4) + 1
-  const attackMod = Math.max(strMod, dexMod) + profBonus
-  const hitChance = Math.max(0.05, Math.min(0.95, (21 + attackMod - ac) / 20))
-  const avgDamage = 8 + Math.max(strMod, dexMod) // Base weapon damage estimate
-  
-  return hitChance * avgDamage * (level <= 4 ? 1 : level <= 10 ? 2 : 3) // Attacks scale with level
+  try {
+    const combatState = buildToCombatState(build)
+    const weaponId = build.rangedWeapon || build.mainHandWeapon || 'longsword'
+    const weaponConfig = getWeaponConfig(weaponId, build.weaponEnhancementBonus || 0, combatState)
+    
+    if (!weaponConfig) {
+      return 0
+    }
+    
+    const simConfig: SimulationConfig = {
+      targetAC: ac,
+      rounds: 3,
+      round0Buffs: false,
+      greedyResourceUse: true,
+      autoGWMSS: true // Use optimal power attack strategy
+    }
+    
+    const result = calculateBuildDPR(combatState, weaponConfig, simConfig)
+    
+    // Return the higher of normal or power attack DPR (optimal play)
+    if (result.withPowerAttack && result.withoutPowerAttack) {
+      return Math.max(result.withPowerAttack, result.withoutPowerAttack)
+    }
+    
+    return result.expectedDPR
+  } catch (error) {
+    console.warn('DPR calculation failed for build:', build.name, error)
+    return 0
+  }
 }
 
 export function Compare() {
@@ -278,6 +300,7 @@ export function Compare() {
                     label={{ value: 'DPR', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fill: 'var(--muted)' } }}
                   />
                   <Tooltip 
+                    formatter={(value: number) => value.toFixed(1)}
                     contentStyle={{
                       backgroundColor: 'var(--panel)',
                       border: '1px solid var(--border)',
@@ -315,6 +338,24 @@ export function Compare() {
                 const mainClass = Object.entries(classBreakdown).sort(([,a], [,b]) => (b as number) - (a as number))[0]?.[0] || 'None'
                 const featCount = build.levelTimeline?.filter(l => l.asiOrFeat === 'feat').length || 0
                 const avgDpr = dprData.reduce((sum, point) => sum + (point[build.id] || 0), 0) / dprData.length
+                
+                // Get build rating
+                const ac15Dpr = calculateDprEstimate(build, 15)
+                const combatState = buildToCombatState(build)
+                const weaponId = build.rangedWeapon || build.mainHandWeapon || 'longsword'
+                const weaponConfig = getWeaponConfig(weaponId, build.weaponEnhancementBonus || 0, combatState)
+                let hitChance = 0.5 // fallback
+                if (weaponConfig) {
+                  try {
+                    const result = calculateBuildDPR(combatState, weaponConfig, {
+                      targetAC: 15, rounds: 3, round0Buffs: false, greedyResourceUse: true, autoGWMSS: true
+                    })
+                    hitChance = result.hitChance
+                  } catch (e) {
+                    console.warn('Hit chance calculation failed')
+                  }
+                }
+                const buildRating = getBuildRating(ac15Dpr, hitChance, level)
 
                 return (
                   <div key={build.id} className="space-y-3">
@@ -324,6 +365,14 @@ export function Compare() {
                         style={{ backgroundColor: build.color }}
                       />
                       <h4 className="font-semibold">{build.name}</h4>
+                      <div className={`px-2 py-0.5 text-xs rounded capitalize ${
+                        buildRating === 'excellent' ? 'bg-green-500/10 text-green-600' :
+                        buildRating === 'good' ? 'bg-blue-500/10 text-blue-600' :
+                        buildRating === 'average' ? 'bg-yellow-500/10 text-yellow-600' :
+                        'bg-red-500/10 text-red-600'
+                      }`}>
+                        {buildRating.replace('-', ' ')}
+                      </div>
                     </div>
                     
                     <div className="space-y-2 text-sm">
@@ -342,6 +391,14 @@ export function Compare() {
                       <div className="flex justify-between">
                         <span className="text-muted">Feats:</span>
                         <span>{featCount}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted">DPR vs AC 15:</span>
+                        <span className="font-medium">{ac15Dpr.toFixed(1)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted">Hit vs AC 15:</span>
+                        <span className="font-medium">{Math.round(hitChance * 100)}%</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-muted">Avg DPR:</span>
