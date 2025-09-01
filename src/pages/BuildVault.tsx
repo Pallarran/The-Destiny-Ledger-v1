@@ -4,7 +4,6 @@ import { Button } from '../components/ui/button'
 import { Card, CardContent } from '../components/ui/card'
 import { Link, useNavigate } from 'react-router-dom'
 import { useVaultStore, getFilteredBuilds } from '../stores/vaultStore'
-import { useBuilderStore } from '../stores/builderStore'
 import { useCharacterBuilderStore } from '../stores/characterBuilderStore'
 import { formatDistanceToNow } from 'date-fns'
 import { 
@@ -24,8 +23,7 @@ import {
 export function BuildVault() {
   // Simplified approach - get stores separately and safely
   const vaultState = useVaultStore()
-  const { loadBuild } = useBuilderStore()
-  const { resetBuild } = useCharacterBuilderStore()
+  const { loadFromBuildConfiguration, createNewBuild } = useCharacterBuilderStore()
   const navigate = useNavigate()
   
   if (!vaultState) {
@@ -79,13 +77,8 @@ export function BuildVault() {
     
     if (build) {
       try {
-        // Clear any existing build first
-        resetBuild()
-        const { clearCurrentBuild } = useBuilderStore.getState()
-        clearCurrentBuild()
-        
-        console.log('Loading build into builderStore:', build.name)
-        loadBuild(build)
+        console.log('Loading build into character builder store:', build.name)
+        loadFromBuildConfiguration(build)
         navigate('/builder')
       } catch (error) {
         console.error('Error loading build:', error)
@@ -237,16 +230,9 @@ export function BuildVault() {
             <Button 
               variant="accent"
               onClick={() => {
-                console.log('New Build clicked - clearing all stores')
-                // Clear both stores to ensure clean state
-                const { clearCurrentBuild } = useBuilderStore.getState()
-                clearCurrentBuild()
-                resetBuild()
-                
-                // Small delay to ensure state clearing completes
-                setTimeout(() => {
-                  navigate('/builder?new=true')
-                }, 10)
+                console.log('New Build clicked - creating new build')
+                createNewBuild()
+                navigate('/builder?new=true')
               }}
             >
               <Plus className="w-4 h-4 mr-2" />
