@@ -3,10 +3,15 @@ import { Badge } from '../ui/badge'
 import { Label } from '../ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select'
 import { Switch } from '../ui/switch'
+import { DeltaPill } from '../ui/delta-pill'
 import { useCharacterBuilderStore } from '../../stores/characterBuilderStore'
+import { useDPRDelta } from '../../hooks/useDPRDelta'
+import { useDPRStore } from '../../stores/dprStore'
+import { useSettingsStore } from '../../stores/settingsStore'
 import { Sword, Shield, Info } from 'lucide-react'
 import { weapons } from '../../rules/srd/weapons'
 import { armor } from '../../rules/srd/armor'
+import { useEffect } from 'react'
 
 // Helper function to format weapon damage
 const formatWeaponDamage = (damageRolls: any[]) => {
@@ -84,6 +89,40 @@ export function EquipmentSelection() {
     setWeaponEnhancementBonus,
     setArmorEnhancementBonus
   } = useCharacterBuilderStore()
+  
+  // Delta calculation hooks
+  const { calculateDelta, getDelta } = useDPRDelta()
+  const { currentConfig } = useDPRStore()
+  const { greedyResourceUse: defaultGreedy, autoCalculateGWMSS: defaultAutoGWMSS } = useSettingsStore()
+  
+  const shieldDeltaId = 'shield-toggle'
+  const shieldDelta = getDelta(shieldDeltaId)
+  
+  // Calculate shield delta when build changes
+  useEffect(() => {
+    if (!currentBuild || !currentConfig) return
+    
+    // Create base config for delta calculation
+    const baseConfig = {
+      ...currentConfig,
+      round0BuffsEnabled: false,
+      greedyResourceUse: defaultGreedy,
+      autoGWMSS: defaultAutoGWMSS,
+      acMin: 10,
+      acMax: 30,
+      acStep: 1,
+      advantageState: 'normal' as const
+    }
+    
+    // Create modified build with shield toggled
+    const modifiedBuild = {
+      ...currentBuild,
+      hasShield: !currentBuild.hasShield
+    }
+    
+    // Calculate delta at AC 16 (typical target)
+    calculateDelta(shieldDeltaId, currentBuild, modifiedBuild, baseConfig, 16)
+  }, [currentBuild?.id, currentBuild?.hasShield, calculateDelta, shieldDeltaId, currentConfig, defaultGreedy, defaultAutoGWMSS])
   
   if (!currentBuild) {
     return <div className="text-center text-muted">Loading equipment options...</div>
@@ -315,9 +354,14 @@ export function EquipmentSelection() {
             {/* Shield Toggle */}
             <div className="flex items-center justify-between p-3 border border-gold/20 rounded-lg">
               <div>
-                <Label htmlFor="shield-toggle" className="text-sm font-medium">
-                  Use Shield
-                </Label>
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="shield-toggle" className="text-sm font-medium">
+                    Use Shield
+                  </Label>
+                  {shieldDelta && !shieldDelta.isCalculating && (
+                    <DeltaPill value={currentBuild.hasShield ? -shieldDelta.value : shieldDelta.value} />
+                  )}
+                </div>
                 <div className="text-xs text-muted mt-1">
                   Adds +2 to AC when equipped
                 </div>

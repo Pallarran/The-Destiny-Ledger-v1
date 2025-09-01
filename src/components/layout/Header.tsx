@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { Settings } from 'lucide-react'
 import { VersionWatermark } from '../ui/version-watermark'
+import { LegalModal } from '../ui/legal-modal'
 
 export function Header() {
   return (
@@ -15,6 +16,7 @@ export function Header() {
         </Link>
 
         <div className="flex items-center gap-4">
+          <LegalModal />
           <VersionWatermark />
           <Link 
             to="/settings"

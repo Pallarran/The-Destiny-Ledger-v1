@@ -25,6 +25,13 @@ interface UseDPRWorkerReturn {
     powerAttackDamage: number
     description: string
   }[] | null>
+  clearCaches: () => Promise<void>
+  getCacheStats: () => Promise<{
+    dprCurveEntries: number
+    singleDprEntries: number
+    toHitTableEntries: number
+    totalMemoryEstimate: string
+  } | null>
   terminate: () => void
 }
 
@@ -129,6 +136,31 @@ export function useDPRWorker(): UseDPRWorkerReturn {
     }
   }, [isCalculating])
 
+  const clearCaches = useCallback(async () => {
+    if (!apiRef.current) {
+      return
+    }
+
+    try {
+      await apiRef.current.clearCaches()
+    } catch (error) {
+      console.error('Failed to clear caches:', error)
+    }
+  }, [])
+
+  const getCacheStats = useCallback(async () => {
+    if (!apiRef.current) {
+      return null
+    }
+
+    try {
+      return await apiRef.current.getCacheStats()
+    } catch (error) {
+      console.error('Failed to get cache stats:', error)
+      return null
+    }
+  }, [])
+
   const terminate = useCallback(() => {
     if (workerRef.current) {
       workerRef.current.terminate()
@@ -144,6 +176,8 @@ export function useDPRWorker(): UseDPRWorkerReturn {
     calculateDPRCurves,
     calculateSingleDPR,
     calculatePowerAttackBreakpoints,
+    clearCaches,
+    getCacheStats,
     terminate
   }
 }

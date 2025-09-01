@@ -5,6 +5,41 @@ import { calculateBuildDPR } from '../engine/calculations'
 import type { BuildConfiguration, DPRConfiguration, DPRResult } from '../stores/types'
 import type { SimulationConfig } from '../engine/types'
 
+// Memoization caches
+const dprCurveCache = new Map<string, { result: DPRResult; timestamp: number }>()
+const singleDprCache = new Map<string, { result: any; timestamp: number }>()
+const toHitTableCache = new Map<string, any>()
+
+// Cache expiry time in milliseconds (5 minutes)
+const CACHE_EXPIRY = 5 * 60 * 1000
+
+// Generate cache key for a build configuration
+function generateCacheKey(build: BuildConfiguration, config?: any): string {
+  return `${build.id}_${JSON.stringify(config)}_${build.updatedAt.getTime()}`
+}
+
+// Clean expired cache entries
+function cleanExpiredCache() {
+  const now = Date.now()
+  
+  for (const [key, value] of dprCurveCache.entries()) {
+    if (now - value.timestamp > CACHE_EXPIRY) {
+      dprCurveCache.delete(key)
+    }
+  }
+  
+  for (const [key, value] of singleDprCache.entries()) {
+    if (now - value.timestamp > CACHE_EXPIRY) {
+      singleDprCache.delete(key)
+    }
+  }
+  
+  // Clean to-hit table cache less frequently (it's more static)
+  if (toHitTableCache.size > 100) {
+    toHitTableCache.clear()
+  }
+}
+
 // Worker API exposed via Comlink
 const dprWorkerAPI = {
   // Calculate DPR for a single AC value
@@ -23,6 +58,18 @@ const dprWorkerAPI = {
       total: number
     }
   }> {
+    // Check cache first
+    const cacheKey = generateCacheKey(build, { targetAC, ...config })
+    const cached = singleDprCache.get(cacheKey)
+    if (cached && Date.now() - cached.timestamp < CACHE_EXPIRY) {
+      return cached.result
+    }
+    
+    // Clean cache periodically
+    if (singleDprCache.size % 10 === 0) {
+      cleanExpiredCache()
+    }
+    
     try {
       const combatState = buildToCombatState(build)
       const weaponId = build.rangedWeapon || build.mainHandWeapon || 'longsword'
@@ -42,7 +89,7 @@ const dprWorkerAPI = {
       
       const result = calculateBuildDPR(combatState, weaponConfig, simConfig)
       
-      return {
+      const formattedResult = {
         dpr: result.expectedDPR,
         hitChance: result.hitChance,
         critChance: result.critChance,
@@ -53,6 +100,11 @@ const dprWorkerAPI = {
           total: result.breakdown.total
         }
       }
+      
+      // Cache the result
+      singleDprCache.set(cacheKey, { result: formattedResult, timestamp: Date.now() })
+      
+      return formattedResult
     } catch (error) {
       throw new Error(`DPR calculation failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
@@ -62,9 +114,25 @@ const dprWorkerAPI = {
   async calculateDPRCurves(
     build: BuildConfiguration,
     config: DPRConfiguration
-  ): Promise<DPRResult> {    
+  ): Promise<DPRResult> {
+    // Check cache first
+    const cacheKey = generateCacheKey(build, config)
+    const cached = dprCurveCache.get(cacheKey)
+    if (cached && Date.now() - cached.timestamp < CACHE_EXPIRY) {
+      return cached.result
+    }
+    
+    // Clean cache periodically
+    if (dprCurveCache.size % 5 === 0) {
+      cleanExpiredCache()
+    }
+    
     try {
       const result = generateDPRCurves(build, config)
+      
+      // Cache the result
+      dprCurveCache.set(cacheKey, { result, timestamp: Date.now() })
+      
       return result
     } catch (error) {
       throw new Error(`DPR curve calculation failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
@@ -163,11 +231,38 @@ const dprWorkerAPI = {
     }
   },
 
+  // Clear all caches
+  async clearCaches(): Promise<void> {
+    dprCurveCache.clear()
+    singleDprCache.clear()
+    toHitTableCache.clear()
+  },
+  
+  // Get cache statistics
+  async getCacheStats(): Promise<{
+    dprCurveEntries: number
+    singleDprEntries: number
+    toHitTableEntries: number
+    totalMemoryEstimate: string
+  }> {
+    return {
+      dprCurveEntries: dprCurveCache.size,
+      singleDprEntries: singleDprCache.size,
+      toHitTableEntries: toHitTableCache.size,
+      totalMemoryEstimate: `~${Math.round((dprCurveCache.size * 50 + singleDprCache.size * 1 + toHitTableCache.size * 5))} KB`
+    }
+  },
+
   // Performance test - calculate how long operations take
   async performanceTest(): Promise<{
     singleCalculationMs: number
     curveCalculationMs: number
     memoryUsage?: number
+    cacheStats: {
+      dprCurveEntries: number
+      singleDprEntries: number
+      toHitTableEntries: number
+    }
   }> {
     // Mock build for testing
     const testBuild: BuildConfiguration = {
@@ -219,7 +314,12 @@ const dprWorkerAPI = {
     return {
       singleCalculationMs: singleTime,
       curveCalculationMs: curveTime,
-      memoryUsage: (performance as any).memory?.usedJSHeapSize || undefined
+      memoryUsage: (performance as any).memory?.usedJSHeapSize || undefined,
+      cacheStats: {
+        dprCurveEntries: dprCurveCache.size,
+        singleDprEntries: singleDprCache.size,
+        toHitTableEntries: toHitTableCache.size
+      }
     }
   }
 }
