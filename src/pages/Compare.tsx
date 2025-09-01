@@ -406,10 +406,9 @@ export function Compare() {
                       </div>
                       
                       <div className="pt-2 mt-2 border-t border-border/20">
-                        <div className="text-xs text-muted mb-1">Top Role Scores</div>
+                        <div className="text-xs text-muted mb-1">Role Scores</div>
                         {Object.entries(build.roleScores)
                           .sort(([,a], [,b]) => b - a)
-                          .slice(0, 3)
                           .map(([role, score]) => (
                             <div key={role} className="flex justify-between text-xs">
                               <span className="capitalize">{role}:</span>
