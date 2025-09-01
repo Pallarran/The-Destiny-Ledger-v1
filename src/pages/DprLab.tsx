@@ -151,14 +151,21 @@ function calculateManualPowerAttackDPR(
   
   // Debug logging for understanding the curve pattern
   if (targetAC === 10) {
-    console.log('=== SIMPLE DEBUG AC 10 ===')
+    const normalHitProbs = calculateHitProbability(baseAttackBonus, targetAC, advantageState)
+    const normalPerAttack = (normalHitProbs.hit * baseDamage) + (normalHitProbs.crit * (baseDamage + weaponDiceAverage))
+    const normalTotalDPR = normalPerAttack * attacksPerRound
+    
+    console.log('=== DETAILED DEBUG AC 10 ===')
+    console.log('Attacks Per Round:', attacksPerRound)
     console.log('Base Attack Bonus:', baseAttackBonus)
     console.log('Power Attack Bonus:', powerAttackBonus) 
     console.log('Base Damage:', baseDamage)
     console.log('Power Attack Total Damage:', totalDamage)
-    console.log('Power Attack Hit Chance:', (hitProbs.hit + hitProbs.crit))
-    console.log('Weapon Dice Average:', weaponDiceAverage)
-    console.log('Final DPR:', finalDPR)
+    console.log('Normal Hit Chance:', (normalHitProbs.hit + normalHitProbs.crit))
+    console.log('Power Hit Chance:', (hitProbs.hit + hitProbs.crit))
+    console.log('Normal DPR Calc:', normalTotalDPR)
+    console.log('Power DPR Calc:', finalDPR)
+    console.log('Power vs Normal:', finalDPR > normalTotalDPR ? 'BETTER' : 'WORSE')
   }
   
   return finalDPR
