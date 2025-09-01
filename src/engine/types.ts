@@ -99,6 +99,7 @@ export interface SimulationConfig {
   round0Buffs: boolean // Allow pre-combat buffing
   greedyResourceUse: boolean // Use resources optimally
   autoGWMSS: boolean // Automatically determine when to use -5/+10
+  forceGWMSS?: boolean // Force -5/+10 regardless of optimality
 }
 
 export interface WeaponConfig {

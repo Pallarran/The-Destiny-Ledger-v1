@@ -255,7 +255,10 @@ export function calculateBuildDPR(
   
   if ((state.hasGWM && weapon.properties.includes('heavy')) || 
       (state.hasSharpshooter && weapon.properties.includes('ammunition'))) {
-    if (config.autoGWMSS) {
+    if (config.forceGWMSS) {
+      // Force power attack usage regardless of optimality
+      useGWMSS = true
+    } else if (config.autoGWMSS) {
       const normalDamage = calculateDamageRoll(baseDamage)
       useGWMSS = shouldUsePowerAttack(attackBonus, normalDamage, config.targetAC, advantageState)
     }

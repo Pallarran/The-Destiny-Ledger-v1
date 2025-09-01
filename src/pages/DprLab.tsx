@@ -175,10 +175,11 @@ export function DprLab() {
             rounds: 3,
             round0Buffs: localConfig.round0BuffsEnabled,
             greedyResourceUse: localConfig.greedyResourceUse,
-            autoGWMSS: true,
-            advantageState: 'normal' as const
+            autoGWMSS: false,
+            forceGWMSS: true // Force power attack usage
           }
           
+          // Normal state (no advantage/disadvantage changes needed)
           const result = calculateBuildDPR(combatState, weaponConfig, simConfig)
           return {
             ac: point.ac,
@@ -192,11 +193,13 @@ export function DprLab() {
             rounds: 3,
             round0Buffs: localConfig.round0BuffsEnabled,
             greedyResourceUse: localConfig.greedyResourceUse,
-            autoGWMSS: true,
-            advantageState: 'advantage' as const
+            autoGWMSS: false,
+            forceGWMSS: true // Force power attack usage
           }
           
-          const result = calculateBuildDPR(combatState, weaponConfig, simConfig)
+          // Advantage state
+          const advState = { ...combatState, hasAdvantage: true, hasDisadvantage: false }
+          const result = calculateBuildDPR(advState, weaponConfig, simConfig)
           return {
             ac: point.ac,
             powerAttack: result.expectedDPR
@@ -209,11 +212,13 @@ export function DprLab() {
             rounds: 3,
             round0Buffs: localConfig.round0BuffsEnabled,
             greedyResourceUse: localConfig.greedyResourceUse,
-            autoGWMSS: true,
-            advantageState: 'disadvantage' as const
+            autoGWMSS: false,
+            forceGWMSS: true // Force power attack usage
           }
           
-          const result = calculateBuildDPR(combatState, weaponConfig, simConfig)
+          // Disadvantage state
+          const disState = { ...combatState, hasAdvantage: false, hasDisadvantage: true }
+          const result = calculateBuildDPR(disState, weaponConfig, simConfig)
           return {
             ac: point.ac,
             powerAttack: result.expectedDPR
