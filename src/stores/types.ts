@@ -87,6 +87,7 @@ export interface LevelEntry {
   notes?: string
   fightingStyle?: string
   archetype?: string
+  expertiseChoices?: string[] // Skills chosen for expertise at this level
 }
 
 // Legacy BuildConfiguration - will migrate to CanonicalBuild gradually

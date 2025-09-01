@@ -10,6 +10,7 @@ import type {
   PointBuyConfig
 } from '../types/character'
 import type { DowntimeTrainingSession, WeaponTrainingEntry } from '../types/downtimeTraining'
+import type { LevelEntry } from '../stores/types'
 import {
   DEFAULT_POINT_BUY_CONFIG,
   DEFAULT_ABILITY_SCORES,
@@ -51,6 +52,7 @@ interface CharacterBuilderStore extends CharacterBuilderState {
   // Level progression actions
   addLevel: (classId: string, level: number) => void
   updateLevel: (level: number, updates: Partial<BuilderLevelEntry>) => void
+  updateLevelEntry: (level: number, classId: string, updates: LevelEntry) => void
   removeLevel: (level: number) => void
   setSubclass: (level: number, subclassId: string) => void
   selectFeat: (level: number, featId: string) => void
@@ -909,6 +911,20 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
     
     selectASI: (level: number, abilityIncreases: Partial<AbilityScoreArray>) => {
       get().updateLevel(level, { asiOrFeat: 'asi', abilityIncreases })
+    },
+    
+    updateLevelEntry: (level: number, classId: string, updates: LevelEntry) => {
+      set((state) => {
+        if (state.currentBuild && state.currentBuild.levelTimeline) {
+          const entryIndex = state.currentBuild.levelTimeline.findIndex(
+            entry => entry.level === level && entry.classId === classId
+          )
+          
+          if (entryIndex !== -1) {
+            state.currentBuild.levelTimeline[entryIndex] = updates
+          }
+        }
+      })
     },
     
     // Equipment actions

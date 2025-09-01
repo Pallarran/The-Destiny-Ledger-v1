@@ -92,7 +92,12 @@ export function convertToCanonicalBuild(legacy: BuildConfiguration): CanonicalBu
         ...(legacy.downtimeTraining?.trainedSkillProficiencies || [])
       ],
       saves: [], // TODO: Extract from class features
-      expertise: legacy.downtimeTraining?.trainedSkillExpertise || []
+      expertise: [
+        // Expertise from level timeline (rogue/bard class features)
+        ...(legacy.levelTimeline?.flatMap(entry => entry.expertiseChoices || []) || []),
+        // Expertise from downtime training
+        ...(legacy.downtimeTraining?.trainedSkillExpertise || [])
+      ]
     },
     features,
     feats,

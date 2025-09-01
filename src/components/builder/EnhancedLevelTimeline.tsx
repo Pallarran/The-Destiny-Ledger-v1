@@ -9,8 +9,9 @@ import { feats } from '../../rules/srd/feats'
 import { subclasses } from '../../rules/srd/subclasses'
 import { getClass } from '../../rules/loaders'
 import { getProficiencyBonus } from '../../rules/srd/skills'
-import { Plus, Sword, BookOpen, Shield, Star, ChevronRight, AlertTriangle, CheckCircle, Clock, Heart, TrendingUp, Sparkles, Trash2 } from 'lucide-react'
+import { Plus, Sword, BookOpen, Shield, Star, ChevronRight, AlertTriangle, CheckCircle, Clock, Heart, TrendingUp, Sparkles, Trash2, Crown } from 'lucide-react'
 import type { BuilderLevelEntry } from '../../types/character'
+import { ExpertiseSelection } from './ExpertiseSelection'
 
 const CLASS_ICONS = {
   fighter: Sword,
@@ -288,6 +289,24 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
         description: f.description,
         source: f.source 
       }))
+    })
+  }
+  
+  // 1a. Expertise Choice (for Rogue/Bard features)
+  const expertiseFeature = classFeatures.find((f: any) => 
+    f.id === 'expertise_rogue' || f.id === 'expertise_rogue_6' || f.id === 'expertise_bard'
+  )
+  if (expertiseFeature) {
+    const expertiseCount = expertiseFeature.id === 'expertise_rogue' || expertiseFeature.id === 'expertise_bard' ? 2 : 2
+    const currentExpertise = entry.expertiseChoices || []
+    
+    sections.push({
+      id: 'expertise',
+      title: `Expertise (${expertiseFeature.name})`,
+      type: 'expertise',
+      isComplete: currentExpertise.length === expertiseCount,
+      expertiseCount: expertiseCount,
+      currentExpertise: currentExpertise
     })
   }
 
@@ -581,6 +600,32 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
                       </div>
                     </div>
                   )}
+                  
+                  {/* Expertise Selection */}
+                  {section.type === 'expertise' && (
+                    <div className="mt-2 pt-2 border-t border-current/20">
+                      {section.currentExpertise && section.currentExpertise.length > 0 ? (
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2 text-xs">
+                            <Crown className="w-3 h-3 text-purple-600" />
+                            <span className="font-medium">Current Expertise:</span>
+                          </div>
+                          <div className="flex flex-wrap gap-1 ml-5">
+                            {section.currentExpertise.map((skill: string) => (
+                              <Badge key={skill} variant="secondary" className="text-xs">
+                                {skill.charAt(0).toUpperCase() + skill.slice(1)}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                          <AlertTriangle className="w-3 h-3" />
+                          <span>Choose {section.expertiseCount} skills for expertise</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 {/* Expandable Content */}
@@ -595,6 +640,18 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
 
   function renderSectionContent(section: any) {
     switch (section.type) {
+      case 'expertise':
+        return (
+          <div className="p-3 bg-panel/5">
+            <ExpertiseSelection
+              classId={entry.classId}
+              level={entry.level}
+              expertiseCount={section.expertiseCount}
+              className="border-none bg-transparent"
+            />
+          </div>
+        )
+
       case 'choice':
         return (
           <div className="p-3 bg-panel/5">
