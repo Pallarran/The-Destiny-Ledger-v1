@@ -17,6 +17,7 @@ import {
 } from '../types/character'
 import type { BuildConfiguration } from '../stores/types'
 import type { AbilityScore, AbilityScoreArray } from '../rules/types'
+import { getClass, getSubclass } from '../rules/loaders'
 
 interface CharacterBuilderStore extends CharacterBuilderState {
   // Navigation actions
@@ -90,6 +91,35 @@ interface CharacterBuilderStore extends CharacterBuilderState {
   resetBuild: () => void
   markDirty: () => void
   clearDirty: () => void
+}
+
+// Helper function to get features for a level entry
+function getFeaturesForLevel(classId: string, classLevel: number, totalLevel: number, subclassId?: string): string[] {
+  const features: string[] = []
+  
+  try {
+    // Get class data
+    const classData = getClass(classId)
+    if (classData?.features) {
+      // Add class features for this total level
+      const levelFeatures = classData.features[totalLevel] || []
+      features.push(...levelFeatures.map(f => f.name))
+    }
+    
+    // Add subclass features if subclass is selected
+    if (subclassId) {
+      const subclassData = getSubclass(subclassId)
+      if (subclassData?.features && Array.isArray(subclassData.features)) {
+        // Add subclass features for this class level (not total level)
+        const subclassFeatures = subclassData.features.filter((f: any) => f.level === classLevel)
+        features.push(...subclassFeatures.map((f: any) => f.name))
+      }
+    }
+  } catch (error) {
+    console.error('Error getting features for level:', error)
+  }
+  
+  return features
 }
 
 const createDefaultBuilder = (name: string = 'New Character'): CharacterBuilder => {
@@ -663,10 +693,15 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
               state.currentBuild.enhancedLevelTimeline = []
             }
             
+            // Calculate class level for this class
+            const existingClassLevels = (state.currentBuild.enhancedLevelTimeline || [])
+              .filter(e => e.classId === classId).length
+            const classLevel = existingClassLevels + 1
+            
             const newEntry: BuilderLevelEntry = {
               level,
               classId,
-              features: [],
+              features: getFeaturesForLevel(classId, classLevel, level),
               isCompleted: false,
               validationErrors: []
             }
@@ -797,7 +832,52 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
     },
     
     setSubclass: (level: number, subclassId: string) => {
-      get().updateLevel(level, { subclassId })
+      set((state) => {
+        if (state.currentBuild) {
+          const entry = (state.currentBuild.enhancedLevelTimeline || []).find(e => e.level === level)
+          if (entry) {
+            // Update subclass
+            entry.subclassId = subclassId
+            
+            // Calculate class level for this class  
+            const classLevels = (state.currentBuild.enhancedLevelTimeline || [])
+              .filter(e => e.classId === entry.classId && e.level <= level)
+            const classLevel = classLevels.length
+            
+            // Refresh features with new subclass
+            entry.features = getFeaturesForLevel(entry.classId, classLevel, level, subclassId)
+            
+            // Also update any future levels of the same class that might need subclass features
+            const futureLevels = (state.currentBuild.enhancedLevelTimeline || [])
+              .filter(e => e.classId === entry.classId && e.level > level)
+            
+            futureLevels.forEach(futureEntry => {
+              const futureClassLevels = (state.currentBuild?.enhancedLevelTimeline || [])
+                .filter(e => e.classId === entry.classId && e.level <= futureEntry.level)
+              const futureClassLevel = futureClassLevels.length
+              
+              futureEntry.subclassId = subclassId
+              futureEntry.features = getFeaturesForLevel(entry.classId, futureClassLevel, futureEntry.level, subclassId)
+            })
+            
+            // Update legacy levelTimeline
+            state.currentBuild.levelTimeline = (state.currentBuild.enhancedLevelTimeline || []).map(entry => ({
+              level: entry.level,
+              classId: entry.classId,
+              subclassId: entry.subclassId,
+              features: entry.features || [],
+              asiOrFeat: entry.asiOrFeat,
+              featId: entry.featId,
+              abilityIncreases: entry.abilityIncreases,
+              notes: entry.notes,
+              fightingStyle: (entry as any).fightingStyle,
+              archetype: (entry as any).archetype
+            }))
+            
+            state.isDirty = true
+          }
+        }
+      })
     },
     
     selectFeat: (level: number, featId: string) => {
