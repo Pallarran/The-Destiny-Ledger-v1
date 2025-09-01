@@ -147,6 +147,20 @@ export function buildToCombatState(build: BuildConfiguration, level?: number): C
     }
   }
   
+  // Apply weapon training bonuses
+  if (build.downtimeTraining?.weaponTraining && weaponId) {
+    const weapon = weapons[weaponId]
+    if (weapon && build.downtimeTraining.weaponTraining[weaponId]) {
+      const weaponTraining = build.downtimeTraining.weaponTraining[weaponId]
+      if (weaponTraining.attackBonus > 0) {
+        state.attackBonuses.push(weaponTraining.attackBonus)
+      }
+      if (weaponTraining.damageBonus > 0) {
+        state.damageBonuses.push(weaponTraining.damageBonus)
+      }
+    }
+  }
+  
   return state
 }
 

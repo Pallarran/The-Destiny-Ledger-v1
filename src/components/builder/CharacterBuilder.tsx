@@ -23,7 +23,8 @@ import {
   Zap,
   Sword,
   FileText,
-  Users
+  Users,
+  GraduationCap
 } from 'lucide-react'
 import { getClass } from '../../rules/loaders'
 import { subclasses } from '../../rules/srd/subclasses'
@@ -37,6 +38,7 @@ import { EnhancedLevelTimeline } from './EnhancedLevelTimeline'
 import { EquipmentSelection } from './EquipmentSelection'
 import MagicItemSelection from './MagicItemSelection'
 import { BuffSelection } from './BuffSelection'
+import { DowntimeTrainingSelection } from './DowntimeTrainingSelection'
 import { BuildSummary } from './BuildSummary'
 
 const STEP_ICONS = {
@@ -44,6 +46,7 @@ const STEP_ICONS = {
   'race-background': Users,
   'class-progression': Zap,
   'equipment': Sword,
+  'downtime-training': GraduationCap,
   'summary': FileText
 }
 
@@ -52,6 +55,7 @@ const STEP_LABELS = {
   'race-background': 'Race & Background',
   'class-progression': 'Class Progression',
   'equipment': 'Equipment',
+  'downtime-training': 'Downtime Training',
   'summary': 'Summary'
 }
 
@@ -445,6 +449,10 @@ export function CharacterBuilder() {
                     <BuffSelection />
                   </TabsContent>
                 </Tabs>
+              </TabsContent>
+              
+              <TabsContent value="downtime-training" className="mt-0">
+                <DowntimeTrainingSelection />
               </TabsContent>
               
               <TabsContent value="summary" className="mt-0">

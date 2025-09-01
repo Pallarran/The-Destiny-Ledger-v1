@@ -10,6 +10,7 @@ export type BuilderStep =
   | 'race-background'
   | 'class-progression'
   | 'equipment'
+  | 'downtime-training'
   | 'summary'
 
 // Ability score assignment methods  
@@ -189,5 +190,6 @@ export const BUILDER_STEPS: BuilderStep[] = [
   'race-background',
   'class-progression',
   'equipment',
+  'downtime-training',
   'summary'
 ]

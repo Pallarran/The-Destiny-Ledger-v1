@@ -1,4 +1,5 @@
 import type { AbilityScoreArray } from '../rules/types'
+import type { DowntimeTraining } from '../types/downtimeTraining'
 
 export type AbilityScoreMethod = 'standard' | 'pointbuy' | 'manual'
 
@@ -56,6 +57,9 @@ export interface BuildConfiguration {
   // Active buffs
   activeBuffs: string[]
   round0Buffs: string[]
+  
+  // Downtime training (optional - for campaigns that allow between-chapter training)
+  downtimeTraining?: DowntimeTraining
 }
 
 export interface DPRConfiguration {

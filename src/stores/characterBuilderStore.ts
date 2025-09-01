@@ -9,6 +9,7 @@ import type {
   BuilderLevelEntry,
   PointBuyConfig
 } from '../types/character'
+import type { DowntimeTrainingSession, WeaponTrainingEntry } from '../types/downtimeTraining'
 import {
   DEFAULT_POINT_BUY_CONFIG,
   DEFAULT_ABILITY_SCORES,
@@ -70,6 +71,15 @@ interface CharacterBuilderStore extends CharacterBuilderState {
   setActiveBuffs: (buffIds: string[]) => void
   setRound0Buffs: (buffIds: string[]) => void
   clearAllBuffs: () => void
+  
+  // Downtime training actions
+  addTrainingSession: (session: Omit<DowntimeTrainingSession, 'id' | 'createdAt'>) => void
+  updateTrainingSession: (sessionId: string, updates: Partial<DowntimeTrainingSession>) => void
+  removeTrainingSession: (sessionId: string) => void
+  addWeaponTraining: (sessionId: string, weaponTraining: WeaponTrainingEntry) => void
+  updateWeaponTraining: (sessionId: string, weaponType: string, updates: Partial<WeaponTrainingEntry>) => void
+  removeWeaponTraining: (sessionId: string, weaponType: string) => void
+  recomputeTrainingTotals: () => void
   
   // Validation actions
   validateCurrentStep: () => boolean
@@ -139,6 +149,16 @@ const createDefaultBuilder = (name: string = 'New Character'): CharacterBuilder 
     activeBuffs: [],
     round0Buffs: [],
     
+    // Downtime training (optional for campaigns)
+    downtimeTraining: {
+      sessions: [],
+      trainedFeats: [],
+      abilityTraining: {},
+      trainedSkillProficiencies: [],
+      trainedSkillExpertise: [],
+      weaponTraining: {}
+    },
+    
     // Equipment interface compatibility
     equipment: {
       mainHand: null,
@@ -186,6 +206,7 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
       'race-background': false,
       'class-progression': false,
       'equipment': false,
+      'downtime-training': false,
       'summary': false
     },
     globalErrors: [],
@@ -298,6 +319,16 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
             // Buffs with defaults
             activeBuffs: build.activeBuffs || [],
             round0Buffs: build.round0Buffs || [],
+            
+            // Downtime training with defaults for legacy builds
+            downtimeTraining: build.downtimeTraining || {
+              sessions: [],
+              trainedFeats: [],
+              abilityTraining: {},
+              trainedSkillProficiencies: [],
+              trainedSkillExpertise: [],
+              weaponTraining: {}
+            },
             
             // Ensure level timeline exists and is valid
             enhancedLevelTimeline: (build.levelTimeline || []).map(entry => ({
@@ -573,6 +604,15 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
               })
             }
           })
+          
+          // Add downtime training bonuses (can exceed 20)
+          if (state.currentBuild.downtimeTraining?.abilityTraining) {
+            Object.entries(state.currentBuild.downtimeTraining.abilityTraining).forEach(([ability, trainingBonus]) => {
+              if (trainingBonus && typeof trainingBonus === 'number') {
+                finalScores[ability as keyof AbilityScoreArray] += trainingBonus
+              }
+            })
+          }
           
           // Update final ability scores
           state.currentBuild.finalAbilityScores = finalScores
@@ -952,6 +992,7 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
           'race-background': false,
           'class-progression': false,
           'equipment': false,
+          'downtime-training': false,
           'summary': false
         }
         updateNavigationState(state)
@@ -961,6 +1002,163 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
     markDirty: () => {
       set((state) => {
         state.isDirty = true
+      })
+    },
+    
+    // Downtime training actions
+    addTrainingSession: (session) => {
+      set((state) => {
+        if (state.currentBuild?.downtimeTraining) {
+          const newSession: DowntimeTrainingSession = {
+            ...session,
+            id: `training-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+            createdAt: new Date()
+          }
+          
+          state.currentBuild.downtimeTraining.sessions.push(newSession)
+          state.isDirty = true
+          
+          // Recompute totals
+          get().recomputeTrainingTotals()
+          validateStep(state, 'downtime-training')
+        }
+      })
+    },
+    
+    updateTrainingSession: (sessionId, updates) => {
+      set((state) => {
+        if (state.currentBuild?.downtimeTraining) {
+          const session = state.currentBuild.downtimeTraining.sessions.find(s => s.id === sessionId)
+          if (session) {
+            Object.assign(session, updates)
+            state.isDirty = true
+            
+            // Recompute totals
+            get().recomputeTrainingTotals()
+            validateStep(state, 'downtime-training')
+          }
+        }
+      })
+    },
+    
+    removeTrainingSession: (sessionId) => {
+      set((state) => {
+        if (state.currentBuild?.downtimeTraining) {
+          state.currentBuild.downtimeTraining.sessions = 
+            state.currentBuild.downtimeTraining.sessions.filter(s => s.id !== sessionId)
+          state.isDirty = true
+          
+          // Recompute totals
+          get().recomputeTrainingTotals()
+          validateStep(state, 'downtime-training')
+        }
+      })
+    },
+    
+    addWeaponTraining: (sessionId, weaponTraining) => {
+      set((state) => {
+        if (state.currentBuild?.downtimeTraining) {
+          const session = state.currentBuild.downtimeTraining.sessions.find(s => s.id === sessionId)
+          if (session) {
+            // Remove existing training for this weapon type in this session
+            session.weaponTraining = session.weaponTraining.filter(wt => wt.weaponType !== weaponTraining.weaponType)
+            // Add new training
+            session.weaponTraining.push(weaponTraining)
+            state.isDirty = true
+            
+            // Recompute totals
+            get().recomputeTrainingTotals()
+            validateStep(state, 'downtime-training')
+          }
+        }
+      })
+    },
+    
+    updateWeaponTraining: (sessionId, weaponType, updates) => {
+      set((state) => {
+        if (state.currentBuild?.downtimeTraining) {
+          const session = state.currentBuild.downtimeTraining.sessions.find(s => s.id === sessionId)
+          if (session) {
+            const weaponTraining = session.weaponTraining.find(wt => wt.weaponType === weaponType)
+            if (weaponTraining) {
+              Object.assign(weaponTraining, updates)
+              state.isDirty = true
+              
+              // Recompute totals
+              get().recomputeTrainingTotals()
+              validateStep(state, 'downtime-training')
+            }
+          }
+        }
+      })
+    },
+    
+    removeWeaponTraining: (sessionId, weaponType) => {
+      set((state) => {
+        if (state.currentBuild?.downtimeTraining) {
+          const session = state.currentBuild.downtimeTraining.sessions.find(s => s.id === sessionId)
+          if (session) {
+            session.weaponTraining = session.weaponTraining.filter(wt => wt.weaponType !== weaponType)
+            state.isDirty = true
+            
+            // Recompute totals
+            get().recomputeTrainingTotals()
+            validateStep(state, 'downtime-training')
+          }
+        }
+      })
+    },
+    
+    recomputeTrainingTotals: () => {
+      set((state) => {
+        if (state.currentBuild?.downtimeTraining) {
+          const training = state.currentBuild.downtimeTraining
+          
+          // Reset totals
+          training.trainedFeats = []
+          training.abilityTraining = {}
+          training.trainedSkillProficiencies = []
+          training.trainedSkillExpertise = []
+          training.weaponTraining = {}
+          
+          // Aggregate from all sessions
+          for (const session of training.sessions) {
+            // Aggregate feats
+            training.trainedFeats.push(...session.featsTrained)
+            
+            // Aggregate ability improvements
+            for (const [ability, increase] of Object.entries(session.abilityImprovements)) {
+              if (increase && increase > 0) {
+                training.abilityTraining[ability as keyof typeof training.abilityTraining] = 
+                  (training.abilityTraining[ability as keyof typeof training.abilityTraining] || 0) + increase
+              }
+            }
+            
+            // Aggregate skills
+            training.trainedSkillProficiencies.push(...session.skillsTrained)
+            training.trainedSkillExpertise.push(...session.expertiseGained)
+            
+            // Aggregate weapon training (take maximum bonus per weapon type)
+            for (const weaponTraining of session.weaponTraining) {
+              const existing = training.weaponTraining[weaponTraining.weaponType]
+              if (!existing || weaponTraining.attackBonus > existing.attackBonus || 
+                  weaponTraining.damageBonus > existing.damageBonus) {
+                training.weaponTraining[weaponTraining.weaponType] = {
+                  attackBonus: Math.max(existing?.attackBonus || 0, weaponTraining.attackBonus),
+                  damageBonus: Math.max(existing?.damageBonus || 0, weaponTraining.damageBonus)
+                }
+              }
+            }
+          }
+          
+          // Remove duplicates
+          training.trainedFeats = [...new Set(training.trainedFeats)]
+          training.trainedSkillProficiencies = [...new Set(training.trainedSkillProficiencies)]
+          training.trainedSkillExpertise = [...new Set(training.trainedSkillExpertise)]
+          
+          // Recalculate final ability scores to include training bonuses
+          get().recalculateAllAbilityScores()
+        }
       })
     },
     
@@ -999,6 +1197,9 @@ function validateStep(state: any, step: BuilderStep): boolean {
       break
     case 'equipment':
       isValid = validateEquipment()
+      break
+    case 'downtime-training':
+      isValid = validateDowntimeTraining(state.currentBuild)
       break
     case 'summary':
       isValid = true // Summary is always valid if we got here
@@ -1055,4 +1256,29 @@ function validateClassProgression(build: CharacterBuilder): boolean {
 function validateEquipment(): boolean {
   // Equipment is optional but should be valid if present
   return true // For now, accept any equipment state
+}
+
+function validateDowntimeTraining(build: CharacterBuilder): boolean {
+  // Downtime training is optional, but if sessions exist they should be valid
+  if (!build.downtimeTraining || build.downtimeTraining.sessions.length === 0) {
+    return true // No training sessions is valid
+  }
+  
+  // Validate all sessions have required fields
+  for (const session of build.downtimeTraining.sessions) {
+    if (!session.id || !session.name) {
+      return false // Sessions must have id and name
+    }
+    
+    // Validate weapon training entries
+    for (const weaponTraining of session.weaponTraining) {
+      if (!weaponTraining.weaponType || 
+          weaponTraining.attackBonus < 0 || weaponTraining.attackBonus > 3 ||
+          weaponTraining.damageBonus < 0 || weaponTraining.damageBonus > 3) {
+        return false
+      }
+    }
+  }
+  
+  return true
 }
