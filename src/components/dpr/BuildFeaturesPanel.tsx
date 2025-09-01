@@ -70,6 +70,26 @@ function extractBuildFeatures(build: BuildConfiguration): ExtractedFeature[] {
     }
   }
 
+  // Extract feats from downtime training
+  if (build.downtimeTraining?.trainedFeats) {
+    for (const featId of build.downtimeTraining.trainedFeats) {
+      const feat = getFeat(featId)
+      if (feat && isDPRRelevantFeat(feat)) {
+        const primaryFeature = feat.features.find(f => f.rulesKey)
+        extractedFeatures.push({
+          id: feat.id,
+          name: feat.name,
+          description: feat.description,
+          source: 'Downtime Training',
+          level: targetLevel, // Use target level since training happens outside level progression
+          classId: 'training',
+          type: 'feat',
+          rulesKey: primaryFeature?.rulesKey
+        })
+      }
+    }
+  }
+
   // Sort by level and then by type priority
   return extractedFeatures.sort((a, b) => {
     if (a.level !== b.level) return a.level - b.level
