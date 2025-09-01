@@ -23,6 +23,11 @@ interface HeroMetricsData {
   powerAttackAdvice: string
   buildRating: 'excellent' | 'good' | 'average' | 'needs-work'
   keyStrength: string
+  weaponName: string
+  hitBonus: number
+  damageDice: string
+  damageBonus: number
+  additionalDamage: Array<{ source: string; dice: string }>
 }
 
 function calculateHeroMetrics(
@@ -37,6 +42,43 @@ function calculateHeroMetrics(
   const weaponConfig = getWeaponConfig(weaponId, 0)
   
   if (!weaponConfig) return null
+  
+  // Calculate weapon info
+  const weaponName = weaponId.charAt(0).toUpperCase() + weaponId.slice(1).replace(/_/g, ' ')
+  const hitBonus = combatState.proficiencyBonus + combatState.abilityModifier + 
+    combatState.attackBonuses.reduce((sum, bonus) => sum + bonus, 0) + 
+    (weaponConfig.enhancement || 0)
+  const damageDice = `${weaponConfig.baseDamage.count}d${weaponConfig.baseDamage.die}`
+  const damageBonus = combatState.abilityModifier + 
+    combatState.damageBonuses.reduce((sum, bonus) => sum + bonus, 0) + 
+    (weaponConfig.enhancement || 0)
+  
+  // Collect additional damage sources
+  const additionalDamage: Array<{ source: string; dice: string }> = []
+  
+  if (combatState.sneakAttackDice > 0) {
+    additionalDamage.push({ source: 'Sneak Attack', dice: `${combatState.sneakAttackDice}d6` })
+  }
+  
+  if (combatState.hasHuntersMark) {
+    additionalDamage.push({ source: "Hunter's Mark", dice: '1d6' })
+  }
+  
+  if (combatState.hasHex) {
+    additionalDamage.push({ source: 'Hex', dice: '1d6' })
+  }
+  
+  if (combatState.hasElementalWeapon) {
+    additionalDamage.push({ source: 'Elemental Weapon', dice: '1d4' })
+  }
+  
+  if (weaponConfig.specialProperties?.flametongue) {
+    additionalDamage.push({ source: 'Flametongue', dice: '2d6' })
+  }
+  
+  if (weaponConfig.specialProperties?.frostbrand) {
+    additionalDamage.push({ source: 'Frostbrand', dice: '1d6' })
+  }
 
   // Calculate hit chance vs AC 15 (typical enemy)
   const simConfig: SimulationConfig = {
@@ -94,7 +136,12 @@ function calculateHeroMetrics(
     bestACRange,
     powerAttackAdvice,
     buildRating,
-    keyStrength
+    keyStrength,
+    weaponName,
+    hitBonus,
+    damageDice,
+    damageBonus,
+    additionalDamage
   }
 }
 
@@ -150,7 +197,29 @@ export function HeroMetrics({ build, result, config }: HeroMetricsProps) {
 
   return (
     <Card>
-      <CardContent className="p-4">
+      <CardContent className="p-4 space-y-3">
+        {/* Weapon Info Row */}
+        <div className="border-b border-border/20 pb-2">
+          <div className="flex items-center justify-between text-sm">
+            <span className="font-medium text-foreground">{metrics.weaponName}</span>
+            <span className="text-muted">
+              <span className="text-accent">+{metrics.hitBonus}</span> to hit
+            </span>
+            <span className="text-muted">
+              {metrics.damageDice} <span className="text-accent">{metrics.damageBonus >= 0 ? '+' : ''}{metrics.damageBonus}</span>
+            </span>
+          </div>
+          {metrics.additionalDamage.length > 0 && (
+            <div className="flex items-center gap-3 mt-1 text-xs text-muted">
+              {metrics.additionalDamage.map((dmg, idx) => (
+                <span key={idx}>
+                  {dmg.source}: <span className="text-purple">{dmg.dice}</span>
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+
         <div className="grid grid-cols-2 gap-4">
           {/* Primary Metrics */}
           <div className="space-y-3">
