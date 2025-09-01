@@ -112,6 +112,7 @@ function calculateManualPowerAttackDPR(
   // Calculate hit probability with power attack penalty
   const hitProbs = calculateHitProbability(powerAttackBonus, targetAC, advantageState)
   
+  
   // Calculate crit damage (double weapon dice and sneak attack dice, not modifiers)
   let critExtraDamage = weaponDiceAverage // Double weapon dice
   
