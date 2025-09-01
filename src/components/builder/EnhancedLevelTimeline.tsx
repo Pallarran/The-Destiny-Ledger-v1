@@ -712,9 +712,13 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
         return (
           <div className="p-3 bg-panel/5">
             <ExpertiseSelection
-              classId={entry.classId}
               level={entry.level}
               expertiseCount={section.expertiseCount}
+              currentExpertise={section.currentExpertise}
+              onExpertiseSelected={(expertise) => {
+                updateLevel(entry.level, { expertiseChoices: expertise })
+                setExpandedSection(null)
+              }}
               className="border-none bg-transparent"
             />
           </div>

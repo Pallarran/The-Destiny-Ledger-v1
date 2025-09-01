@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card'
 import { Label } from '../ui/label'
 import { Checkbox } from '../ui/checkbox'
@@ -7,44 +7,23 @@ import { Crown, Info } from 'lucide-react'
 import { useCharacterBuilderStore } from '../../stores/characterBuilderStore'
 
 interface ExpertiseSelectionProps {
-  classId: string
   level: number
   expertiseCount: number // Number of skills to choose for expertise
-  onExpertiseSelected?: (skills: string[]) => void
+  currentExpertise?: string[] // Current selections
+  onExpertiseSelected: (skills: string[]) => void
   className?: string
 }
 
 export function ExpertiseSelection({ 
-  classId, 
   level, 
   expertiseCount, 
+  currentExpertise = [],
   onExpertiseSelected,
   className 
 }: ExpertiseSelectionProps) {
-  const { currentBuild, updateLevelEntry } = useCharacterBuilderStore()
+  const { currentBuild } = useCharacterBuilderStore()
   
-  // Get current expertise choices for this level
-  const currentLevelEntry = currentBuild?.levelTimeline?.find(entry => 
-    entry.level === level && entry.classId === classId
-  )
-  
-  const [selectedExpertise, setSelectedExpertise] = useState<string[]>(
-    currentLevelEntry?.expertiseChoices || []
-  )
-  
-  useEffect(() => {
-    if (onExpertiseSelected) {
-      onExpertiseSelected(selectedExpertise)
-    }
-    
-    // Update the level entry with expertise choices
-    if (currentLevelEntry) {
-      updateLevelEntry(level, classId, {
-        ...currentLevelEntry,
-        expertiseChoices: selectedExpertise
-      })
-    }
-  }, [selectedExpertise, onExpertiseSelected, currentLevelEntry, level, classId, updateLevelEntry])
+  const [selectedExpertise, setSelectedExpertise] = useState<string[]>(currentExpertise)
   
   // Get available skills for expertise (must already be proficient)
   const availableSkills = currentBuild?.skillProficiencies || []
@@ -65,11 +44,17 @@ export function ExpertiseSelection({
   const eligibleSkills = availableSkills.filter(skill => !existingExpertise.has(skill))
   
   const handleExpertiseToggle = (skill: string, checked: boolean) => {
+    let newSelection: string[]
     if (checked && selectedExpertise.length < expertiseCount) {
-      setSelectedExpertise([...selectedExpertise, skill])
+      newSelection = [...selectedExpertise, skill]
     } else if (!checked) {
-      setSelectedExpertise(selectedExpertise.filter(s => s !== skill))
+      newSelection = selectedExpertise.filter(s => s !== skill)
+    } else {
+      return // No change if trying to add beyond limit
     }
+    
+    setSelectedExpertise(newSelection)
+    onExpertiseSelected(newSelection)
   }
   
   const remainingChoices = expertiseCount - selectedExpertise.length
