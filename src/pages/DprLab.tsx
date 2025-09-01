@@ -149,18 +149,27 @@ function calculateManualPowerAttackDPR(
   
   const finalDPR = dprPerAttack * attacksPerRound
   
-  // Debug logging for first few AC values
-  if (targetAC <= 12) {
-    console.log(`Manual PA Calc AC ${targetAC}:`, {
-      baseAttack: combatState.proficiencyBonus + combatState.abilityModifier + weaponConfig.enhancement,
-      powerAttack: powerAttackBonus,
-      baseDamage,
-      totalDamage,
-      hitProb: hitProbs.hit,
-      critProb: hitProbs.crit,
-      dprPerAttack,
-      attacksPerRound,
-      finalDPR
+  // Debug logging for understanding the curve pattern
+  if (targetAC === 10 || targetAC === 15 || targetAC === 20 || targetAC === 25) {
+    // Calculate normal attack for comparison
+    const normalHitProbs = calculateHitProbability(baseAttackBonus, targetAC, advantageState)
+    const normalDamage = baseDamage // Before +10 power attack bonus
+    const normalDPR = ((normalHitProbs.hit * normalDamage) + (normalHitProbs.crit * (normalDamage + weaponDiceAverage))) * attacksPerRound
+    
+    console.log(`=== AC ${targetAC} Comparison (${advantageState}) ===`)
+    console.log('Normal Attack:', {
+      attackBonus: baseAttackBonus,
+      damage: normalDamage,
+      hitChance: (normalHitProbs.hit + normalHitProbs.crit) * 100,
+      dpr: normalDPR
+    })
+    console.log('Power Attack:', {
+      attackBonus: powerAttackBonus,
+      damage: totalDamage,
+      hitChance: (hitProbs.hit + hitProbs.crit) * 100,
+      dpr: finalDPR,
+      advantage: finalDPR > normalDPR ? 'BETTER' : 'WORSE',
+      diff: (finalDPR - normalDPR).toFixed(2)
     })
   }
   
