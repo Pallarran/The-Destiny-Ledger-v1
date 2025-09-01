@@ -113,14 +113,27 @@ function calculateHeroMetrics(
     }
   }
 
-  // Build rating based on DPR and hit chance
+  // Get character level for scaling baselines
+  const characterLevel = Math.max(...(build.levelTimeline?.map(l => l.level) || [1]))
+  
+  // Level-adjusted DPR thresholds for build rating
+  const getLevelAdjustedThresholds = (level: number) => {
+    if (level <= 4) return { excellent: 15, good: 10, average: 6 }      // Tier 1
+    else if (level <= 10) return { excellent: 25, good: 18, average: 12 } // Tier 2  
+    else if (level <= 16) return { excellent: 35, good: 25, average: 18 } // Tier 3
+    else return { excellent: 45, good: 32, average: 25 }                  // Tier 4
+  }
+  
+  const thresholds = getLevelAdjustedThresholds(characterLevel)
+
+  // Build rating based on level-adjusted DPR and hit chance
   let buildRating: 'excellent' | 'good' | 'average' | 'needs-work'
   const avgDPR = result.averageDPR
   const hitChance = ac15Result.hitChance
   
-  if (avgDPR > 25 && hitChance > 0.65) buildRating = 'excellent'
-  else if (avgDPR > 18 && hitChance > 0.55) buildRating = 'good'
-  else if (avgDPR > 12 && hitChance > 0.45) buildRating = 'average'
+  if (avgDPR > thresholds.excellent && hitChance > 0.65) buildRating = 'excellent'
+  else if (avgDPR > thresholds.good && hitChance > 0.55) buildRating = 'good'
+  else if (avgDPR > thresholds.average && hitChance > 0.45) buildRating = 'average'
   else buildRating = 'needs-work'
 
   // Identify key strength
