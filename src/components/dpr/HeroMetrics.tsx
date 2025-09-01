@@ -267,12 +267,16 @@ function getRatingIcon(rating: string) {
 }
 
 // Helper component for info tooltips
-function InfoTooltip({ children, title }: { children: React.ReactNode; title: string }) {
+function InfoTooltip({ children, breakdown }: { children: React.ReactNode; breakdown: string[] }) {
   return (
     <div className="group relative">
       {children}
-      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10">
-        {title}
+      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-20 whitespace-nowrap">
+        <div className="space-y-0.5">
+          {breakdown.map((item, index) => (
+            <div key={index}>{item}</div>
+          ))}
+        </div>
         <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
       </div>
     </div>
@@ -280,36 +284,42 @@ function InfoTooltip({ children, title }: { children: React.ReactNode; title: st
 }
 
 // Helper to format breakdown tooltip
-function formatBreakdown(breakdown: any, type: 'hit' | 'damage'): string {
-  const parts = []
+function formatBreakdown(breakdown: any, type: 'hit' | 'damage'): string[] {
+  const parts: string[] = []
   
-  if (breakdown.proficiencyBonus !== 0) {
+  // Show all applicable components, including zeros for transparency
+  if (type === 'hit' && breakdown?.proficiencyBonus !== undefined) {
     const sign = breakdown.proficiencyBonus >= 0 ? '+' : ''
     parts.push(`Proficiency: ${sign}${breakdown.proficiencyBonus}`)
   }
-  if (breakdown.abilityModifier !== 0) {
+  
+  if (breakdown?.abilityModifier !== undefined) {
     const ability = type === 'damage' ? 'STR/DEX' : 'STR/DEX'
     const sign = breakdown.abilityModifier >= 0 ? '+' : ''
     parts.push(`${ability}: ${sign}${breakdown.abilityModifier}`)
   }
-  if (breakdown.weaponEnhancement !== 0) {
+  
+  if (breakdown?.weaponEnhancement !== undefined && breakdown.weaponEnhancement !== 0) {
     const sign = breakdown.weaponEnhancement >= 0 ? '+' : ''
     parts.push(`Magic Weapon: ${sign}${breakdown.weaponEnhancement}`)
   }
-  if (breakdown.archeryBonus !== 0) {
+  
+  if (breakdown?.archeryBonus !== undefined && breakdown.archeryBonus !== 0) {
     const sign = breakdown.archeryBonus >= 0 ? '+' : ''
     parts.push(`Archery: ${sign}${breakdown.archeryBonus}`)
   }
-  if (breakdown.duelingBonus !== 0) {
+  
+  if (breakdown?.duelingBonus !== undefined && breakdown.duelingBonus !== 0) {
     const sign = breakdown.duelingBonus >= 0 ? '+' : ''
     parts.push(`Dueling: ${sign}${breakdown.duelingBonus}`)
   }
-  if (breakdown.otherBonuses !== 0) {
+  
+  if (breakdown?.otherBonuses !== undefined && breakdown.otherBonuses !== 0) {
     const sign = breakdown.otherBonuses >= 0 ? '+' : ''
     parts.push(`Other: ${sign}${breakdown.otherBonuses}`)
   }
   
-  return parts.join(' • ')
+  return parts
 }
 
 export function HeroMetrics({ build, result, config }: HeroMetricsProps) {
@@ -372,7 +382,7 @@ export function HeroMetrics({ build, result, config }: HeroMetricsProps) {
                 <div className="text-xs text-muted mb-1 flex items-center justify-center gap-1">
                   To Hit
                   {metrics.normalAttack.hitBreakdown && (
-                    <InfoTooltip title={formatBreakdown(metrics.normalAttack.hitBreakdown, 'hit')}>
+                    <InfoTooltip breakdown={formatBreakdown(metrics.normalAttack.hitBreakdown, 'hit')}>
                       <Info className="w-3 h-3 text-muted hover:text-accent cursor-help" />
                     </InfoTooltip>
                   )}
@@ -383,7 +393,7 @@ export function HeroMetrics({ build, result, config }: HeroMetricsProps) {
                 <div className="text-xs text-muted mb-1 flex items-center justify-center gap-1">
                   Damage
                   {metrics.normalAttack.damageBreakdown && (
-                    <InfoTooltip title={formatBreakdown(metrics.normalAttack.damageBreakdown, 'damage')}>
+                    <InfoTooltip breakdown={formatBreakdown(metrics.normalAttack.damageBreakdown, 'damage')}>
                       <Info className="w-3 h-3 text-muted hover:text-accent cursor-help" />
                     </InfoTooltip>
                   )}
