@@ -147,6 +147,13 @@ function calculateManualPowerAttackDPR(
     attacksPerRound += 1
   }
   
+  // Debug check: ensure we match the normal curve's attack count
+  console.log('Combat State Debug:', {
+    extraAttacks: combatState.extraAttacks,
+    hasHaste: combatState.hasHaste,
+    calculatedAttacks: attacksPerRound
+  })
+  
   const finalDPR = dprPerAttack * attacksPerRound
   
   // Debug logging for understanding the curve pattern
