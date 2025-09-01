@@ -67,6 +67,7 @@ export interface ResolveContext {
   abilityMod: number // Primary ability modifier (STR for melee, DEX for ranged)
   
   // Weapon info
+  weaponId: string
   weaponProperties: string[]
   weaponCategory: 'melee' | 'ranged'
   weaponBaseDamage: number
@@ -120,11 +121,12 @@ export function resolveAttack(
     }
   }
   
-  // Filter applicable modifiers
+  // Filter applicable modifiers  
   const applicableModifiers = modifiers.filter(mod => 
     modifierApplies(mod, {
       weaponProperties: context.weaponProperties,
       weaponCategory: context.weaponCategory,
+      weaponId: context.weaponId,
       hasAdvantage: context.hasAdvantage,
       round: context.round
     })
@@ -138,6 +140,7 @@ export function resolveAttack(
   applyExtraAttackModifiers(resolved, applicableModifiers)
   applyActionEconomyModifiers(resolved, applicableModifiers)
   applyTriggerModifiers(resolved, applicableModifiers)
+  applyWeaponTrainingModifiers(resolved, applicableModifiers)
   applyToggleStates(resolved, context)
   
   return resolved
@@ -289,6 +292,25 @@ function applyTriggerModifiers(
           type: 'extraAttack',
           value: 1
         })
+      }
+    }
+  }
+}
+
+function applyWeaponTrainingModifiers(
+  resolved: ResolvedAttack,
+  modifiers: Modifier[]
+) {
+  const weaponTrainingMods = modifiers.filter(mod => mod.type === 'weaponTraining')
+  
+  for (const mod of weaponTrainingMods) {
+    if (mod.type === 'weaponTraining') {
+      const training = mod as any // WeaponTrainingModifier
+      if (training.attackBonus > 0) {
+        resolved.attackBonus += training.attackBonus
+      }
+      if (training.damageBonus > 0) {
+        resolved.damageBonus += training.damageBonus
       }
     }
   }

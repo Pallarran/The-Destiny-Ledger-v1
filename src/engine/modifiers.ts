@@ -20,6 +20,7 @@ export type ModifierType =
   | 'longRest'        // Recharges on long rest
   | 'passive'         // Always active passive effect
   | 'conditional'     // Only active under certain conditions
+  | 'weaponTraining'  // Downtime weapon training bonuses
 
 export type ModifierCondition = 
   | 'always'                    // Always active
@@ -36,6 +37,7 @@ export type ModifierCondition =
   | 'advantage_on_attack'       // Only when attacking with advantage
   | 'target_below_full_hp'      // Only against damaged targets
   | 'concentration_active'      // Only while concentrating
+  | 'specific_weapon'           // Only with a specific weapon ID
 
 export interface BaseModifier {
   id: string
@@ -103,6 +105,13 @@ export interface PassiveModifier extends BaseModifier {
   type: 'passive'
 }
 
+export interface WeaponTrainingModifier extends BaseModifier {
+  type: 'weaponTraining'
+  weaponId: string        // Specific weapon this applies to
+  attackBonus: number     // Training bonus to attack rolls
+  damageBonus: number     // Training bonus to damage rolls
+}
+
 export type Modifier = 
   | ToHitModifier 
   | DamageModifier 
@@ -113,6 +122,7 @@ export type Modifier =
   | TriggerModifier 
   | ResourceModifier
   | PassiveModifier
+  | WeaponTrainingModifier
 
 /**
  * Convert feat features to typed modifiers
@@ -373,6 +383,49 @@ export function classFeatureToModifiers(featureId: string, level?: number): Modi
 }
 
 /**
+ * Convert downtime training to weapon training modifiers
+ */
+export function downtimeTrainingToModifiers(downtimeTraining: any): Modifier[] {
+  const modifiers: Modifier[] = []
+  
+  if (downtimeTraining?.weaponTraining) {
+    for (const [weaponId, training] of Object.entries(downtimeTraining.weaponTraining)) {
+      const trainingData = training as { attackBonus: number; damageBonus: number }
+      
+      if (trainingData.attackBonus > 0) {
+        modifiers.push({
+          id: `weapon_training_attack_${weaponId}`,
+          name: `Weapon Training (${weaponId}) - Attack`,
+          description: `+${trainingData.attackBonus} attack bonus from downtime training`,
+          source: 'Downtime Training',
+          type: 'weaponTraining',
+          condition: 'specific_weapon',
+          weaponId: weaponId,
+          attackBonus: trainingData.attackBonus,
+          damageBonus: 0
+        } as WeaponTrainingModifier)
+      }
+      
+      if (trainingData.damageBonus > 0) {
+        modifiers.push({
+          id: `weapon_training_damage_${weaponId}`,
+          name: `Weapon Training (${weaponId}) - Damage`,
+          description: `+${trainingData.damageBonus} damage bonus from downtime training`,
+          source: 'Downtime Training',
+          type: 'weaponTraining',
+          condition: 'specific_weapon',
+          weaponId: weaponId,
+          attackBonus: 0,
+          damageBonus: trainingData.damageBonus
+        } as WeaponTrainingModifier)
+      }
+    }
+  }
+  
+  return modifiers
+}
+
+/**
  * Compile all modifiers for a build into a single array
  */
 export function compileModifiers(build: {
@@ -380,6 +433,7 @@ export function compileModifiers(build: {
   fightingStyles: string[]
   features: string[]
   level: number
+  downtimeTraining?: any
 }): Modifier[] {
   const allModifiers: Modifier[] = []
   
@@ -396,6 +450,11 @@ export function compileModifiers(build: {
   // Add class feature modifiers
   for (const featureId of build.features) {
     allModifiers.push(...classFeatureToModifiers(featureId, build.level))
+  }
+  
+  // Add downtime training modifiers
+  if (build.downtimeTraining) {
+    allModifiers.push(...downtimeTrainingToModifiers(build.downtimeTraining))
   }
   
   return allModifiers
@@ -424,6 +483,7 @@ export function modifierApplies(
   context: {
     weaponProperties: string[]
     weaponCategory: 'melee' | 'ranged'
+    weaponId: string
     hasAdvantage: boolean
     round: number
   }
@@ -463,6 +523,13 @@ export function modifierApplies(
       
     case 'first_attack_of_turn':
       return context.round === 1
+      
+    case 'specific_weapon':
+      // Check if this modifier applies to the current weapon
+      if (modifier.type === 'weaponTraining') {
+        return (modifier as WeaponTrainingModifier).weaponId === context.weaponId
+      }
+      return false
       
     default:
       return false

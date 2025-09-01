@@ -32,8 +32,8 @@ export function convertToCanonicalBuild(legacy: BuildConfiguration): CanonicalBu
     })
   }
   
-  // Extract abilities
-  const abilities = {
+  // Extract abilities (including downtime training bonuses)
+  const baseAbilities = {
     STR: legacy.abilityScores?.STR || 10,
     DEX: legacy.abilityScores?.DEX || 10,
     CON: legacy.abilityScores?.CON || 10,
@@ -42,14 +42,28 @@ export function convertToCanonicalBuild(legacy: BuildConfiguration): CanonicalBu
     CHA: legacy.abilityScores?.CHA || 10
   }
   
+  // Apply downtime training ability bonuses
+  const abilities = { ...baseAbilities }
+  if (legacy.downtimeTraining?.abilityTraining) {
+    abilities.STR += legacy.downtimeTraining.abilityTraining.STR || 0
+    abilities.DEX += legacy.downtimeTraining.abilityTraining.DEX || 0
+    abilities.CON += legacy.downtimeTraining.abilityTraining.CON || 0
+    abilities.INT += legacy.downtimeTraining.abilityTraining.INT || 0
+    abilities.WIS += legacy.downtimeTraining.abilityTraining.WIS || 0
+    abilities.CHA += legacy.downtimeTraining.abilityTraining.CHA || 0
+  }
+  
   // Extract features from level timeline
   const features = legacy.levelTimeline?.flatMap(entry => entry.features || []) || []
   
-  // Extract feats from level timeline
-  const feats = legacy.levelTimeline
+  // Extract feats from level timeline and downtime training
+  const levelFeats = legacy.levelTimeline
     ?.filter(entry => entry.asiOrFeat === 'feat')
     .map(entry => entry.featId)
     .filter((feat): feat is string => Boolean(feat)) || []
+  
+  const downtimeFeats = legacy.downtimeTraining?.trainedFeats || []
+  const feats = [...levelFeats, ...downtimeFeats]
   
   // Extract fighting styles from level timeline
   const fightingStyles = legacy.levelTimeline
@@ -73,9 +87,12 @@ export function convertToCanonicalBuild(legacy: BuildConfiguration): CanonicalBu
     },
     abilities,
     profs: {
-      skills: legacy.skillProficiencies || [],
+      skills: [
+        ...(legacy.skillProficiencies || []),
+        ...(legacy.downtimeTraining?.trainedSkillProficiencies || [])
+      ],
       saves: [], // TODO: Extract from class features
-      expertise: [] // TODO: Extract from class features
+      expertise: legacy.downtimeTraining?.trainedSkillExpertise || []
     },
     features,
     feats,

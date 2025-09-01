@@ -24,12 +24,13 @@ export function calculateBuildDPR(
   const canonical = getCanonicalBuild(build)
   const context = buildToResolveContext(canonical, build, targetAC, options)
   
-  // Compile all modifiers
+  // Compile all modifiers (including downtime training)
   const modifiers = compileModifiers({
     feats: canonical.feats,
     fightingStyles: canonical.fightingStyles,
     features: canonical.features,
-    level: canonical.identity.level
+    level: canonical.identity.level,
+    downtimeTraining: build.downtimeTraining
   })
   
   // Resolve into final attack
@@ -44,7 +45,7 @@ export function calculateBuildDPR(
  */
 function buildToResolveContext(
   canonical: CanonicalBuild,
-  _build: BuildConfiguration, // Keep for future use
+  _build: BuildConfiguration, // Need for downtime training (currently unused)
   targetAC: number,
   options: {
     round?: number
@@ -78,6 +79,7 @@ function buildToResolveContext(
     level: canonical.identity.level,
     proficiencyBonus,
     abilityMod,
+    weaponId,
     weaponProperties: weapon.properties,
     weaponCategory: weapon.category,
     weaponBaseDamage: baseDamage,
