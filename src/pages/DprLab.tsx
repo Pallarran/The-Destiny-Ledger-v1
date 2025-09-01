@@ -112,8 +112,30 @@ function calculateManualPowerAttackDPR(
   // Calculate hit probability with power attack penalty
   const hitProbs = calculateHitProbability(powerAttackBonus, targetAC, advantageState)
   
-  // Calculate crit damage (double weapon dice and additional dice, not modifiers)
-  const critDamage = totalDamage + weaponDiceAverage + additionalDamage
+  // Calculate crit damage (double weapon dice and sneak attack dice, not modifiers)
+  let critExtraDamage = weaponDiceAverage // Double weapon dice
+  
+  // Double sneak attack dice on crit
+  if (combatState.sneakAttackDice > 0 && advantageState !== 'disadvantage') {
+    const isFinesseWeapon = weaponConfig.properties.includes('finesse')
+    const isRangedWeapon = weaponConfig.properties.includes('ammunition') || weaponConfig.properties.includes('thrown')
+    
+    if (isFinesseWeapon || isRangedWeapon) {
+      critExtraDamage += combatState.sneakAttackDice * 3.5 // Double sneak attack dice
+    }
+  }
+  
+  // Double hunter's mark/hex dice on crit
+  if (combatState.hasHuntersMark || combatState.hasHex) {
+    critExtraDamage += 3.5 // Double 1d6
+  }
+  
+  // Double elemental weapon dice on crit
+  if (combatState.hasElementalWeapon) {
+    critExtraDamage += 2.5 // Double 1d4
+  }
+  
+  const critDamage = totalDamage + critExtraDamage
   
   // Calculate DPR per attack
   const dprPerAttack = (hitProbs.hit * totalDamage) + (hitProbs.crit * critDamage)
@@ -124,7 +146,24 @@ function calculateManualPowerAttackDPR(
     attacksPerRound += 1
   }
   
-  return dprPerAttack * attacksPerRound
+  const finalDPR = dprPerAttack * attacksPerRound
+  
+  // Debug logging for first few AC values
+  if (targetAC <= 12) {
+    console.log(`Manual PA Calc AC ${targetAC}:`, {
+      baseAttack: combatState.proficiencyBonus + combatState.abilityModifier + weaponConfig.enhancement,
+      powerAttack: powerAttackBonus,
+      baseDamage,
+      totalDamage,
+      hitProb: hitProbs.hit,
+      critProb: hitProbs.crit,
+      dprPerAttack,
+      attacksPerRound,
+      finalDPR
+    })
+  }
+  
+  return finalDPR
 }
 
 export function DprLab() {
