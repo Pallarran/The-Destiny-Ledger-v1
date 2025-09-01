@@ -75,15 +75,20 @@ export function DprLab() {
       const config = createDPRConfig(selectedBuild.id)
       setConfiguration({ ...config, ...fixedConfig, ...localConfig })
     }
-  }, [selectedBuild, currentConfig, setConfiguration, fixedConfig, localConfig])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedBuild, currentConfig, setConfiguration, fixedConfig]) // Exclude localConfig to prevent loops
 
   // Sync local config changes to DPR store
   useEffect(() => {
-    if (currentConfig) {
+    if (currentConfig && selectedBuild) {
       const updatedConfig = { ...currentConfig, ...localConfig }
-      setConfiguration(updatedConfig)
+      // Only update if the config actually changed
+      if (JSON.stringify(updatedConfig) !== JSON.stringify(currentConfig)) {
+        setConfiguration(updatedConfig)
+      }
     }
-  }, [localConfig, currentConfig, setConfiguration])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [localConfig.round0BuffsEnabled, localConfig.greedyResourceUse, localConfig.autoGWMSS, currentConfig, selectedBuild, setConfiguration]) // Track actual values
 
   // Handle auto-switching from builder build (but not if user has manually selected vault build)
   useEffect(() => {
