@@ -160,6 +160,19 @@ export function buildToCombatState(build: BuildConfiguration, level?: number): C
       }
     }
   }
+
+  // Apply feats from downtime training
+  if (build.downtimeTraining?.trainedFeats) {
+    for (const featId of build.downtimeTraining.trainedFeats) {
+      const feat = getFeat(featId)
+      if (feat) {
+        if (feat.id === 'great_weapon_master') state.hasGWM = true
+        if (feat.id === 'sharpshooter') state.hasSharpshooter = true
+        if (feat.id === 'crossbow_expert') state.hasCrossbowExpert = true
+        if (feat.id === 'polearm_master') state.hasPolearmMaster = true
+      }
+    }
+  }
   
   return state
 }

@@ -73,7 +73,7 @@ interface CharacterBuilderStore extends CharacterBuilderState {
   clearAllBuffs: () => void
   
   // Downtime training actions
-  addTrainingSession: (session: Omit<DowntimeTrainingSession, 'id' | 'createdAt'>) => void
+  addTrainingSession: (session: Omit<DowntimeTrainingSession, 'id' | 'createdAt'>) => DowntimeTrainingSession | null
   updateTrainingSession: (sessionId: string, updates: Partial<DowntimeTrainingSession>) => void
   removeTrainingSession: (sessionId: string) => void
   addWeaponTraining: (sessionId: string, weaponTraining: WeaponTrainingEntry) => void
@@ -1007,9 +1007,11 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
     
     // Downtime training actions
     addTrainingSession: (session) => {
+      let newSession: DowntimeTrainingSession | null = null
+      
       set((state) => {
         if (state.currentBuild?.downtimeTraining) {
-          const newSession: DowntimeTrainingSession = {
+          newSession = {
             ...session,
             id: `training-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
             createdAt: new Date()
@@ -1023,6 +1025,8 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
           validateStep(state, 'downtime-training')
         }
       })
+      
+      return newSession
     },
     
     updateTrainingSession: (sessionId, updates) => {

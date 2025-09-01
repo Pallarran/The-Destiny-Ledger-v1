@@ -17,7 +17,7 @@ export function DowntimeTrainingSelection() {
 
   const handleAddSession = () => {
     if (newSessionName.trim()) {
-      addTrainingSession({
+      const newSession = addTrainingSession({
         name: newSessionName.trim(),
         description: '',
         featsTrained: [],
@@ -28,6 +28,10 @@ export function DowntimeTrainingSelection() {
       })
       setNewSessionName('')
       setShowAddForm(false)
+      // Auto-open the editor for the new session
+      if (newSession?.id) {
+        setEditingSessionId(newSession.id)
+      }
     }
   }
 
