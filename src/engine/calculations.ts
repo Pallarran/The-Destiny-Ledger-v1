@@ -261,40 +261,14 @@ export function calculateBuildDPR(
   const canUseSharpshooter = state.hasSharpshooter && weapon.properties.includes('ammunition')
   
 
+  // Determine which attack mode to use as primary for backward compatibility
   if (canUseGWM || canUseSharpshooter) {
     if (config.forceGWMSS) {
       // Force power attack usage regardless of optimality
       useGWMSS = true
-      console.log('Force GWMSS: Setting useGWMSS to true')
     } else if (config.autoGWMSS) {
       const normalDamage = calculateDamageRoll(baseDamage)
       useGWMSS = shouldUsePowerAttack(attackBonus, normalDamage, config.targetAC, advantageState)
-    }
-    
-    if (useGWMSS) {
-      gwmssAttackBonus = attackBonus - 5
-      gwmssDamage.bonusDamage += 10
-      
-      // Detailed debug logging
-      const normalTotalDamage = calculateDamageRoll(baseDamage)
-      const powerTotalDamage = calculateDamageRoll(gwmssDamage)
-      
-      console.log('Calculation Engine Debug:', {
-        targetAC: config.targetAC,
-        attacks: attackBonus + ' -> ' + gwmssAttackBonus,
-        baseDamageBreakdown: {
-          bonusDamage: baseDamage.bonusDamage,
-          baseDice: baseDamage.baseDice,
-          additionalDice: baseDamage.additionalDice,
-          total: normalTotalDamage
-        },
-        powerDamageBreakdown: {
-          bonusDamage: gwmssDamage.bonusDamage,
-          baseDice: gwmssDamage.baseDice,
-          additionalDice: gwmssDamage.additionalDice,
-          total: powerTotalDamage
-        }
-      })
     }
   }
   
@@ -333,6 +307,10 @@ export function calculateBuildDPR(
   
   // Calculate power attack DPR if feat is available
   if (canUseGWM || canUseSharpshooter) {
+    // Always apply power attack modifications
+    gwmssAttackBonus = attackBonus - 5
+    gwmssDamage.bonusDamage += 10
+    
     powerDPRPerAttack = calculateSingleAttackDPR(
       gwmssAttackBonus,
       gwmssDamage,
