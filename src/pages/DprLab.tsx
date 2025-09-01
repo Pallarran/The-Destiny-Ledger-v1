@@ -286,7 +286,7 @@ export function DprLab() {
   return (
     <div className="h-full">
       <Panel className="h-full flex flex-col">
-        <PanelHeader title="D&D 5e DPR Lab" />
+        <PanelHeader title="DPR Lab" />
         
         <div className="space-y-6 flex-1 overflow-y-auto">
           {/* Build Selection */}
@@ -297,8 +297,20 @@ export function DprLab() {
                   <div className="w-12 h-12 bg-accent/20 text-accent rounded-full flex items-center justify-center text-lg font-bold">
                     {Math.max(...(selectedBuild.levelTimeline?.map(l => l.level) || [1]))}
                   </div>
-                  <div>
-                    <h3 className="font-semibold text-lg text-foreground">{selectedBuild.name}</h3>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3">
+                      <h3 className="font-semibold text-lg text-foreground">{selectedBuild.name}</h3>
+                      <button
+                        onClick={() => {
+                          setSelectedBuild(null)
+                          setManualBuildSelection(true)
+                          setHasSelectedVaultBuild(false) // Reset vault build selection
+                        }}
+                        className="px-2 py-1 text-xs bg-muted/10 hover:bg-muted/20 rounded transition-colors text-muted hover:text-foreground"
+                      >
+                        Change Build
+                      </button>
+                    </div>
                     <p className="text-sm text-muted">
                       <span className="capitalize">{selectedBuild.race?.replace('_', ' ') || 'Unknown'}</span>
                       {selectedBuild.levelTimeline && selectedBuild.levelTimeline.length > 0 && (
@@ -335,17 +347,6 @@ export function DprLab() {
                       <RefreshCw className="w-4 h-4" />
                     )}
                     Recalc
-                  </button>
-                  
-                  <button
-                    onClick={() => {
-                      setSelectedBuild(null)
-                      setManualBuildSelection(true)
-                      setHasSelectedVaultBuild(false) // Reset vault build selection
-                    }}
-                    className="px-3 py-1 text-sm bg-muted/10 hover:bg-muted/20 rounded transition-colors"
-                  >
-                    Change Build
                   </button>
                 </div>
               </div>
