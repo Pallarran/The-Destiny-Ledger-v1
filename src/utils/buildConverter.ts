@@ -56,6 +56,9 @@ export function convertToCanonicalBuild(legacy: BuildConfiguration): CanonicalBu
   // Extract features from level timeline
   const features = legacy.levelTimeline?.flatMap(entry => entry.features || []) || []
   
+  // Extract maneuver choices from level timeline
+  const maneuverChoices = legacy.levelTimeline?.flatMap(entry => entry.maneuverChoices || []) || []
+  
   // Extract feats from level timeline and downtime training
   const levelFeats = legacy.levelTimeline
     ?.filter(entry => entry.asiOrFeat === 'feat')
@@ -102,6 +105,7 @@ export function convertToCanonicalBuild(legacy: BuildConfiguration): CanonicalBu
     features,
     feats,
     fightingStyles,
+    maneuvers: maneuverChoices,
     spells: [], // TODO: Extract from build if spellcaster
     equipment: {
       weapons,
@@ -140,7 +144,8 @@ export function convertToLegacyBuild(canonical: CanonicalBuild): Partial<BuildCo
         subclassId: classEntry.subclass,
         features: [], // TODO: Populate from canonical.features for this level
         asiOrFeat: undefined, // TODO: Determine from canonical.feats
-        featId: undefined
+        featId: undefined,
+        maneuverChoices: [] // TODO: Distribute canonical.maneuvers to correct levels
       })
     }
   }

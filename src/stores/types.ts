@@ -42,6 +42,7 @@ export interface CanonicalBuild {
   features: FeatureId[]
   feats: FeatId[]
   fightingStyles: StyleId[]
+  maneuvers: string[] // Battle Master maneuver IDs
   spells: Array<{
     spell: SpellId
     prepared?: boolean
@@ -88,6 +89,7 @@ export interface LevelEntry {
   fightingStyle?: string
   archetype?: string
   expertiseChoices?: string[] // Skills chosen for expertise at this level
+  maneuverChoices?: string[] // Battle Master maneuvers chosen at this level
 }
 
 // Legacy BuildConfiguration - will migrate to CanonicalBuild gradually

@@ -12,6 +12,8 @@ import { getProficiencyBonus } from '../../rules/srd/skills'
 import { Plus, Sword, BookOpen, Shield, Star, ChevronRight, AlertTriangle, CheckCircle, Clock, Heart, TrendingUp, Sparkles, Trash2, Crown } from 'lucide-react'
 import type { BuilderLevelEntry } from '../../types/character'
 import { ExpertiseSelection } from './ExpertiseSelection'
+import { ManeuverSelection } from './ManeuverSelection'
+import { maneuvers, getManeuverProgression } from '../../rules/srd/maneuvers'
 
 const CLASS_ICONS = {
   fighter: Sword,
@@ -308,6 +310,27 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
       expertiseCount: expertiseCount,
       currentExpertise: currentExpertise
     })
+  }
+
+  // 1b. Maneuver Choice (for Battle Master Fighter)
+  const maneuverFeature = classFeatures.find((f: any) => 
+    f.name === 'Combat Superiority' || f.name === 'Improved Combat Superiority'
+  )
+  if (maneuverFeature && entry.subclassId === 'battle_master') {
+    const progression = getManeuverProgression(entry.level)
+    if (progression) {
+      const currentManeuvers = entry.maneuverChoices || []
+      
+      sections.push({
+        id: 'maneuvers',
+        title: `Combat Maneuvers (${maneuverFeature.name})`,
+        type: 'maneuvers',
+        isComplete: currentManeuvers.length === progression.count,
+        maneuverCount: progression.count,
+        currentManeuvers: currentManeuvers,
+        progression: progression
+      })
+    }
   }
 
   // 2. Fighting Style Choice
@@ -626,6 +649,32 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
                       )}
                     </div>
                   )}
+
+                  {/* Maneuver Selection */}
+                  {section.type === 'maneuvers' && (
+                    <div className="mt-2 pt-2 border-t border-current/20">
+                      {section.currentManeuvers && section.currentManeuvers.length > 0 ? (
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2 text-xs">
+                            <Sword className="w-3 h-3 text-orange-600" />
+                            <span className="font-medium">Current Maneuvers:</span>
+                          </div>
+                          <div className="flex flex-wrap gap-1 ml-5">
+                            {section.currentManeuvers.map((maneuverId: string) => (
+                              <Badge key={maneuverId} variant="secondary" className="text-xs">
+                                {maneuvers[maneuverId]?.name}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                          <AlertTriangle className="w-3 h-3" />
+                          <span>Choose {section.maneuverCount} maneuvers</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 {/* Expandable Content */}
@@ -647,6 +696,22 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
               classId={entry.classId}
               level={entry.level}
               expertiseCount={section.expertiseCount}
+              className="border-none bg-transparent"
+            />
+          </div>
+        )
+
+      case 'maneuvers':
+        return (
+          <div className="p-3 bg-panel/5">
+            <ManeuverSelection
+              level={entry.level}
+              maneuverCount={section.maneuverCount}
+              currentManeuvers={section.currentManeuvers}
+              onManeuversSelected={(maneuvers) => {
+                updateLevel(entry.level, { maneuverChoices: maneuvers })
+                setExpandedSection(null)
+              }}
               className="border-none bg-transparent"
             />
           </div>

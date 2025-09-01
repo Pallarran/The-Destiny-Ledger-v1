@@ -66,6 +66,7 @@ describe('Golden Tests - Canonical Builds', () => {
       features: ['extra_attack', 'second_wind', 'action_surge'],
       feats: ['sharpshooter'],
       fightingStyles: ['archery'],
+      maneuvers: [],
       spells: [],
       equipment: {
         weapons: ['longbow'],
@@ -117,6 +118,7 @@ describe('Golden Tests - Canonical Builds', () => {
       features: ['extra_attack', 'second_wind', 'action_surge', 'war_magic'],
       feats: [],
       fightingStyles: ['dueling'],
+      maneuvers: [],
       spells: [
         { spell: 'booming_blade', prepared: true, known: true },
         { spell: 'green_flame_blade', prepared: true, known: true }
@@ -171,6 +173,7 @@ describe('Golden Tests - Canonical Builds', () => {
       features: ['extra_attack', 'second_wind', 'action_surge', 'improved_critical'],
       feats: ['great_weapon_master'],
       fightingStyles: ['great_weapon_fighting'],
+      maneuvers: [],
       spells: [],
       equipment: {
         weapons: ['greatsword'],
@@ -221,6 +224,7 @@ describe('Golden Tests - Canonical Builds', () => {
       features: ['extra_attack', 'second_wind', 'action_surge', 'combat_superiority'],
       feats: [],
       fightingStyles: ['great_weapon_fighting'],
+      maneuvers: [],
       spells: [],
       equipment: {
         weapons: ['greatsword'],
@@ -272,6 +276,7 @@ describe('Golden Tests - Canonical Builds', () => {
       features: ['otherworldly_patron', 'eldritch_invocations', 'pact_boon'],
       feats: [],
       fightingStyles: [],
+      maneuvers: [],
       spells: [
         { spell: 'eldritch_blast', prepared: true, known: true },
         { spell: 'hex', prepared: true, known: true }
@@ -325,6 +330,7 @@ describe('Golden Tests - Canonical Builds', () => {
       features: ['favored_enemy', 'natural_explorer', 'extra_attack', 'colossus_slayer'],
       feats: [],
       fightingStyles: ['archery'],
+      maneuvers: [],
       spells: [
         { spell: 'hunters_mark', prepared: true, known: true }
       ],
@@ -362,6 +368,7 @@ describe('Golden Tests - Canonical Builds', () => {
         features: ['extra_attack'],
         feats: [],
         fightingStyles: [],
+        maneuvers: [],
         spells: [],
         equipment: { weapons: ['longsword'], shield: false },
         resources: {},
@@ -387,6 +394,7 @@ describe('Golden Tests - Canonical Builds', () => {
         features: ['extra_attack'],
         feats: [],
         fightingStyles: [],
+        maneuvers: [],
         spells: [],
         equipment: { weapons: ['longsword'], shield: false },
         resources: {},
@@ -419,6 +427,7 @@ describe('Golden Tests - Canonical Builds', () => {
         features: ['extra_attack'],
         feats: [],
         fightingStyles: ['archery'],
+        maneuvers: [],
         spells: [],
         equipment: { weapons: ['longbow'], shield: false },
         resources: {},
@@ -448,6 +457,7 @@ describe('AC Sweep Analysis', () => {
       features: ['extra_attack'],
       feats: ['great_weapon_master'],
       fightingStyles: ['great_weapon_fighting'],
+      maneuvers: [],
       spells: [],
       equipment: { weapons: ['greatsword'], shield: false },
       resources: {},
