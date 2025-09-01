@@ -238,11 +238,20 @@ export function DprLab() {
           }
         })
         
-        setPowerAttackData({
+        const newPowerAttackData = {
           normal: normalPAData,
           advantage: advantagePAData,
           disadvantage: disadvantagePAData
+        }
+        
+        console.log('Setting power attack data:', {
+          normalCount: normalPAData.length,
+          advantageCount: advantagePAData.length,
+          disadvantageCount: disadvantagePAData.length,
+          firstNormalPoint: normalPAData[0]
         })
+        
+        setPowerAttackData(newPowerAttackData)
       } catch (error) {
         console.warn('Failed to calculate power attack data:', error)
         setPowerAttackData(null)
@@ -256,6 +265,12 @@ export function DprLab() {
   // Format display data for the chart
   const displayData = useMemo(() => {
     if (!currentResult || !selectedBuild) return []
+    
+    // Debug: Check if power attack data is available
+    console.log('DisplayData useMemo running:', {
+      hasPowerAttackData: !!powerAttackData,
+      powerAttackDataKeys: powerAttackData ? Object.keys(powerAttackData) : 'null'
+    })
     
     return currentResult.normalCurve.map(point => {
       const baseData: {
