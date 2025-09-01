@@ -151,6 +151,13 @@ export function DprLab() {
         
         const combatState = buildToCombatState(selectedBuild)
         
+        // Debug logging
+        console.log('Power Attack Debug:', {
+          hasGWM: combatState.hasGWM,
+          hasSharpshooter: combatState.hasSharpshooter,
+          weaponId: selectedBuild.rangedWeapon || selectedBuild.mainHandWeapon || 'longsword'
+        })
+        
         // Only calculate if build has GWM or Sharpshooter
         if (!combatState.hasGWM && !combatState.hasSharpshooter) {
           setPowerAttackData(null)
@@ -181,6 +188,12 @@ export function DprLab() {
           
           // Normal state (no advantage/disadvantage changes needed)
           const result = calculateBuildDPR(combatState, weaponConfig, simConfig)
+          
+          // Debug logging for first few AC values
+          if (point.ac <= 12) {
+            console.log(`AC ${point.ac}: Normal=${point.dpr.toFixed(2)}, PowerAttack=${result.expectedDPR.toFixed(2)}`)
+          }
+          
           return {
             ac: point.ac,
             powerAttack: result.expectedDPR
