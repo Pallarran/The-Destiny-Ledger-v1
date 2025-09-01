@@ -279,9 +279,20 @@ export function DprLab() {
         const advantagePAPoint = powerAttackData.advantage.find(pa => pa.ac === point.ac)
         const disadvantagePAPoint = powerAttackData.disadvantage.find(pa => pa.ac === point.ac)
         
-        if (normalPAPoint) baseData.normalPA = normalPAPoint.powerAttack
+        if (normalPAPoint) {
+          baseData.normalPA = normalPAPoint.powerAttack
+          // Debug logging for first few AC values
+          if (point.ac <= 12) {
+            console.log(`Chart Data AC ${point.ac}: Normal=${point.dpr}, NormalPA=${normalPAPoint.powerAttack}`)
+          }
+        }
         if (advantagePAPoint) baseData.advantagePA = advantagePAPoint.powerAttack
         if (disadvantagePAPoint) baseData.disadvantagePA = disadvantagePAPoint.powerAttack
+      } else {
+        // Debug: Power attack data not available
+        if (point.ac <= 12) {
+          console.log(`No power attack data available for AC ${point.ac}`)
+        }
       }
       
       return baseData
