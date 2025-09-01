@@ -313,10 +313,29 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
   }
 
   // 1b. Maneuver Choice (for Battle Master Fighter)
-  const maneuverFeature = classFeatures.find((f: any) => 
-    f.name === 'Combat Superiority' || f.name === 'Improved Combat Superiority'
-  )
-  if (maneuverFeature && entry.subclassId === 'battle_master') {
+  let maneuverFeature = null
+  if (entry.subclassId === 'battle_master') {
+    const progression = getManeuverProgression(entry.level)
+    if (progression) {
+      // Look for explicit Battle Master features at this level
+      const subclass = Object.values(subclasses).find((sub: any) => sub.id === entry.subclassId)
+      if (subclass && subclass.features) {
+        const subclassFeatures = subclass.features.filter((f: any) => f.level === classLevel)
+        maneuverFeature = subclassFeatures.find((f: any) => 
+          f.name === 'Combat Superiority' || f.name === 'Improved Combat Superiority'
+        )
+      }
+      
+      // If no explicit feature but progression shows maneuvers should be available, create a virtual feature
+      if (!maneuverFeature && progression.count > 0) {
+        maneuverFeature = {
+          name: 'Additional Maneuvers',
+          description: `You learn additional maneuvers as part of your Battle Master training.`
+        }
+      }
+    }
+  }
+  if (maneuverFeature) {
     const progression = getManeuverProgression(entry.level)
     if (progression) {
       const currentManeuvers = entry.maneuverChoices || []
