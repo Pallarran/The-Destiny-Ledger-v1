@@ -167,11 +167,11 @@ function generateTacticalAdvice(
     })
   }
 
-  // Sort by priority and limit
+  // Sort by priority
   const priorityOrder = { high: 3, medium: 2, low: 1 }
   advice.sort((a, b) => priorityOrder[b.priority] - priorityOrder[a.priority])
   
-  return advice.slice(0, 3)
+  return advice
 }
 
 function getCategoryIcon(category: string) {

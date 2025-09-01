@@ -170,8 +170,7 @@ function generateInsights(
   const priorityOrder = { high: 3, medium: 2, low: 1 }
   insights.sort((a, b) => priorityOrder[b.priority] - priorityOrder[a.priority])
   
-  // Limit to top 3 insights to fit better
-  return insights.slice(0, 3)
+  return insights
 }
 
 function getInsightIcon(type: string) {
