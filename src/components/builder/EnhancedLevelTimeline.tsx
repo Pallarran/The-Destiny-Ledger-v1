@@ -80,10 +80,71 @@ const HALF_CASTER_SLOTS = {
   20: [4, 3, 3, 3, 2]
 } as const
 
+// Third caster progression (Eldritch Knight Fighter, Arcane Trickster Rogue)
+const THIRD_CASTER_SLOTS = {
+  1: [0, 0, 0, 0],
+  2: [0, 0, 0, 0],
+  3: [2, 0, 0, 0],
+  4: [3, 0, 0, 0],
+  5: [3, 0, 0, 0],
+  6: [3, 0, 0, 0],
+  7: [4, 2, 0, 0],
+  8: [4, 2, 0, 0],
+  9: [4, 2, 0, 0],
+  10: [4, 3, 0, 0],
+  11: [4, 3, 0, 0],
+  12: [4, 3, 0, 0],
+  13: [4, 3, 2, 0],
+  14: [4, 3, 2, 0],
+  15: [4, 3, 2, 0],
+  16: [4, 3, 3, 0],
+  17: [4, 3, 3, 0],
+  18: [4, 3, 3, 0],
+  19: [4, 3, 3, 1],
+  20: [4, 3, 3, 1]
+} as const
+
+// Warlock pact magic progression
+const WARLOCK_PACT_SLOTS = {
+  1: [1, 0, 0, 0, 0], // 1 slot, level 1
+  2: [0, 2, 0, 0, 0], // 2 slots, level 2
+  3: [0, 2, 0, 0, 0], // 2 slots, level 2
+  4: [0, 2, 0, 0, 0], // 2 slots, level 2
+  5: [0, 0, 2, 0, 0], // 2 slots, level 3
+  6: [0, 0, 2, 0, 0], // 2 slots, level 3
+  7: [0, 0, 2, 0, 0], // 2 slots, level 3
+  8: [0, 0, 2, 0, 0], // 2 slots, level 3
+  9: [0, 0, 0, 2, 0], // 2 slots, level 4
+  10: [0, 0, 0, 2, 0], // 2 slots, level 4
+  11: [0, 0, 0, 3, 0], // 3 slots, level 4
+  12: [0, 0, 0, 3, 0], // 3 slots, level 4
+  13: [0, 0, 0, 3, 0], // 3 slots, level 4
+  14: [0, 0, 0, 3, 0], // 3 slots, level 4
+  15: [0, 0, 0, 3, 0], // 3 slots, level 4
+  16: [0, 0, 0, 3, 0], // 3 slots, level 4
+  17: [0, 0, 0, 0, 4], // 4 slots, level 5
+  18: [0, 0, 0, 0, 4], // 4 slots, level 5
+  19: [0, 0, 0, 0, 4], // 4 slots, level 5
+  20: [0, 0, 0, 0, 4]  // 4 slots, level 5
+} as const
+
 // Helper function to get spell progression for a class
-function getSpellProgression(classId: string, classLevel: number) {
-  const fullCasters = ['wizard', 'cleric', 'bard', 'sorcerer']
-  const halfCasters = ['paladin', 'ranger']
+function getSpellProgression(classId: string, classLevel: number, subclass?: string) {
+  const fullCasters = ['wizard', 'cleric', 'bard', 'sorcerer', 'druid']
+  const halfCasters = ['paladin', 'ranger', 'artificer']
+  
+  // Handle subclass third casters
+  if (classId === 'fighter' && subclass === 'eldritch_knight') {
+    return THIRD_CASTER_SLOTS[classLevel as keyof typeof THIRD_CASTER_SLOTS] || null
+  }
+  if (classId === 'rogue' && subclass === 'arcane_trickster') {
+    return THIRD_CASTER_SLOTS[classLevel as keyof typeof THIRD_CASTER_SLOTS] || null
+  }
+  
+  // Handle Warlock pact magic
+  if (classId === 'warlock') {
+    return WARLOCK_PACT_SLOTS[classLevel as keyof typeof WARLOCK_PACT_SLOTS] || null
+  }
   
   if (fullCasters.includes(classId)) {
     return FULL_CASTER_SLOTS[classLevel as keyof typeof FULL_CASTER_SLOTS] || null
@@ -131,8 +192,8 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
   const levelBenefits = getLevelBenefits(entry.level, classData, isFirstClassLevel)
   
   // Check for spell progression
-  const spellSlots = getSpellProgression(entry.classId, classLevel)
-  const prevSpellSlots = classLevel > 1 ? getSpellProgression(entry.classId, classLevel - 1) : null
+  const spellSlots = getSpellProgression(entry.classId, classLevel, entry.subclassId)
+  const prevSpellSlots = classLevel > 1 ? getSpellProgression(entry.classId, classLevel - 1, entry.subclassId) : null
   
   // Create comprehensive feature/choice list
   const sections = []
