@@ -26,6 +26,8 @@ export const sampleFighterBuild: BuildConfiguration = {
   currentLevel: 5,
   mainHandWeapon: 'greatsword',
   weaponEnhancements: [],
+  weaponEnhancementBonus: 0,
+  armorEnhancementBonus: 0,
   activeBuffs: [],
   round0Buffs: []
 }
@@ -56,6 +58,8 @@ export const sampleRogueBuild: BuildConfiguration = {
   mainHandWeapon: 'shortsword',
   rangedWeapon: 'longbow',
   weaponEnhancements: [],
+  weaponEnhancementBonus: 0,
+  armorEnhancementBonus: 0,
   activeBuffs: [],
   round0Buffs: []
 }

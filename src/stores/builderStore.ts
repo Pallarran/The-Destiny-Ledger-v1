@@ -39,6 +39,8 @@ const createDefaultBuild = (): BuildConfiguration => ({
   levelTimeline: [],
   currentLevel: 1,
   weaponEnhancements: [],
+  weaponEnhancementBonus: 0,
+  armorEnhancementBonus: 0,
   activeBuffs: [],
   round0Buffs: []
 })

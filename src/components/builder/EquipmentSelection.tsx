@@ -80,7 +80,9 @@ export function EquipmentSelection() {
     currentBuild,
     setMainHandWeapon,
     setArmor,
-    toggleShield
+    toggleShield,
+    setWeaponEnhancementBonus,
+    setArmorEnhancementBonus
   } = useCharacterBuilderStore()
   
   if (!currentBuild) {
@@ -111,6 +113,11 @@ export function EquipmentSelection() {
     
     if (currentBuild.hasShield) {
       baseAC += 2
+    }
+    
+    // Add armor enhancement bonus
+    if (selectedArmor && currentBuild.armorEnhancementBonus > 0) {
+      baseAC += currentBuild.armorEnhancementBonus
     }
     
     return baseAC
@@ -165,6 +172,33 @@ export function EquipmentSelection() {
               </SelectContent>
             </Select>
           </div>
+          
+          {/* Weapon Enhancement Bonus */}
+          {currentBuild.selectedMainHand && (
+            <div className="space-y-2">
+              <Label className="text-sm">Magic Enhancement</Label>
+              <div className="flex gap-1">
+                {[0, 1, 2, 3].map((bonus) => (
+                  <button
+                    key={bonus}
+                    onClick={() => setWeaponEnhancementBonus(bonus)}
+                    className={`px-3 py-1.5 text-sm rounded border transition-colors ${
+                      currentBuild.weaponEnhancementBonus === bonus
+                        ? 'bg-accent text-white border-accent'
+                        : 'bg-background text-foreground border-border hover:border-accent'
+                    }`}
+                  >
+                    {bonus === 0 ? 'None' : `+${bonus}`}
+                  </button>
+                ))}
+              </div>
+              {currentBuild.weaponEnhancementBonus > 0 && (
+                <div className="text-xs text-muted">
+                  +{currentBuild.weaponEnhancementBonus} to attack and damage rolls
+                </div>
+              )}
+            </div>
+          )}
           
           {selectedWeapon && (
             <Card className="border-accent/20 bg-accent/5">
@@ -251,6 +285,33 @@ export function EquipmentSelection() {
               </Select>
             </div>
             
+            {/* Armor Enhancement Bonus */}
+            {currentBuild.selectedArmor && (
+              <div className="space-y-2">
+                <Label className="text-sm">Magic Enhancement</Label>
+                <div className="flex gap-1">
+                  {[0, 1, 2, 3].map((bonus) => (
+                    <button
+                      key={bonus}
+                      onClick={() => setArmorEnhancementBonus(bonus)}
+                      className={`px-3 py-1.5 text-sm rounded border transition-colors ${
+                        currentBuild.armorEnhancementBonus === bonus
+                          ? 'bg-emerald text-white border-emerald'
+                          : 'bg-background text-foreground border-border hover:border-emerald'
+                      }`}
+                    >
+                      {bonus === 0 ? 'None' : `+${bonus}`}
+                    </button>
+                  ))}
+                </div>
+                {currentBuild.armorEnhancementBonus > 0 && (
+                  <div className="text-xs text-muted">
+                    +{currentBuild.armorEnhancementBonus} to AC
+                  </div>
+                )}
+              </div>
+            )}
+            
             {/* Shield Toggle */}
             <div className="flex items-center justify-between p-3 border border-gold/20 rounded-lg">
               <div>
@@ -318,6 +379,12 @@ export function EquipmentSelection() {
                     <div className="flex justify-between">
                       <span>Shield</span>
                       <span className="font-medium">+2</span>
+                    </div>
+                  )}
+                  {selectedArmor && currentBuild.armorEnhancementBonus > 0 && (
+                    <div className="flex justify-between">
+                      <span>Enhancement</span>
+                      <span className="font-medium text-accent">+{currentBuild.armorEnhancementBonus}</span>
                     </div>
                   )}
                   <div className="border-t pt-1 mt-1">

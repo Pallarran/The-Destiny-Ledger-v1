@@ -339,6 +339,8 @@ export class PathOptimizer {
       levelTimeline: path.levels.filter(l => l.level <= level),
       currentLevel: level,
       weaponEnhancements: [],
+      weaponEnhancementBonus: 0,
+      armorEnhancementBonus: 0,
       activeBuffs: [],
       round0Buffs: []
     }

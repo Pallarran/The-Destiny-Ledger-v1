@@ -190,6 +190,8 @@ const dprWorkerAPI = {
       mainHandWeapon: 'longsword',
       rangedWeapon: 'longbow',
       weaponEnhancements: [],
+      weaponEnhancementBonus: 0,
+      armorEnhancementBonus: 0,
       activeBuffs: [],
       round0Buffs: []
     }

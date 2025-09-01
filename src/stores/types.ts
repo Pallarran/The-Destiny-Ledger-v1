@@ -49,6 +49,10 @@ export interface BuildConfiguration {
   magicItems?: string[] // IDs of equipped magic items
   attunedItems?: string[] // IDs of attuned magic items
   
+  // Magic enhancement bonuses (0, 1, 2, or 3)
+  weaponEnhancementBonus: number
+  armorEnhancementBonus: number
+  
   // Active buffs
   activeBuffs: string[]
   round0Buffs: string[]

@@ -62,6 +62,8 @@ interface CharacterBuilderStore extends CharacterBuilderState {
   toggleShield: () => void
   addWeaponEnhancement: (enhancementId: string) => void
   removeWeaponEnhancement: (enhancementId: string) => void
+  setWeaponEnhancementBonus: (bonus: number) => void
+  setArmorEnhancementBonus: (bonus: number) => void
   
   // Buff actions
   toggleBuff: (buffId: string) => void
@@ -132,6 +134,8 @@ const createDefaultBuilder = (name: string = 'New Character'): CharacterBuilder 
     weaponEnhancements: [],
     magicItems: [],
     attunedItems: [],
+    weaponEnhancementBonus: 0,
+    armorEnhancementBonus: 0,
     activeBuffs: [],
     round0Buffs: [],
     
@@ -274,6 +278,8 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
             weaponEnhancements: build.weaponEnhancements || [],
             magicItems: build.magicItems || [],
             attunedItems: build.attunedItems || [],
+            weaponEnhancementBonus: build.weaponEnhancementBonus || 0,
+            armorEnhancementBonus: build.armorEnhancementBonus || 0,
             mainHandWeapon: build.mainHandWeapon || '',
             offHandWeapon: build.offHandWeapon || '',
             rangedWeapon: build.rangedWeapon || '',
@@ -370,6 +376,8 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
         armor: currentBuild.selectedArmor,
         shield: currentBuild.hasShield,
         weaponEnhancements: currentBuild.weaponEnhancements,
+        weaponEnhancementBonus: currentBuild.weaponEnhancementBonus || 0,
+        armorEnhancementBonus: currentBuild.armorEnhancementBonus || 0,
         magicItems: currentBuild.equipment?.magicItems || currentBuild.magicItems || [],
         attunedItems: currentBuild.equipment?.attunedItems || currentBuild.attunedItems || [],
         activeBuffs: currentBuild.activeBuffs,
@@ -823,6 +831,26 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
           state.currentBuild.weaponEnhancements = state.currentBuild.weaponEnhancements.filter(
             id => id !== enhancementId
           )
+          state.isDirty = true
+          validateStep(state, 'equipment')
+        }
+      })
+    },
+    
+    setWeaponEnhancementBonus: (bonus: number) => {
+      set((state) => {
+        if (state.currentBuild) {
+          state.currentBuild.weaponEnhancementBonus = Math.max(0, Math.min(3, bonus))
+          state.isDirty = true
+          validateStep(state, 'equipment')
+        }
+      })
+    },
+    
+    setArmorEnhancementBonus: (bonus: number) => {
+      set((state) => {
+        if (state.currentBuild) {
+          state.currentBuild.armorEnhancementBonus = Math.max(0, Math.min(3, bonus))
           state.isDirty = true
           validateStep(state, 'equipment')
         }

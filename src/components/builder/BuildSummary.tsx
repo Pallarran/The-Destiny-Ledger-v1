@@ -120,6 +120,11 @@ export function BuildSummary() {
       baseAC += 2
     }
     
+    // Add armor enhancement bonus
+    if (selectedArmor && currentBuild.armorEnhancementBonus > 0) {
+      baseAC += currentBuild.armorEnhancementBonus
+    }
+    
     return baseAC
   }
   
