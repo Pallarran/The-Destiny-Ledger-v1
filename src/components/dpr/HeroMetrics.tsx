@@ -1,6 +1,6 @@
 import { Card, CardContent } from '../ui/card'
 import { Badge } from '../ui/badge'
-import { TrendingUp, Target, Zap, Shield } from 'lucide-react'
+import { TrendingUp, Target, Zap, Shield, Info } from 'lucide-react'
 import { buildToCombatState, getWeaponConfig } from '../../engine/simulator'
 import { calculateBuildDPR } from '../../engine/calculations'
 import { getBuildRating } from '../../utils/dprThresholds'
@@ -23,6 +23,19 @@ interface AttackMetrics {
   damageBonus: number
   hitChanceVsAC15: number
   avgDPR: number
+  hitBreakdown?: {
+    proficiencyBonus: number
+    abilityModifier: number
+    weaponEnhancement: number
+    archeryBonus: number
+    otherBonuses: number
+  }
+  damageBreakdown?: {
+    abilityModifier: number
+    weaponEnhancement: number
+    duelingBonus: number
+    otherBonuses: number
+  }
 }
 
 interface HeroMetricsData {
@@ -63,6 +76,10 @@ function calculateHeroMetrics(
     combatState.attackBonuses.reduce((sum, bonus) => sum + bonus, 0) + 
     (build.weaponEnhancementBonus || 0)
   
+  // Calculate breakdown components
+  const archeryBonus = selectedFightingStyles.includes('archery') ? 2 : 0
+  const otherAttackBonuses = combatState.attackBonuses.reduce((sum, bonus) => sum + bonus, 0)
+  
   // Add fighting style bonuses to hit based on actual selected styles
   if (selectedFightingStyles.includes('archery')) {
     hitBonus += 2
@@ -74,6 +91,10 @@ function calculateHeroMetrics(
   let damageBonus = combatState.abilityModifier + 
     combatState.damageBonuses.reduce((sum, bonus) => sum + bonus, 0) + 
     (build.weaponEnhancementBonus || 0)
+  
+  // Calculate damage breakdown components
+  const duelingBonus = selectedFightingStyles.includes('dueling') && !build.offHandWeapon ? 2 : 0
+  const otherDamageBonuses = combatState.damageBonuses.reduce((sum, bonus) => sum + bonus, 0)
   
   // Add fighting style bonuses to damage based on actual selected styles
   if (selectedFightingStyles.includes('dueling') && !build.offHandWeapon) {
@@ -197,7 +218,20 @@ function calculateHeroMetrics(
       damageDice,
       damageBonus,
       hitChanceVsAC15: normalAC15Result.hitChance,
-      avgDPR: normalAC15Result.expectedDPR
+      avgDPR: normalAC15Result.expectedDPR,
+      hitBreakdown: {
+        proficiencyBonus: combatState.proficiencyBonus,
+        abilityModifier: combatState.abilityModifier,
+        weaponEnhancement: build.weaponEnhancementBonus || 0,
+        archeryBonus,
+        otherBonuses: otherAttackBonuses
+      },
+      damageBreakdown: {
+        abilityModifier: combatState.abilityModifier,
+        weaponEnhancement: build.weaponEnhancementBonus || 0,
+        duelingBonus,
+        otherBonuses: otherDamageBonuses
+      }
     },
     powerAttack: powerAC15Result ? {
       hitBonus: powerHitBonus,
@@ -230,6 +264,52 @@ function getRatingIcon(rating: string) {
     case 'needs-work': return Zap
     default: return Target
   }
+}
+
+// Helper component for info tooltips
+function InfoTooltip({ children, title }: { children: React.ReactNode; title: string }) {
+  return (
+    <div className="group relative">
+      {children}
+      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10">
+        {title}
+        <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+      </div>
+    </div>
+  )
+}
+
+// Helper to format breakdown tooltip
+function formatBreakdown(breakdown: any, type: 'hit' | 'damage'): string {
+  const parts = []
+  
+  if (breakdown.proficiencyBonus !== 0) {
+    const sign = breakdown.proficiencyBonus >= 0 ? '+' : ''
+    parts.push(`Proficiency: ${sign}${breakdown.proficiencyBonus}`)
+  }
+  if (breakdown.abilityModifier !== 0) {
+    const ability = type === 'damage' ? 'STR/DEX' : 'STR/DEX'
+    const sign = breakdown.abilityModifier >= 0 ? '+' : ''
+    parts.push(`${ability}: ${sign}${breakdown.abilityModifier}`)
+  }
+  if (breakdown.weaponEnhancement !== 0) {
+    const sign = breakdown.weaponEnhancement >= 0 ? '+' : ''
+    parts.push(`Magic Weapon: ${sign}${breakdown.weaponEnhancement}`)
+  }
+  if (breakdown.archeryBonus !== 0) {
+    const sign = breakdown.archeryBonus >= 0 ? '+' : ''
+    parts.push(`Archery: ${sign}${breakdown.archeryBonus}`)
+  }
+  if (breakdown.duelingBonus !== 0) {
+    const sign = breakdown.duelingBonus >= 0 ? '+' : ''
+    parts.push(`Dueling: ${sign}${breakdown.duelingBonus}`)
+  }
+  if (breakdown.otherBonuses !== 0) {
+    const sign = breakdown.otherBonuses >= 0 ? '+' : ''
+    parts.push(`Other: ${sign}${breakdown.otherBonuses}`)
+  }
+  
+  return parts.join(' • ')
 }
 
 export function HeroMetrics({ build, result, config }: HeroMetricsProps) {
@@ -289,11 +369,25 @@ export function HeroMetrics({ build, result, config }: HeroMetricsProps) {
           <div className="bg-muted/5 border border-border/20 rounded-lg p-3">
             <div className="grid grid-cols-3 gap-3 text-sm">
               <div className="text-center">
-                <div className="text-xs text-muted mb-1">To Hit</div>
+                <div className="text-xs text-muted mb-1 flex items-center justify-center gap-1">
+                  To Hit
+                  {metrics.normalAttack.hitBreakdown && (
+                    <InfoTooltip title={formatBreakdown(metrics.normalAttack.hitBreakdown, 'hit')}>
+                      <Info className="w-3 h-3 text-muted hover:text-accent cursor-help" />
+                    </InfoTooltip>
+                  )}
+                </div>
                 <div className="font-semibold text-accent">+{metrics.normalAttack.hitBonus}</div>
               </div>
               <div className="text-center">
-                <div className="text-xs text-muted mb-1">Damage</div>
+                <div className="text-xs text-muted mb-1 flex items-center justify-center gap-1">
+                  Damage
+                  {metrics.normalAttack.damageBreakdown && (
+                    <InfoTooltip title={formatBreakdown(metrics.normalAttack.damageBreakdown, 'damage')}>
+                      <Info className="w-3 h-3 text-muted hover:text-accent cursor-help" />
+                    </InfoTooltip>
+                  )}
+                </div>
                 <div className="font-semibold text-emerald">
                   {metrics.normalAttack.damageDice}{metrics.normalAttack.damageBonus >= 0 ? '+' : ''}{metrics.normalAttack.damageBonus}
                 </div>
