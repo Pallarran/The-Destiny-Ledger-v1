@@ -47,25 +47,30 @@ function calculateHeroMetrics(
   // Calculate weapon info
   const weaponName = weaponId.charAt(0).toUpperCase() + weaponId.slice(1).replace(/_/g, ' ')
   
-  // Calculate hit bonus including fighting styles
+  // Get fighting styles directly from build data
+  const selectedFightingStyles = build.levelTimeline
+    .filter(entry => entry.fightingStyle)
+    .map(entry => entry.fightingStyle!)
+  
+  // Calculate hit bonus including fighting styles from build data
   let hitBonus = combatState.proficiencyBonus + combatState.abilityModifier + 
     combatState.attackBonuses.reduce((sum, bonus) => sum + bonus, 0) + 
     (weaponConfig.enhancement || 0)
   
-  // Add fighting style bonuses to hit
-  if (combatState.fightingStyles.includes('archery')) {
+  // Add fighting style bonuses to hit based on actual selected styles
+  if (selectedFightingStyles.includes('archery')) {
     hitBonus += 2
   }
   
   const damageDice = `${weaponConfig.baseDamage.count}d${weaponConfig.baseDamage.die}`
   
-  // Calculate damage bonus including fighting styles
+  // Calculate damage bonus including fighting styles from build data
   let damageBonus = combatState.abilityModifier + 
     combatState.damageBonuses.reduce((sum, bonus) => sum + bonus, 0) + 
     (weaponConfig.enhancement || 0)
   
-  // Add fighting style bonuses to damage
-  if (combatState.fightingStyles.includes('dueling') && !build.offHandWeapon) {
+  // Add fighting style bonuses to damage based on actual selected styles
+  if (selectedFightingStyles.includes('dueling') && !build.offHandWeapon) {
     damageBonus += 2
   }
   
@@ -195,12 +200,17 @@ function getHitBonusBreakdown(metrics: HeroMetricsData, build: BuildConfiguratio
     return { components: [{label: 'Error', value: 'N/A'}], total: 0 }
   }
   
+  // Get fighting styles directly from build data
+  const selectedFightingStyles = build.levelTimeline
+    .filter(entry => entry.fightingStyle)
+    .map(entry => entry.fightingStyle!)
+  
   // Base components
   components.push({label: 'Proficiency', value: `+${combatState.proficiencyBonus}`})
   components.push({label: 'Ability', value: `+${combatState.abilityModifier}`})
   
-  // Fighting style bonuses
-  if (combatState.fightingStyles.includes('archery')) {
+  // Fighting style bonuses from actual build data
+  if (selectedFightingStyles.includes('archery')) {
     components.push({label: 'Archery Style', value: '+2'})
   }
   
@@ -231,11 +241,16 @@ function getDamageBonusBreakdown(metrics: HeroMetricsData, build: BuildConfigura
     return { components: [{label: 'Error', value: 'N/A'}], total: 0 }
   }
   
+  // Get fighting styles directly from build data
+  const selectedFightingStyles = build.levelTimeline
+    .filter(entry => entry.fightingStyle)
+    .map(entry => entry.fightingStyle!)
+  
   // Base components
   components.push({label: 'Ability', value: `+${combatState.abilityModifier}`})
   
-  // Fighting style bonuses
-  if (combatState.fightingStyles.includes('dueling') && !build.offHandWeapon) {
+  // Fighting style bonuses from actual build data
+  if (selectedFightingStyles.includes('dueling') && !build.offHandWeapon) {
     components.push({label: 'Dueling Style', value: '+2'})
   }
   
