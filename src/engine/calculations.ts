@@ -274,12 +274,26 @@ export function calculateBuildDPR(
     if (useGWMSS) {
       gwmssAttackBonus = attackBonus - 5
       gwmssDamage.bonusDamage += 10
-      console.log('Applied Power Attack:', {
-        originalAttack: attackBonus,
-        newAttack: gwmssAttackBonus,
-        originalDamage: baseDamage.bonusDamage,
-        newDamage: gwmssDamage.bonusDamage,
-        targetAC: config.targetAC
+      
+      // Detailed debug logging
+      const normalTotalDamage = calculateDamageRoll(baseDamage)
+      const powerTotalDamage = calculateDamageRoll(gwmssDamage)
+      
+      console.log('Calculation Engine Debug:', {
+        targetAC: config.targetAC,
+        attacks: attackBonus + ' -> ' + gwmssAttackBonus,
+        baseDamageBreakdown: {
+          bonusDamage: baseDamage.bonusDamage,
+          baseDice: baseDamage.baseDice,
+          additionalDice: baseDamage.additionalDice,
+          total: normalTotalDamage
+        },
+        powerDamageBreakdown: {
+          bonusDamage: gwmssDamage.bonusDamage,
+          baseDice: gwmssDamage.baseDice,
+          additionalDice: gwmssDamage.additionalDice,
+          total: powerTotalDamage
+        }
       })
     }
   }

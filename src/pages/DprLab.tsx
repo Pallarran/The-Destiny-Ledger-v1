@@ -18,165 +18,11 @@ import {
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import { useDPRWorker } from '../hooks/useDPRWorker'
 import { useDPRStore } from '../stores/dprStore'
-import { calculateHitProbability, calculateDiceExpectedValue } from '../engine/calculations'
-import type { CombatState, WeaponConfig } from '../engine/types'
 import { useVaultStore } from '../stores/vaultStore'
 import { useCharacterBuilderStore } from '../stores/characterBuilderStore'
 import { useSettingsStore } from '../stores/settingsStore'
 import { createDPRConfig } from '../stores/dprStore'
 import type { BuildConfiguration } from '../stores/types'
-
-// Manual power attack DPR calculation that bypasses the calculation engine
-function calculateManualPowerAttackDPR(
-  combatState: CombatState,
-  weaponConfig: WeaponConfig,
-  targetAC: number,
-  advantageState: 'normal' | 'advantage' | 'disadvantage'
-): number {
-  // Only apply power attack if character has the appropriate feat
-  const canUsePowerAttack = (combatState.hasGWM && weaponConfig.properties.includes('heavy')) ||
-                           (combatState.hasSharpshooter && weaponConfig.properties.includes('ammunition'))
-  
-  if (!canUsePowerAttack) {
-    // If can't use power attack, return 0 or the normal DPR would be misleading
-    return 0
-  }
-
-  // Calculate base attack bonus
-  let baseAttackBonus = combatState.proficiencyBonus + combatState.abilityModifier + weaponConfig.enhancement
-  baseAttackBonus += combatState.attackBonuses.reduce((sum, bonus) => sum + bonus, 0)
-  
-  // Apply fighting style bonuses
-  if (combatState.fightingStyles.includes('archery') && weaponConfig.properties.includes('ammunition')) {
-    baseAttackBonus += 2
-  }
-  
-  // Apply buff bonuses
-  if (combatState.hasBless) {
-    baseAttackBonus += 2.5 // Average of d4
-  }
-  if (combatState.hasElementalWeapon) {
-    baseAttackBonus += 1
-  }
-  
-  // Power attack: -5 to attack, +10 to damage
-  const powerAttackBonus = baseAttackBonus - 5
-  
-  // Calculate base damage
-  let baseDamage = combatState.abilityModifier + weaponConfig.enhancement
-  baseDamage += combatState.damageBonuses.reduce((sum, bonus) => sum + bonus, 0)
-  
-  // Add weapon dice damage (with GWF rerolls if applicable)
-  let weaponDiceAverage = calculateDiceExpectedValue(weaponConfig.baseDamage)
-  if (combatState.fightingStyles.includes('gwf') && weaponConfig.properties.includes('two-handed')) {
-    // Apply GWF rerolls
-    const diceWithGWF = {
-      ...weaponConfig.baseDamage,
-      rerollOnes: true,
-      rerollTwos: true
-    }
-    weaponDiceAverage = calculateDiceExpectedValue(diceWithGWF)
-  }
-  baseDamage += weaponDiceAverage
-  
-  // Apply fighting style damage bonuses
-  if (combatState.fightingStyles.includes('dueling') && !weaponConfig.properties.includes('two-handed')) {
-    baseDamage += 2
-  }
-  
-  // Add power attack damage bonus
-  const powerAttackDamage = baseDamage + 10
-  
-  // Add additional damage sources
-  let additionalDamage = 0
-  
-  // Sneak attack (only if using finesse/ranged weapon and not disadvantage)
-  if (combatState.sneakAttackDice > 0 && advantageState !== 'disadvantage') {
-    const isFinesseWeapon = weaponConfig.properties.includes('finesse')
-    const isRangedWeapon = weaponConfig.properties.includes('ammunition') || weaponConfig.properties.includes('thrown')
-    
-    if (isFinesseWeapon || isRangedWeapon) {
-      additionalDamage += combatState.sneakAttackDice * 3.5 // d6 average
-    }
-  }
-  
-  if (combatState.hasHuntersMark || combatState.hasHex) {
-    additionalDamage += 3.5 // 1d6 average
-  }
-  if (combatState.hasElementalWeapon) {
-    additionalDamage += 2.5 // 1d4 average
-  }
-  
-  const totalDamage = powerAttackDamage + additionalDamage
-  
-  // Calculate hit probability with power attack penalty
-  const hitProbs = calculateHitProbability(powerAttackBonus, targetAC, advantageState)
-  
-  
-  // Calculate crit damage (double weapon dice and sneak attack dice, not modifiers)
-  let critExtraDamage = weaponDiceAverage // Double weapon dice
-  
-  // Double sneak attack dice on crit
-  if (combatState.sneakAttackDice > 0 && advantageState !== 'disadvantage') {
-    const isFinesseWeapon = weaponConfig.properties.includes('finesse')
-    const isRangedWeapon = weaponConfig.properties.includes('ammunition') || weaponConfig.properties.includes('thrown')
-    
-    if (isFinesseWeapon || isRangedWeapon) {
-      critExtraDamage += combatState.sneakAttackDice * 3.5 // Double sneak attack dice
-    }
-  }
-  
-  // Double hunter's mark/hex dice on crit
-  if (combatState.hasHuntersMark || combatState.hasHex) {
-    critExtraDamage += 3.5 // Double 1d6
-  }
-  
-  // Double elemental weapon dice on crit
-  if (combatState.hasElementalWeapon) {
-    critExtraDamage += 2.5 // Double 1d4
-  }
-  
-  const critDamage = totalDamage + critExtraDamage
-  
-  // Calculate DPR per attack
-  const dprPerAttack = (hitProbs.hit * totalDamage) + (hitProbs.crit * critDamage)
-  
-  // Calculate attacks per round
-  let attacksPerRound = 1 + combatState.extraAttacks
-  if (combatState.hasHaste) {
-    attacksPerRound += 1
-  }
-  
-  // Debug check: ensure we match the normal curve's attack count
-  console.log('Combat State Debug:', {
-    extraAttacks: combatState.extraAttacks,
-    hasHaste: combatState.hasHaste,
-    calculatedAttacks: attacksPerRound
-  })
-  
-  const finalDPR = dprPerAttack * attacksPerRound
-  
-  // Debug logging for understanding the curve pattern
-  if (targetAC === 10) {
-    const normalHitProbs = calculateHitProbability(baseAttackBonus, targetAC, advantageState)
-    const normalPerAttack = (normalHitProbs.hit * baseDamage) + (normalHitProbs.crit * (baseDamage + weaponDiceAverage))
-    const normalTotalDPR = normalPerAttack * attacksPerRound
-    
-    console.log('=== DETAILED DEBUG AC 10 ===')
-    console.log('Attacks Per Round:', attacksPerRound)
-    console.log('Base Attack Bonus:', baseAttackBonus)
-    console.log('Power Attack Bonus:', powerAttackBonus) 
-    console.log('Base Damage:', baseDamage)
-    console.log('Power Attack Total Damage:', totalDamage)
-    console.log('Normal Hit Chance:', (normalHitProbs.hit + normalHitProbs.crit))
-    console.log('Power Hit Chance:', (hitProbs.hit + hitProbs.crit))
-    console.log('Normal DPR Calc:', normalTotalDPR)
-    console.log('Power DPR Calc:', finalDPR)
-    console.log('Power vs Normal:', finalDPR > normalTotalDPR ? 'BETTER' : 'WORSE')
-  }
-  
-  return finalDPR
-}
 
 export function DprLab() {
   const { builds: vaultBuilds } = useVaultStore()
@@ -301,7 +147,7 @@ export function DprLab() {
       
       try {
         const { buildToCombatState, getWeaponConfig } = await import('../engine/simulator')
-        await import('../engine/calculations')
+        const { calculateBuildDPR } = await import('../engine/calculations')
         
         const combatState = buildToCombatState(selectedBuild)
         
@@ -329,82 +175,75 @@ export function DprLab() {
           return
         }
         
-        // Calculate power attack DPR by modifying the normal curve results
+        // Check if the build can use power attacks
+        const canUseGWM = combatState.hasGWM && weaponConfig.properties.includes('heavy')
+        const canUseSharpshooter = combatState.hasSharpshooter && weaponConfig.properties.includes('ammunition')
+        const canUsePowerAttack = canUseGWM || canUseSharpshooter
+        
+        if (!canUsePowerAttack) {
+          setPowerAttackData(null)
+          return
+        }
+        
+        // Calculate power attack DPR using the calculation engine
         const normalPAData = currentResult.normalCurve.map(point => {
-          // Calculate the ratio between power attack and normal attack DPR
-          const normalAttackBonus = combatState.proficiencyBonus + combatState.abilityModifier + weaponConfig.enhancement
-          const powerAttackBonus = normalAttackBonus - 5
+          const simConfig = {
+            targetAC: point.ac,
+            rounds: 3,
+            round0Buffs: localConfig.round0BuffsEnabled,
+            greedyResourceUse: localConfig.greedyResourceUse,
+            autoGWMSS: false,
+            forceGWMSS: true // Force power attack usage
+          }
           
-          // Get hit probabilities
-          const normalHitProbs = calculateHitProbability(normalAttackBonus, point.ac, 'normal')
-          const powerHitProbs = calculateHitProbability(powerAttackBonus, point.ac, 'normal')
-          
-          // Calculate the damage multiplier (power attack adds +10 damage)
-          const normalExpectedHit = normalHitProbs.hit + normalHitProbs.crit
-          const powerExpectedHit = powerHitProbs.hit + powerHitProbs.crit
-          
-          // Power attack DPR = Normal DPR * (power hit rate / normal hit rate) * (power damage / normal damage)
-          // Since power attack adds +10 damage, we need to estimate the damage increase ratio
-          const baseDamage = 9.5 // Approximate base damage for level 4
-          const damageRatio = (baseDamage + 10) / baseDamage
-          const hitRatio = powerExpectedHit / normalExpectedHit
-          
-          const powerAttackDPR = point.dpr * hitRatio * damageRatio
+          const result = calculateBuildDPR(combatState, weaponConfig, simConfig)
           
           // Debug logging for first few AC values
           if (point.ac <= 12) {
-            console.log(`AC ${point.ac}: Normal=${point.dpr.toFixed(2)}, PowerAttack=${powerAttackDPR.toFixed(2)}, Ratio=${(powerAttackDPR/point.dpr).toFixed(2)}`)
+            console.log(`AC ${point.ac}: Normal=${point.dpr.toFixed(2)}, PowerAttack=${result.expectedDPR.toFixed(2)}`)
           }
           
           return {
             ac: point.ac,
-            powerAttack: powerAttackDPR
+            powerAttack: result.expectedDPR
           }
         })
 
         const advantagePAData = currentResult.advantageCurve.map(point => {
-          // Calculate power attack DPR by modifying advantage curve results
-          const normalAttackBonus = combatState.proficiencyBonus + combatState.abilityModifier + weaponConfig.enhancement
-          const powerAttackBonus = normalAttackBonus - 5
+          const simConfig = {
+            targetAC: point.ac,
+            rounds: 3,
+            round0Buffs: localConfig.round0BuffsEnabled,
+            greedyResourceUse: localConfig.greedyResourceUse,
+            autoGWMSS: false,
+            forceGWMSS: true // Force power attack usage
+          }
           
-          const normalHitProbs = calculateHitProbability(normalAttackBonus, point.ac, 'advantage')
-          const powerHitProbs = calculateHitProbability(powerAttackBonus, point.ac, 'advantage')
-          
-          const normalExpectedHit = normalHitProbs.hit + normalHitProbs.crit
-          const powerExpectedHit = powerHitProbs.hit + powerHitProbs.crit
-          
-          const baseDamage = 9.5
-          const damageRatio = (baseDamage + 10) / baseDamage
-          const hitRatio = powerExpectedHit / normalExpectedHit
-          
-          const powerAttackDPR = point.dpr * hitRatio * damageRatio
-          
+          // Advantage state
+          const advState = { ...combatState, hasAdvantage: true, hasDisadvantage: false }
+          const result = calculateBuildDPR(advState, weaponConfig, simConfig)
           return {
             ac: point.ac,
-            powerAttack: powerAttackDPR
+            powerAttack: result.expectedDPR
           }
         })
 
         const disadvantagePAData = currentResult.disadvantageCurve.map(point => {
-          // Calculate power attack DPR by modifying disadvantage curve results
-          const normalAttackBonus = combatState.proficiencyBonus + combatState.abilityModifier + weaponConfig.enhancement
-          const powerAttackBonus = normalAttackBonus - 5
+          const simConfig = {
+            targetAC: point.ac,
+            rounds: 3,
+            round0Buffs: localConfig.round0BuffsEnabled,
+            greedyResourceUse: localConfig.greedyResourceUse,
+            autoGWMSS: false,
+            forceGWMSS: true // Force power attack usage
+          }
           
-          const normalHitProbs = calculateHitProbability(normalAttackBonus, point.ac, 'disadvantage')
-          const powerHitProbs = calculateHitProbability(powerAttackBonus, point.ac, 'disadvantage')
-          
-          const normalExpectedHit = normalHitProbs.hit + normalHitProbs.crit
-          const powerExpectedHit = powerHitProbs.hit + powerHitProbs.crit
-          
-          const baseDamage = 9.5
-          const damageRatio = (baseDamage + 10) / baseDamage
-          const hitRatio = powerExpectedHit / normalExpectedHit
-          
-          const powerAttackDPR = point.dpr * hitRatio * damageRatio
-          
+          // Disadvantage state
+          const disState = { ...combatState, hasAdvantage: false, hasDisadvantage: true }
+          const result = calculateBuildDPR(disState, weaponConfig, simConfig)
           return {
             ac: point.ac,
-            powerAttack: powerAttackDPR
+            powerAttack: result.expectedDPR
           }
         })
         
