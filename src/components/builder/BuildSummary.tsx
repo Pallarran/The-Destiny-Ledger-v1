@@ -338,6 +338,15 @@ export function BuildSummary() {
   // Calculate spell slots
   const spellSlotData = calculateTotalSpellSlots(timeline)
   
+  // Debug logging
+  console.log('BuildSummary debug:', {
+    timeline,
+    totalLevel,
+    classBreakdown,
+    spellSlotData,
+    hasSpellSlots: !!(spellSlotData.spellSlots || spellSlotData.warlockSlots)
+  })
+  
   return (
     <div className="space-y-6">
       <div>
