@@ -251,22 +251,15 @@ export function calculateBuildDPR(
   // Determine if we should use GWM/SS
   let useGWMSS = false
   let gwmssAttackBonus = attackBonus
-  const gwmssDamage = { ...baseDamage }
+  const gwmssDamage: DamageRoll = {
+    baseDice: baseDamage.baseDice.map(dice => ({ ...dice })),
+    bonusDamage: baseDamage.bonusDamage,
+    additionalDice: baseDamage.additionalDice ? baseDamage.additionalDice.map(dice => ({ ...dice })) : []
+  }
   
   const canUseGWM = state.hasGWM && weapon.properties.includes('heavy')
   const canUseSharpshooter = state.hasSharpshooter && weapon.properties.includes('ammunition')
   
-  // Debug logging
-  if (config.forceGWMSS) {
-    console.log('Power Attack Logic Debug:', {
-      hasGWM: state.hasGWM,
-      hasSharpshooter: state.hasSharpshooter,
-      weaponProperties: weapon.properties,
-      canUseGWM,
-      canUseSharpshooter,
-      forceGWMSS: config.forceGWMSS
-    })
-  }
 
   if (canUseGWM || canUseSharpshooter) {
     if (config.forceGWMSS) {
@@ -281,12 +274,6 @@ export function calculateBuildDPR(
     if (useGWMSS) {
       gwmssAttackBonus = attackBonus - 5
       gwmssDamage.bonusDamage += 10
-      console.log('Applied Power Attack:', {
-        originalAttack: attackBonus,
-        newAttack: gwmssAttackBonus,
-        originalDamage: baseDamage.bonusDamage,
-        newDamage: gwmssDamage.bonusDamage
-      })
     }
   }
   
@@ -306,6 +293,7 @@ export function calculateBuildDPR(
     config.targetAC,
     advantageState
   )
+  
   
   // Calculate rounds
   let round1DPR = dprPerAttack * attacksPerRound
