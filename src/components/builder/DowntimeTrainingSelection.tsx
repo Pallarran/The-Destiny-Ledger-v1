@@ -1,7 +1,33 @@
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card'
-import { GraduationCap, BookOpen, Zap, Target, Plus } from 'lucide-react'
+import { Button } from '../ui/button'
+import { Badge } from '../ui/badge'
+import { GraduationCap, BookOpen, Zap, Target, Plus, Trash2, Edit } from 'lucide-react'
+import { useCharacterBuilderStore } from '../../stores/characterBuilderStore'
+import { useState } from 'react'
 
 export function DowntimeTrainingSelection() {
+  const { currentBuild, addTrainingSession, removeTrainingSession } = useCharacterBuilderStore()
+  const [showAddForm, setShowAddForm] = useState(false)
+  const [newSessionName, setNewSessionName] = useState('')
+
+  const handleAddSession = () => {
+    if (newSessionName.trim()) {
+      addTrainingSession({
+        name: newSessionName.trim(),
+        description: '',
+        featsTrained: [],
+        abilityImprovements: {},
+        skillsTrained: [],
+        expertiseGained: [],
+        weaponTraining: []
+      })
+      setNewSessionName('')
+      setShowAddForm(false)
+    }
+  }
+
+  const sessions = currentBuild?.downtimeTraining?.sessions || []
+
   return (
     <div className="space-y-6">
       <div>
@@ -21,14 +47,147 @@ export function DowntimeTrainingSelection() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-center py-8">
-            <GraduationCap className="w-12 h-12 mx-auto mb-4 text-muted opacity-50" />
-            <p className="text-muted mb-4">No training sessions yet</p>
-            <button className="inline-flex items-center gap-2 px-4 py-2 bg-accent text-white rounded-lg hover:bg-accent/90 transition-colors">
-              <Plus className="w-4 h-4" />
-              Add Training Session
-            </button>
-          </div>
+          {sessions.length === 0 ? (
+            <div className="text-center py-8">
+              <GraduationCap className="w-12 h-12 mx-auto mb-4 text-muted opacity-50" />
+              <p className="text-muted mb-4">No training sessions yet</p>
+              {!showAddForm ? (
+                <Button
+                  onClick={() => setShowAddForm(true)}
+                  className="inline-flex items-center gap-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  Add Training Session
+                </Button>
+              ) : (
+                <div className="inline-flex items-center gap-2 max-w-md">
+                  <input
+                    type="text"
+                    value={newSessionName}
+                    onChange={(e) => setNewSessionName(e.target.value)}
+                    placeholder="Session name (e.g., Chapter 2 Downtime)"
+                    className="flex-1 px-3 py-2 border rounded-md text-sm"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') handleAddSession()
+                      if (e.key === 'Escape') {
+                        setShowAddForm(false)
+                        setNewSessionName('')
+                      }
+                    }}
+                    autoFocus
+                  />
+                  <Button onClick={handleAddSession} size="sm">
+                    Add
+                  </Button>
+                  <Button 
+                    onClick={() => {
+                      setShowAddForm(false)
+                      setNewSessionName('')
+                    }} 
+                    variant="outline" 
+                    size="sm"
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {sessions.map((session) => (
+                <div key={session.id} className="border rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="font-medium">{session.name}</h3>
+                    <div className="flex items-center gap-2">
+                      <Button variant="outline" size="sm">
+                        <Edit className="w-4 h-4" />
+                      </Button>
+                      <Button 
+                        variant="destructive" 
+                        size="sm"
+                        onClick={() => removeTrainingSession(session.id)}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                  {session.description && (
+                    <p className="text-sm text-muted mb-3">{session.description}</p>
+                  )}
+                  <div className="flex flex-wrap gap-2 text-xs">
+                    {session.featsTrained.length > 0 && (
+                      <Badge variant="secondary">
+                        {session.featsTrained.length} feat{session.featsTrained.length > 1 ? 's' : ''}
+                      </Badge>
+                    )}
+                    {Object.keys(session.abilityImprovements).length > 0 && (
+                      <Badge variant="secondary">
+                        Ability improvements
+                      </Badge>
+                    )}
+                    {session.skillsTrained.length > 0 && (
+                      <Badge variant="secondary">
+                        {session.skillsTrained.length} skill{session.skillsTrained.length > 1 ? 's' : ''}
+                      </Badge>
+                    )}
+                    {session.expertiseGained.length > 0 && (
+                      <Badge variant="secondary">
+                        {session.expertiseGained.length} expertise
+                      </Badge>
+                    )}
+                    {session.weaponTraining.length > 0 && (
+                      <Badge variant="secondary">
+                        {session.weaponTraining.length} weapon training
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+              ))}
+              <div className="text-center pt-2">
+                {!showAddForm ? (
+                  <Button
+                    onClick={() => setShowAddForm(true)}
+                    variant="outline"
+                    className="inline-flex items-center gap-2"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Add Another Session
+                  </Button>
+                ) : (
+                  <div className="inline-flex items-center gap-2 max-w-md">
+                    <input
+                      type="text"
+                      value={newSessionName}
+                      onChange={(e) => setNewSessionName(e.target.value)}
+                      placeholder="Session name (e.g., Chapter 3 Downtime)"
+                      className="flex-1 px-3 py-2 border rounded-md text-sm"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') handleAddSession()
+                        if (e.key === 'Escape') {
+                          setShowAddForm(false)
+                          setNewSessionName('')
+                        }
+                      }}
+                      autoFocus
+                    />
+                    <Button onClick={handleAddSession} size="sm">
+                      Add
+                    </Button>
+                    <Button 
+                      onClick={() => {
+                        setShowAddForm(false)
+                        setNewSessionName('')
+                      }} 
+                      variant="outline" 
+                      size="sm"
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 
