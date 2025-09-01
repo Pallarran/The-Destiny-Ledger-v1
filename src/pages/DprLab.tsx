@@ -128,14 +128,99 @@ export function DprLab() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedBuild?.id, isInitialized, isCalculating])
 
+  // State for power attack data
+  const [powerAttackData, setPowerAttackData] = useState<Array<{ac: number, powerAttack: number}> | null>(null)
+  const [hasPowerAttack, setHasPowerAttack] = useState(false)
+
+  // Calculate power attack data when build or result changes
+  useEffect(() => {
+    const calculatePowerAttackData = async () => {
+      if (!currentResult || !selectedBuild) {
+        setPowerAttackData(null)
+        setHasPowerAttack(false)
+        return
+      }
+      
+      try {
+        const { buildToCombatState, getWeaponConfig } = await import('../engine/simulator')
+        const { calculateBuildDPR } = await import('../engine/calculations')
+        
+        const combatState = buildToCombatState(selectedBuild)
+        
+        // Only calculate if build has GWM or Sharpshooter
+        if (!combatState.hasGWM && !combatState.hasSharpshooter) {
+          setPowerAttackData(null)
+          setHasPowerAttack(false)
+          return
+        }
+        
+        setHasPowerAttack(true)
+        
+        const weaponId = selectedBuild.rangedWeapon || selectedBuild.mainHandWeapon || 'longsword'
+        const weaponConfig = getWeaponConfig(weaponId, selectedBuild.weaponEnhancementBonus || 0, combatState)
+        
+        if (!weaponConfig) {
+          setPowerAttackData(null)
+          return
+        }
+        
+        // Calculate power attack DPR for each AC point
+        const paData = currentResult.normalCurve.map(point => {
+          const simConfig = {
+            targetAC: point.ac,
+            rounds: 3,
+            round0Buffs: localConfig.round0BuffsEnabled,
+            greedyResourceUse: localConfig.greedyResourceUse,
+            autoGWMSS: true // Force power attack on
+          }
+          
+          const result = calculateBuildDPR(combatState, weaponConfig, simConfig)
+          return {
+            ac: point.ac,
+            powerAttack: result.expectedDPR
+          }
+        })
+        
+        setPowerAttackData(paData)
+      } catch (error) {
+        console.warn('Failed to calculate power attack data:', error)
+        setPowerAttackData(null)
+        setHasPowerAttack(false)
+      }
+    }
+    
+    calculatePowerAttackData()
+  }, [currentResult, selectedBuild, localConfig])
+
   // Format display data for the chart
-  const displayData = currentResult ? 
-    currentResult.normalCurve.map(point => ({
-      ac: point.ac,
-      normal: point.dpr,
-      advantage: currentResult.advantageCurve.find(advPoint => advPoint.ac === point.ac)?.dpr || 0,
-      disadvantage: currentResult.disadvantageCurve.find(disPoint => disPoint.ac === point.ac)?.dpr || 0
-    })) : []
+  const displayData = useMemo(() => {
+    if (!currentResult || !selectedBuild) return []
+    
+    return currentResult.normalCurve.map(point => {
+      const baseData: {
+        ac: number
+        normal: number
+        advantage: number
+        disadvantage: number
+        powerAttack?: number
+      } = {
+        ac: point.ac,
+        normal: point.dpr,
+        advantage: currentResult.advantageCurve.find(advPoint => advPoint.ac === point.ac)?.dpr || 0,
+        disadvantage: currentResult.disadvantageCurve.find(disPoint => disPoint.ac === point.ac)?.dpr || 0
+      }
+      
+      // Add power attack data if available
+      if (powerAttackData) {
+        const paPoint = powerAttackData.find(pa => pa.ac === point.ac)
+        if (paPoint) {
+          baseData.powerAttack = paPoint.powerAttack
+        }
+      }
+      
+      return baseData
+    })
+  }, [currentResult, selectedBuild, powerAttackData])
 
   return (
     <div className="h-full">
@@ -350,6 +435,17 @@ export function DprLab() {
                         name="Disadvantage"
                         dot={{ fill: 'var(--danger)', strokeWidth: 0, r: 3 }}
                       />
+                      {hasPowerAttack && (
+                        <Line 
+                          type="monotone" 
+                          dataKey="powerAttack" 
+                          stroke="#f59e0b" 
+                          strokeWidth={3}
+                          strokeDasharray="5 5"
+                          name="Power Attack"
+                          dot={{ fill: '#f59e0b', strokeWidth: 0, r: 3 }}
+                        />
+                      )}
                     </LineChart>
                   </ResponsiveContainer>
                 </ChartFrame>

@@ -112,25 +112,32 @@ function calculateHeroMetrics(
   
   const ac15Result = calculateBuildDPR(combatState, weaponConfig, simConfig)
   
-  // Determine best AC range where DPR > 80% of max
+  // Determine optimal AC range where DPR > 80% of max (where build excels)
   const maxDPR = Math.max(...result.normalCurve.map(point => point.dpr))
   const effectivePoints = result.normalCurve.filter(point => point.dpr > maxDPR * 0.8)
   const bestACRange = effectivePoints.length > 0 
-    ? `AC ${Math.min(...effectivePoints.map(p => p.ac))}-${Math.max(...effectivePoints.map(p => p.ac))}`
-    : 'High AC targets'
+    ? `AC ${Math.min(...effectivePoints.map(p => p.ac))}-${Math.max(...effectivePoints.map(p => p.ac))} (optimal)`
+    : 'High AC enemies'
 
-  // Power attack advice
+  // Power attack advice with specific AC thresholds
   let powerAttackAdvice = 'Not applicable'
   if (combatState.hasGWM || combatState.hasSharpshooter) {
-    const withoutPA = calculateBuildDPR(combatState, weaponConfig, { ...simConfig, autoGWMSS: false })
-    const withPA = calculateBuildDPR(combatState, weaponConfig, { ...simConfig, autoGWMSS: true })
+    // Find the AC breakpoint where power attack becomes less effective
+    const featName = combatState.hasGWM ? 'GWM' : 'SS'
+    const paBreakpoint = result.normalCurve.find(point => {
+      const withoutPA = calculateBuildDPR(combatState, weaponConfig, { 
+        ...simConfig, targetAC: point.ac, autoGWMSS: false 
+      })
+      const withPA = calculateBuildDPR(combatState, weaponConfig, { 
+        ...simConfig, targetAC: point.ac, autoGWMSS: true 
+      })
+      return withPA.expectedDPR <= withoutPA.expectedDPR
+    })
     
-    if (withPA.expectedDPR > withoutPA.expectedDPR * 1.05) {
-      powerAttackAdvice = 'Use vs low AC'
-    } else if (withPA.expectedDPR > withoutPA.expectedDPR * 0.95) {
-      powerAttackAdvice = 'Situational'
+    if (paBreakpoint) {
+      powerAttackAdvice = `${featName}: Use vs AC ≤${paBreakpoint.ac - 1}`
     } else {
-      powerAttackAdvice = 'Avoid mostly'
+      powerAttackAdvice = `${featName}: Always beneficial`
     }
   }
 
@@ -450,7 +457,7 @@ export function HeroMetrics({ build, result, config }: HeroMetricsProps) {
             {/* Quick Stats */}
             <div className="space-y-1 text-xs">
               <div className="flex justify-between items-center">
-                <span className="text-muted">Effective vs:</span>
+                <span className="text-muted">Best vs:</span>
                 <Badge variant="outline" className="text-xs">
                   {metrics.bestACRange}
                 </Badge>
