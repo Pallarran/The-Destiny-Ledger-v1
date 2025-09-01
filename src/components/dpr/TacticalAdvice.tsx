@@ -186,20 +186,20 @@ function getCategoryIcon(category: string) {
 
 function getCategoryColor(category: string): string {
   switch (category) {
-    case 'targeting': return 'text-red-600 bg-red-500/10'
-    case 'positioning': return 'text-blue-600 bg-blue-500/10'
-    case 'resources': return 'text-purple-600 bg-purple-500/10'
-    case 'timing': return 'text-green-600 bg-green-500/10'
-    default: return 'text-gray-600 bg-gray-500/10'
+    case 'targeting': return 'bg-danger/10'
+    case 'positioning': return 'bg-accent/10'
+    case 'resources': return 'bg-purple/10'
+    case 'timing': return 'bg-emerald/10'
+    default: return 'bg-muted/10'
   }
 }
 
 function getPriorityColor(priority: string): string {
   switch (priority) {
-    case 'high': return 'border-red-500/20'
-    case 'medium': return 'border-yellow-500/20'
-    case 'low': return 'border-gray-500/20'
-    default: return 'border-gray-500/20'
+    case 'high': return 'border-danger/20'
+    case 'medium': return 'border-warning/20'
+    case 'low': return 'border-muted/20'
+    default: return 'border-muted/20'
   }
 }
 
@@ -246,11 +246,17 @@ export function TacticalAdvice({ build, result, config }: TacticalAdviceProps) {
             >
               <div className="flex items-start gap-2">
                 <div className={`p-1.5 rounded ${categoryColor} flex-shrink-0`}>
-                  <Icon className="w-3 h-3" />
+                  <Icon className={`w-3 h-3 ${
+                    rec.category === 'targeting' ? 'text-danger' :
+                    rec.category === 'positioning' ? 'text-accent' :
+                    rec.category === 'resources' ? 'text-purple' :
+                    rec.category === 'timing' ? 'text-emerald' :
+                    'text-muted'
+                  }`} />
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2 mb-1">
-                    <h4 className="font-medium text-sm">{rec.title}</h4>
+                    <h4 className="font-medium text-sm text-foreground">{rec.title}</h4>
                     <Badge 
                       variant="outline" 
                       className="text-xs px-1.5 py-0 capitalize"
@@ -258,11 +264,11 @@ export function TacticalAdvice({ build, result, config }: TacticalAdviceProps) {
                       {rec.priority}
                     </Badge>
                   </div>
-                  <p className="text-xs text-foreground/80 leading-relaxed mb-1">
+                  <p className="text-xs text-muted leading-relaxed mb-1">
                     {rec.advice}
                   </p>
                   {rec.situational && (
-                    <p className="text-xs text-muted italic">
+                    <p className="text-xs text-muted/70 italic">
                       {rec.situational}
                     </p>
                   )}

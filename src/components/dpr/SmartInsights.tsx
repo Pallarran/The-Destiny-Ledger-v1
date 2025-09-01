@@ -186,11 +186,11 @@ function getInsightIcon(type: string) {
 
 function getInsightColor(type: string): string {
   switch (type) {
-    case 'strength': return 'text-green-600 bg-green-500/10 border-green-500/20'
-    case 'weakness': return 'text-red-600 bg-red-500/10 border-red-500/20'
-    case 'opportunity': return 'text-blue-600 bg-blue-500/10 border-blue-500/20'
-    case 'tip': return 'text-purple-600 bg-purple-500/10 border-purple-500/20'
-    default: return 'text-gray-600 bg-gray-500/10 border-gray-500/20'
+    case 'strength': return 'bg-emerald/5 border-emerald/20'
+    case 'weakness': return 'bg-danger/5 border-danger/20'
+    case 'opportunity': return 'bg-accent/5 border-accent/20'
+    case 'tip': return 'bg-purple/5 border-purple/20'
+    default: return 'bg-muted/5 border-muted/20'
   }
 }
 
@@ -235,10 +235,16 @@ export function SmartInsights({ build, result, config }: SmartInsightsProps) {
               className={`p-3 rounded-lg border ${colors}`}
             >
               <div className="flex items-start gap-2">
-                <Icon className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                <Icon className={`w-4 h-4 mt-0.5 flex-shrink-0 ${
+                  insight.type === 'strength' ? 'text-emerald' :
+                  insight.type === 'weakness' ? 'text-danger' :
+                  insight.type === 'opportunity' ? 'text-accent' :
+                  insight.type === 'tip' ? 'text-purple' :
+                  'text-muted'
+                }`} />
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2 mb-1">
-                    <h4 className="font-medium text-sm">{insight.title}</h4>
+                    <h4 className="font-medium text-sm text-foreground">{insight.title}</h4>
                     <Badge 
                       variant="outline" 
                       className="text-xs px-1.5 py-0 capitalize"
@@ -246,7 +252,7 @@ export function SmartInsights({ build, result, config }: SmartInsightsProps) {
                       {insight.type}
                     </Badge>
                   </div>
-                  <p className="text-xs opacity-90 leading-relaxed">
+                  <p className="text-xs text-muted leading-relaxed">
                     {insight.description}
                   </p>
                 </div>

@@ -143,11 +143,11 @@ export function DprLab() {
     })) : []
 
   return (
-    <div className="space-y-6">
-      <Panel>
+    <div className="h-full">
+      <Panel className="h-full flex flex-col">
         <PanelHeader title="D&D 5e DPR Lab" />
         
-        <div className="space-y-6">
+        <div className="space-y-6 flex-1 overflow-y-auto">
           {/* Build Selection */}
           {selectedBuild ? (
             <div className="bg-accent/5 border border-accent/20 rounded-lg p-4">
@@ -283,15 +283,11 @@ export function DprLab() {
             </TabsList>
             
             {/* Overview Tab - High-level metrics and key insights */}
-            <TabsContent value="overview" className="mt-6">
+            <TabsContent value="overview" className="mt-6 space-y-6">
               <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 lg:gap-6">
-                {/* Top Row: Hero Metrics + Primary Chart */}
-                <div className="space-y-6">
+                {/* Left Column: Hero Metrics + Chart */}
+                <div className="space-y-4">
                   <HeroMetrics build={selectedBuild} result={currentResult} config={localConfig} />
-                  <SmartInsights build={selectedBuild} result={currentResult} config={localConfig} />
-                </div>
-                
-                <div className="space-y-6">
                   <ChartFrame title="DPR vs Armor Class">
                     <ResponsiveContainer width="100%" height={280}>
                       <LineChart data={displayData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
@@ -344,6 +340,11 @@ export function DprLab() {
                       </LineChart>
                     </ResponsiveContainer>
                   </ChartFrame>
+                </div>
+                
+                {/* Right Column: Smart Insights + Tactical Advice */}
+                <div className="space-y-4">
+                  <SmartInsights build={selectedBuild} result={currentResult} config={localConfig} />
                   <TacticalAdvice build={selectedBuild} result={currentResult} config={localConfig} />
                 </div>
               </div>
