@@ -1,6 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card'
 import { Button } from '../ui/button'
-import { Badge } from '../ui/badge'
 import { GraduationCap, BookOpen, Zap, Target, Plus, Trash2, Edit, Save, X, Search } from 'lucide-react'
 import { useCharacterBuilderStore } from '../../stores/characterBuilderStore'
 import { useState } from 'react'
@@ -8,6 +7,7 @@ import type { DowntimeTrainingSession } from '../../types/downtimeTraining'
 import type { AbilityScore, AbilityScoreArray } from '../../rules/types'
 import { feats } from '../../rules/srd/feats'
 import { getAllSkills } from '../../rules/srd/skills'
+import { weapons } from '../../rules/srd/weapons'
 
 export function DowntimeTrainingSelection() {
   const { currentBuild, addTrainingSession, removeTrainingSession, updateTrainingSession } = useCharacterBuilderStore()
@@ -127,31 +127,74 @@ export function DowntimeTrainingSelection() {
                   {session.description && (
                     <p className="text-sm text-muted mb-3">{session.description}</p>
                   )}
-                  <div className="flex flex-wrap gap-2 text-xs">
+                  <div className="space-y-2">
+                    {/* Feats Trained */}
                     {session.featsTrained.length > 0 && (
-                      <Badge variant="secondary">
-                        {session.featsTrained.length} feat{session.featsTrained.length > 1 ? 's' : ''}
-                      </Badge>
+                      <div className="text-sm">
+                        <span className="font-medium text-blue-600">Feats:</span>{' '}
+                        <span className="text-muted">
+                          {session.featsTrained.map(featId => {
+                            const feat = feats[featId]
+                            return feat ? feat.name : featId
+                          }).join(', ')}
+                        </span>
+                      </div>
                     )}
+                    
+                    {/* Ability Improvements */}
                     {Object.keys(session.abilityImprovements).length > 0 && (
-                      <Badge variant="secondary">
-                        Ability improvements
-                      </Badge>
+                      <div className="text-sm">
+                        <span className="font-medium text-green-600">Ability Scores:</span>{' '}
+                        <span className="text-muted">
+                          {Object.entries(session.abilityImprovements)
+                            .filter(([_, value]) => value && value > 0)
+                            .map(([ability, value]) => `${ability} +${value}`)
+                            .join(', ')}
+                        </span>
+                      </div>
                     )}
+                    
+                    {/* Skills Trained */}
                     {session.skillsTrained.length > 0 && (
-                      <Badge variant="secondary">
-                        {session.skillsTrained.length} skill{session.skillsTrained.length > 1 ? 's' : ''}
-                      </Badge>
+                      <div className="text-sm">
+                        <span className="font-medium text-purple-600">Skills:</span>{' '}
+                        <span className="text-muted">
+                          {session.skillsTrained.join(', ')}
+                        </span>
+                      </div>
                     )}
+                    
+                    {/* Expertise Gained */}
                     {session.expertiseGained.length > 0 && (
-                      <Badge variant="secondary">
-                        {session.expertiseGained.length} expertise
-                      </Badge>
+                      <div className="text-sm">
+                        <span className="font-medium text-orange-600">Expertise:</span>{' '}
+                        <span className="text-muted">
+                          {session.expertiseGained.join(', ')}
+                        </span>
+                      </div>
                     )}
+                    
+                    {/* Weapon Training */}
                     {session.weaponTraining.length > 0 && (
-                      <Badge variant="secondary">
-                        {session.weaponTraining.length} weapon training
-                      </Badge>
+                      <div className="text-sm">
+                        <span className="font-medium text-red-600">Weapon Training:</span>{' '}
+                        <span className="text-muted">
+                          {session.weaponTraining.map(wt => 
+                            `${wt.weaponType || 'Unknown'} (+${wt.attackBonus} attack, +${wt.damageBonus} damage)`
+                          ).join('; ')}
+                        </span>
+                      </div>
+                    )}
+                    
+                    {/* Empty state */}
+                    {session.featsTrained.length === 0 && 
+                     Object.keys(session.abilityImprovements).length === 0 &&
+                     session.skillsTrained.length === 0 && 
+                     session.expertiseGained.length === 0 && 
+                     session.weaponTraining.length === 0 && (
+                      <div className="text-sm text-muted italic">
+                        No training configured yet
+                      </div>
                     )}
                   </div>
                 </div>
@@ -310,6 +353,7 @@ function TrainingSessionEditor({ session, onSave, onCancel }: TrainingSessionEdi
   const [expertiseGained, setExpertiseGained] = useState<string[]>(session.expertiseGained)
   const [featSearchTerm, setFeatSearchTerm] = useState('')
   const [skillSearchTerm, setSkillSearchTerm] = useState('')
+  const [weaponSearchTerm, setWeaponSearchTerm] = useState('')
 
   const handleSave = () => {
     onSave({
@@ -394,6 +438,12 @@ function TrainingSessionEditor({ session, onSave, onCancel }: TrainingSessionEdi
   const removeExpertiseGained = (skillName: string) => {
     setExpertiseGained(prev => prev.filter(name => name !== skillName))
   }
+
+  // Weapon helper functions
+  const allWeapons = Object.values(weapons)
+  const availableWeapons = allWeapons.filter(weapon => 
+    weapon.name.toLowerCase().includes(weaponSearchTerm.toLowerCase())
+  )
 
   return (
     <Card className="border-2 border-accent">
@@ -484,21 +534,83 @@ function TrainingSessionEditor({ session, onSave, onCancel }: TrainingSessionEdi
             <div className="space-y-3">
               {weaponTraining.map((wt, index) => (
                 <div key={index} className="border rounded-lg p-3 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <input
-                      type="text"
-                      value={wt.weaponType}
-                      onChange={(e) => updateWeaponTraining(index, { weaponType: e.target.value })}
-                      placeholder="Weapon type (e.g., longsword, shortbow)"
-                      className="flex-1 px-2 py-1 border rounded text-sm mr-2"
-                    />
-                    <Button
-                      onClick={() => removeWeaponTraining(index)}
-                      size="sm"
-                      variant="destructive"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-sm font-medium">Weapon Selection</h4>
+                      <Button
+                        onClick={() => removeWeaponTraining(index)}
+                        size="sm"
+                        variant="destructive"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                    
+                    {/* Current weapon display */}
+                    {wt.weaponType && (
+                      <div className="flex items-center gap-2 p-2 bg-accent/10 rounded border">
+                        <span className="text-sm font-medium">{wt.weaponType}</span>
+                        <Button
+                          onClick={() => updateWeaponTraining(index, { weaponType: '' })}
+                          size="sm"
+                          variant="ghost"
+                          className="h-4 w-4 p-0 hover:bg-destructive/20"
+                        >
+                          <X className="w-3 h-3" />
+                        </Button>
+                      </div>
+                    )}
+                    
+                    {/* Weapon search and selection */}
+                    {!wt.weaponType && (
+                      <div className="space-y-2">
+                        <div className="relative">
+                          <Search className="w-4 h-4 absolute left-2 top-2.5 text-muted" />
+                          <input
+                            type="text"
+                            value={weaponSearchTerm}
+                            onChange={(e) => setWeaponSearchTerm(e.target.value)}
+                            placeholder="Search weapons..."
+                            className="w-full pl-8 pr-3 py-2 border rounded text-sm"
+                          />
+                        </div>
+
+                        {availableWeapons.length > 0 ? (
+                          <div className="max-h-32 overflow-y-auto space-y-1 border rounded p-1">
+                            {availableWeapons.slice(0, 8).map(weapon => (
+                              <div key={weapon.id} className="flex items-center justify-between p-1 hover:bg-accent/5 rounded">
+                                <div>
+                                  <span className="text-sm font-medium">{weapon.name}</span>
+                                  <span className="text-xs text-muted ml-2">
+                                    ({weapon.category}, {weapon.damage[0].count}d{weapon.damage[0].die} {weapon.damage[0].type})
+                                  </span>
+                                </div>
+                                <Button
+                                  onClick={() => {
+                                    updateWeaponTraining(index, { weaponType: weapon.name })
+                                    setWeaponSearchTerm('')
+                                  }}
+                                  size="sm"
+                                  variant="outline"
+                                  className="h-6 w-6 p-0"
+                                >
+                                  <Plus className="w-3 h-3" />
+                                </Button>
+                              </div>
+                            ))}
+                            {availableWeapons.length > 8 && (
+                              <p className="text-xs text-muted text-center py-1">
+                                Showing first 8 results. Continue typing to narrow search.
+                              </p>
+                            )}
+                          </div>
+                        ) : (
+                          <p className="text-xs text-muted text-center py-3">
+                            {weaponSearchTerm ? 'No weapons match your search.' : 'Start typing to search weapons...'}
+                          </p>
+                        )}
+                      </div>
+                    )}
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
