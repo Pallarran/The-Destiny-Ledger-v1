@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card'
 import { Lightbulb, TrendingUp, AlertTriangle, CheckCircle, Info } from 'lucide-react'
 import { buildToCombatState, getWeaponConfig } from '../../engine/simulator'
 import { calculateBuildDPR } from '../../engine/calculations'
+import { getLevelAdjustedDPRThresholds, describeDPR } from '../../utils/dprThresholds'
 import type { BuildConfiguration, DPRResult } from '../../stores/types'
 import type { SimulationConfig } from '../../engine/types'
 
@@ -50,30 +51,36 @@ function generateInsights(
   // Get character level for scaling baselines
   const characterLevel = Math.max(...(build.levelTimeline?.map(l => l.level) || [1]))
   
-  // Level-adjusted DPR thresholds
-  // Based on rough expectations: ~3-4 DPR per tier at low levels, scaling up
-  const getLevelAdjustedThresholds = (level: number) => {
-    if (level <= 4) return { low: 6, excellent: 15 }      // Tier 1: 6-15
-    else if (level <= 10) return { low: 12, excellent: 25 } // Tier 2: 12-25  
-    else if (level <= 16) return { low: 18, excellent: 35 } // Tier 3: 18-35
-    else return { low: 25, excellent: 45 }                  // Tier 4: 25-45
-  }
-  
-  const thresholds = getLevelAdjustedThresholds(characterLevel)
+  // Use unified thresholds
+  const thresholds = getLevelAdjustedDPRThresholds(characterLevel)
 
-  // Analyze DPR performance with level-adjusted baselines
-  if (avgDPR > thresholds.excellent) {
+  // Analyze DPR performance with unified baselines
+  if (avgDPR >= thresholds.excellent) {
     insights.push({
       type: 'strength',
       title: 'Excellent Damage Output',
-      description: `Your ${avgDPR.toFixed(1)} average DPR is excellent for level ${characterLevel}. You'll consistently contribute significant damage in combat.`,
+      description: `Your ${avgDPR.toFixed(1)} average DPR is ${describeDPR(avgDPR, characterLevel).toLowerCase()}. You'll consistently contribute significant damage in combat.`,
       priority: 'high'
+    })
+  } else if (avgDPR >= thresholds.good) {
+    insights.push({
+      type: 'strength',
+      title: 'Good Damage Output',
+      description: `Your ${avgDPR.toFixed(1)} average DPR is ${describeDPR(avgDPR, characterLevel).toLowerCase()}. You're performing above expectations.`,
+      priority: 'medium'
+    })
+  } else if (avgDPR >= thresholds.average) {
+    insights.push({
+      type: 'tip',
+      title: 'Average Damage Output',
+      description: `Your ${avgDPR.toFixed(1)} average DPR is ${describeDPR(avgDPR, characterLevel).toLowerCase()}. There's room for optimization.`,
+      priority: 'low'
     })
   } else if (avgDPR < thresholds.low) {
     insights.push({
       type: 'weakness',
       title: 'Low Damage Output',
-      description: `At ${avgDPR.toFixed(1)} average DPR, your damage is below optimal for level ${characterLevel}. Consider improving your weapon, ability scores, or adding damage-boosting features.`,
+      description: `At ${avgDPR.toFixed(1)} average DPR, your damage is significantly below optimal for level ${characterLevel}. Consider improving your weapon, ability scores, or adding damage-boosting features.`,
       priority: 'high'
     })
   }
