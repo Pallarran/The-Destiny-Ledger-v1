@@ -283,70 +283,68 @@ export function DprLab() {
             </TabsList>
             
             {/* Overview Tab - High-level metrics and key insights */}
-            <TabsContent value="overview" className="mt-6">
+            <TabsContent value="overview" className="mt-6 space-y-4">
+              {/* Top Row: Hero Metrics and DPR Chart */}
               <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 lg:gap-6">
-                {/* Left Column: Hero Metrics + Smart Insights */}
-                <div className="space-y-4">
-                  <HeroMetrics build={selectedBuild} result={currentResult} config={localConfig} />
-                  <SmartInsights build={selectedBuild} result={currentResult} config={localConfig} />
-                </div>
-                
-                {/* Right Column: DPR Chart + Tactical Advice */}
-                <div className="space-y-4">
-                  <ChartFrame title="DPR vs Armor Class">
-                    <ResponsiveContainer width="100%" height={280}>
-                      <LineChart data={displayData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                        <XAxis 
-                          dataKey="ac" 
-                          axisLine={false}
-                          tickLine={false}
-                          tick={{ fontSize: 12, fill: 'var(--muted)' }}
-                          label={{ value: 'Target AC', position: 'insideBottom', offset: -10, style: { textAnchor: 'middle', fill: 'var(--muted)' } }}
-                        />
-                        <YAxis 
-                          axisLine={false}
-                          tickLine={false}
-                          tick={{ fontSize: 12, fill: 'var(--muted)' }}
-                          label={{ value: 'DPR', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fill: 'var(--muted)' } }}
-                        />
-                        <Tooltip 
-                          contentStyle={{
-                            backgroundColor: 'var(--panel)',
-                            border: '1px solid var(--border)',
-                            borderRadius: 'var(--radius)',
-                            color: 'var(--ink)'
-                          }}
-                        />
-                        <Line 
-                          type="monotone" 
-                          dataKey="normal" 
-                          stroke="var(--ink)" 
-                          strokeWidth={3}
-                          name="Normal"
-                          dot={{ fill: 'var(--ink)', strokeWidth: 0, r: 3 }}
-                        />
-                        <Line 
-                          type="monotone" 
-                          dataKey="advantage" 
-                          stroke="var(--accent)" 
-                          strokeWidth={3}
-                          name="Advantage"
-                          dot={{ fill: 'var(--accent)', strokeWidth: 0, r: 3 }}
-                        />
-                        <Line 
-                          type="monotone" 
-                          dataKey="disadvantage" 
-                          stroke="var(--danger)" 
-                          strokeWidth={3}
-                          name="Disadvantage"
-                          dot={{ fill: 'var(--danger)', strokeWidth: 0, r: 3 }}
-                        />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  </ChartFrame>
-                  <TacticalAdvice build={selectedBuild} result={currentResult} config={localConfig} />
-                </div>
+                <HeroMetrics build={selectedBuild} result={currentResult} config={localConfig} />
+                <ChartFrame title="DPR vs Armor Class">
+                  <ResponsiveContainer width="100%" height={280}>
+                    <LineChart data={displayData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                      <XAxis 
+                        dataKey="ac" 
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fontSize: 12, fill: 'var(--muted)' }}
+                        label={{ value: 'Target AC', position: 'insideBottom', offset: -10, style: { textAnchor: 'middle', fill: 'var(--muted)' } }}
+                      />
+                      <YAxis 
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fontSize: 12, fill: 'var(--muted)' }}
+                        label={{ value: 'DPR', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fill: 'var(--muted)' } }}
+                      />
+                      <Tooltip 
+                        contentStyle={{
+                          backgroundColor: 'var(--panel)',
+                          border: '1px solid var(--border)',
+                          borderRadius: 'var(--radius)',
+                          color: 'var(--ink)'
+                        }}
+                      />
+                      <Line 
+                        type="monotone" 
+                        dataKey="normal" 
+                        stroke="var(--ink)" 
+                        strokeWidth={3}
+                        name="Normal"
+                        dot={{ fill: 'var(--ink)', strokeWidth: 0, r: 3 }}
+                      />
+                      <Line 
+                        type="monotone" 
+                        dataKey="advantage" 
+                        stroke="var(--accent)" 
+                        strokeWidth={3}
+                        name="Advantage"
+                        dot={{ fill: 'var(--accent)', strokeWidth: 0, r: 3 }}
+                      />
+                      <Line 
+                        type="monotone" 
+                        dataKey="disadvantage" 
+                        stroke="var(--danger)" 
+                        strokeWidth={3}
+                        name="Disadvantage"
+                        dot={{ fill: 'var(--danger)', strokeWidth: 0, r: 3 }}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </ChartFrame>
+              </div>
+              
+              {/* Bottom Row: Smart Insights and Tactical Advice side by side */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
+                <SmartInsights build={selectedBuild} result={currentResult} config={localConfig} />
+                <TacticalAdvice build={selectedBuild} result={currentResult} config={localConfig} />
               </div>
             </TabsContent>
 
