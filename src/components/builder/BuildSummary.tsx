@@ -338,15 +338,6 @@ export function BuildSummary() {
   // Calculate spell slots
   const spellSlotData = calculateTotalSpellSlots(timeline)
   
-  // Debug logging
-  console.log('BuildSummary debug:', {
-    timeline,
-    totalLevel,
-    classBreakdown,
-    spellSlotData,
-    hasSpellSlots: !!(spellSlotData.spellSlots || spellSlotData.warlockSlots)
-  })
-  
   return (
     <div className="space-y-6">
       <div>
@@ -556,7 +547,7 @@ export function BuildSummary() {
             {spellSlotData.spellSlots && (
               <div>
                 <h4 className="text-sm font-medium text-foreground mb-2">Spell Slots</h4>
-                <div className="grid grid-cols-9 gap-2 text-xs">
+                <div className="grid grid-cols-10 gap-1 text-xs min-w-0">
                   <div className="font-medium text-center">Lv</div>
                   {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(level => (
                     <div key={level} className="font-medium text-center">{level}</div>
@@ -574,7 +565,7 @@ export function BuildSummary() {
             {spellSlotData.warlockSlots && (
               <div>
                 <h4 className="text-sm font-medium text-foreground mb-2">Warlock Pact Magic</h4>
-                <div className="grid grid-cols-6 gap-2 text-xs">
+                <div className="grid grid-cols-6 gap-1 text-xs min-w-0">
                   <div className="font-medium text-center">Lv</div>
                   {[1, 2, 3, 4, 5].map(level => (
                     <div key={level} className="font-medium text-center">{level}</div>

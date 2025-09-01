@@ -97,8 +97,6 @@ interface CharacterBuilderStore extends CharacterBuilderState {
 function getFeaturesForLevel(classId: string, classLevel: number, totalLevel: number, subclassId?: string): string[] {
   const features: string[] = []
   
-  console.log('getFeaturesForLevel called:', { classId, classLevel, totalLevel, subclassId })
-  
   try {
     // Get class data
     const classData = getClass(classId)
@@ -106,17 +104,14 @@ function getFeaturesForLevel(classId: string, classLevel: number, totalLevel: nu
       // Add class features for this total level
       const levelFeatures = classData.features[totalLevel] || []
       features.push(...levelFeatures.map(f => f.name))
-      console.log('Class features for level', totalLevel, ':', levelFeatures.map(f => f.name))
     }
     
     // Add subclass features if subclass is selected
     if (subclassId) {
       const subclassData = getSubclass(subclassId)
-      console.log('Subclass data:', subclassData)
       if (subclassData?.features && Array.isArray(subclassData.features)) {
         // Add subclass features for this class level (not total level)
         const subclassFeatures = subclassData.features.filter((f: any) => f.level === classLevel)
-        console.log('Subclass features for class level', classLevel, ':', subclassFeatures.map(f => f.name))
         features.push(...subclassFeatures.map((f: any) => f.name))
       }
     }
@@ -124,7 +119,6 @@ function getFeaturesForLevel(classId: string, classLevel: number, totalLevel: nu
     console.error('Error getting features for level:', error)
   }
   
-  console.log('Final features:', features)
   return features
 }
 
