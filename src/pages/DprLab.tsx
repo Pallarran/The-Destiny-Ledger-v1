@@ -129,7 +129,11 @@ export function DprLab() {
   }, [selectedBuild?.id, isInitialized, isCalculating])
 
   // State for power attack data
-  const [powerAttackData, setPowerAttackData] = useState<Array<{ac: number, powerAttack: number}> | null>(null)
+  const [powerAttackData, setPowerAttackData] = useState<{
+    normal: Array<{ac: number, powerAttack: number}>
+    advantage: Array<{ac: number, powerAttack: number}>
+    disadvantage: Array<{ac: number, powerAttack: number}>
+  } | null>(null)
   const [hasPowerAttack, setHasPowerAttack] = useState(false)
 
   // Calculate power attack data when build or result changes
@@ -164,14 +168,49 @@ export function DprLab() {
           return
         }
         
-        // Calculate power attack DPR for each AC point
-        const paData = currentResult.normalCurve.map(point => {
+        // Calculate power attack DPR for each advantage state and AC point
+        const normalPAData = currentResult.normalCurve.map(point => {
           const simConfig = {
             targetAC: point.ac,
             rounds: 3,
             round0Buffs: localConfig.round0BuffsEnabled,
             greedyResourceUse: localConfig.greedyResourceUse,
-            autoGWMSS: true // Force power attack on
+            autoGWMSS: true,
+            advantageState: 'normal' as const
+          }
+          
+          const result = calculateBuildDPR(combatState, weaponConfig, simConfig)
+          return {
+            ac: point.ac,
+            powerAttack: result.expectedDPR
+          }
+        })
+
+        const advantagePAData = currentResult.advantageCurve.map(point => {
+          const simConfig = {
+            targetAC: point.ac,
+            rounds: 3,
+            round0Buffs: localConfig.round0BuffsEnabled,
+            greedyResourceUse: localConfig.greedyResourceUse,
+            autoGWMSS: true,
+            advantageState: 'advantage' as const
+          }
+          
+          const result = calculateBuildDPR(combatState, weaponConfig, simConfig)
+          return {
+            ac: point.ac,
+            powerAttack: result.expectedDPR
+          }
+        })
+
+        const disadvantagePAData = currentResult.disadvantageCurve.map(point => {
+          const simConfig = {
+            targetAC: point.ac,
+            rounds: 3,
+            round0Buffs: localConfig.round0BuffsEnabled,
+            greedyResourceUse: localConfig.greedyResourceUse,
+            autoGWMSS: true,
+            advantageState: 'disadvantage' as const
           }
           
           const result = calculateBuildDPR(combatState, weaponConfig, simConfig)
@@ -181,7 +220,11 @@ export function DprLab() {
           }
         })
         
-        setPowerAttackData(paData)
+        setPowerAttackData({
+          normal: normalPAData,
+          advantage: advantagePAData,
+          disadvantage: disadvantagePAData
+        })
       } catch (error) {
         console.warn('Failed to calculate power attack data:', error)
         setPowerAttackData(null)
@@ -202,7 +245,9 @@ export function DprLab() {
         normal: number
         advantage: number
         disadvantage: number
-        powerAttack?: number
+        normalPA?: number
+        advantagePA?: number
+        disadvantagePA?: number
       } = {
         ac: point.ac,
         normal: point.dpr,
@@ -212,10 +257,13 @@ export function DprLab() {
       
       // Add power attack data if available
       if (powerAttackData) {
-        const paPoint = powerAttackData.find(pa => pa.ac === point.ac)
-        if (paPoint) {
-          baseData.powerAttack = paPoint.powerAttack
-        }
+        const normalPAPoint = powerAttackData.normal.find(pa => pa.ac === point.ac)
+        const advantagePAPoint = powerAttackData.advantage.find(pa => pa.ac === point.ac)
+        const disadvantagePAPoint = powerAttackData.disadvantage.find(pa => pa.ac === point.ac)
+        
+        if (normalPAPoint) baseData.normalPA = normalPAPoint.powerAttack
+        if (advantagePAPoint) baseData.advantagePA = advantagePAPoint.powerAttack
+        if (disadvantagePAPoint) baseData.disadvantagePA = disadvantagePAPoint.powerAttack
       }
       
       return baseData
@@ -436,15 +484,35 @@ export function DprLab() {
                         dot={{ fill: 'var(--danger)', strokeWidth: 0, r: 3 }}
                       />
                       {hasPowerAttack && (
-                        <Line 
-                          type="monotone" 
-                          dataKey="powerAttack" 
-                          stroke="#f59e0b" 
-                          strokeWidth={3}
-                          strokeDasharray="5 5"
-                          name="Power Attack"
-                          dot={{ fill: '#f59e0b', strokeWidth: 0, r: 3 }}
-                        />
+                        <>
+                          <Line 
+                            type="monotone" 
+                            dataKey="normalPA" 
+                            stroke="var(--ink)" 
+                            strokeWidth={3}
+                            strokeDasharray="5 5"
+                            name="Normal (PA)"
+                            dot={{ fill: 'var(--ink)', strokeWidth: 0, r: 3 }}
+                          />
+                          <Line 
+                            type="monotone" 
+                            dataKey="advantagePA" 
+                            stroke="var(--accent)" 
+                            strokeWidth={3}
+                            strokeDasharray="5 5"
+                            name="Advantage (PA)"
+                            dot={{ fill: 'var(--accent)', strokeWidth: 0, r: 3 }}
+                          />
+                          <Line 
+                            type="monotone" 
+                            dataKey="disadvantagePA" 
+                            stroke="var(--danger)" 
+                            strokeWidth={3}
+                            strokeDasharray="5 5"
+                            name="Disadvantage (PA)"
+                            dot={{ fill: 'var(--danger)', strokeWidth: 0, r: 3 }}
+                          />
+                        </>
                       )}
                     </LineChart>
                   </ResponsiveContainer>

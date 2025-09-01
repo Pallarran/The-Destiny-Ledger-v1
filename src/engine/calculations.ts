@@ -145,6 +145,27 @@ export function shouldUsePowerAttack(
   return powerAttackDPR > normalDPR
 }
 
+// Check if sneak attack can be used
+function canUseSneakAttack(weapon: WeaponConfig, advantageState: 'advantage' | 'normal' | 'disadvantage'): boolean {
+  // Must not have disadvantage
+  if (advantageState === 'disadvantage') {
+    return false
+  }
+  
+  // Must use finesse weapon or ranged weapon
+  const isFinesseWeapon = weapon.properties.includes('finesse')
+  const isRangedWeapon = weapon.properties.includes('ammunition') || weapon.properties.includes('thrown')
+  
+  if (!isFinesseWeapon && !isRangedWeapon) {
+    return false
+  }
+  
+  // Must have advantage OR assume ally is adjacent (simplified for DPR calculations)
+  // In actual play, this would depend on tactical positioning, but for DPR lab we assume
+  // optimal conditions where either advantage is present or an ally is positioned correctly
+  return advantageState === 'advantage' || advantageState === 'normal'
+}
+
 // Main DPR calculation for a build
 export function calculateBuildDPR(
   state: CombatState,
@@ -187,8 +208,12 @@ export function calculateBuildDPR(
     baseDamage.bonusDamage += 2
   }
   
-  // Add additional damage dice
-  if (state.sneakAttackDice > 0) {
+  // Determine advantage state for sneak attack conditions
+  const sneakAttackAdvantageState = state.hasAdvantage ? 'advantage' : 
+                                   state.hasDisadvantage ? 'disadvantage' : 'normal'
+
+  // Add sneak attack damage if conditions are met
+  if (state.sneakAttackDice > 0 && canUseSneakAttack(weapon, sneakAttackAdvantageState)) {
     baseDamage.additionalDice?.push({
       count: state.sneakAttackDice,
       die: 6,
