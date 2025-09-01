@@ -1,5 +1,4 @@
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card'
-import { Badge } from '../ui/badge'
 import { Crosshair, Shield, TrendingUp, Zap } from 'lucide-react'
 import { buildToCombatState, getWeaponConfig } from '../../engine/simulator'
 import { calculateBuildDPR } from '../../engine/calculations'
@@ -233,47 +232,56 @@ export function TacticalAdvice({ build, result, config }: TacticalAdviceProps) {
           Tactical Advice
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-2">
-        {recommendations.map((rec, index) => {
-          const Icon = getCategoryIcon(rec.category)
-          const categoryColor = getCategoryColor(rec.category)
-          const priorityColor = getPriorityColor(rec.priority)
+      <CardContent className="space-y-3">
+        {/* Group recommendations by priority */}
+        {['high', 'medium', 'low'].map(priority => {
+          const priorityRecs = recommendations.filter(rec => rec.priority === priority)
+          if (priorityRecs.length === 0) return null
+          
+          const priorityLabel = priority === 'high' ? 'High Priority' :
+                               priority === 'medium' ? 'Medium Priority' :
+                               'Low Priority'
           
           return (
-            <div 
-              key={index} 
-              className={`p-2 rounded-lg border ${priorityColor}`}
-            >
-              <div className="flex items-start gap-2">
-                <div className={`p-1.5 rounded ${categoryColor} flex-shrink-0`}>
-                  <Icon className={`w-3 h-3 ${
-                    rec.category === 'targeting' ? 'text-danger' :
-                    rec.category === 'positioning' ? 'text-accent' :
-                    rec.category === 'resources' ? 'text-purple' :
-                    rec.category === 'timing' ? 'text-emerald' :
-                    'text-muted'
-                  }`} />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <h4 className="font-medium text-sm text-foreground">{rec.title}</h4>
-                    <Badge 
-                      variant="outline" 
-                      className="text-xs px-1.5 py-0 capitalize"
-                    >
-                      {rec.priority}
-                    </Badge>
+            <div key={priority} className="space-y-2">
+              <h4 className="text-xs font-semibold text-muted uppercase tracking-wider">
+                {priorityLabel}
+              </h4>
+              {priorityRecs.map((rec, index) => {
+                const Icon = getCategoryIcon(rec.category)
+                const categoryColor = getCategoryColor(rec.category)
+                const priorityColor = getPriorityColor(rec.priority)
+                
+                return (
+                  <div 
+                    key={`${priority}-${index}`} 
+                    className={`p-2 rounded-lg border ${priorityColor}`}
+                  >
+                    <div className="flex items-start gap-2">
+                      <div className={`p-1.5 rounded ${categoryColor} flex-shrink-0`}>
+                        <Icon className={`w-3 h-3 ${
+                          rec.category === 'targeting' ? 'text-danger' :
+                          rec.category === 'positioning' ? 'text-accent' :
+                          rec.category === 'resources' ? 'text-purple' :
+                          rec.category === 'timing' ? 'text-emerald' :
+                          'text-muted'
+                        }`} />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <h5 className="font-medium text-sm text-foreground mb-1">{rec.title}</h5>
+                        <p className="text-xs text-muted leading-relaxed mb-1">
+                          {rec.advice}
+                        </p>
+                        {rec.situational && (
+                          <p className="text-xs text-muted/70 italic">
+                            {rec.situational}
+                          </p>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                  <p className="text-xs text-muted leading-relaxed mb-1">
-                    {rec.advice}
-                  </p>
-                  {rec.situational && (
-                    <p className="text-xs text-muted/70 italic">
-                      {rec.situational}
-                    </p>
-                  )}
-                </div>
-              </div>
+                )
+              })}
             </div>
           )
         })}

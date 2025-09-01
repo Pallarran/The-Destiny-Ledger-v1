@@ -1,5 +1,4 @@
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card'
-import { Badge } from '../ui/badge'
 import { Lightbulb, TrendingUp, AlertTriangle, CheckCircle, Info } from 'lucide-react'
 import { buildToCombatState, getWeaponConfig } from '../../engine/simulator'
 import { calculateBuildDPR } from '../../engine/calculations'
@@ -237,39 +236,49 @@ export function SmartInsights({ build, result, config }: SmartInsightsProps) {
           Smart Insights
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-2">
-        {insights.map((insight, index) => {
-          const Icon = getInsightIcon(insight.type)
-          const colors = getInsightColor(insight.type)
+      <CardContent className="space-y-3">
+        {/* Group insights by type */}
+        {['strength', 'weakness', 'opportunity', 'tip'].map(type => {
+          const typeInsights = insights.filter(insight => insight.type === type)
+          if (typeInsights.length === 0) return null
+          
+          const typeLabel = type === 'strength' ? 'Strengths' :
+                          type === 'weakness' ? 'Weaknesses' :
+                          type === 'opportunity' ? 'Opportunities' :
+                          'Tips'
           
           return (
-            <div 
-              key={index} 
-              className={`p-2 rounded-lg border ${colors}`}
-            >
-              <div className="flex items-start gap-2">
-                <Icon className={`w-4 h-4 mt-0.5 flex-shrink-0 ${
-                  insight.type === 'strength' ? 'text-emerald' :
-                  insight.type === 'weakness' ? 'text-danger' :
-                  insight.type === 'opportunity' ? 'text-accent' :
-                  insight.type === 'tip' ? 'text-purple' :
-                  'text-muted'
-                }`} />
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <h4 className="font-medium text-sm text-foreground">{insight.title}</h4>
-                    <Badge 
-                      variant="outline" 
-                      className="text-xs px-1.5 py-0 capitalize"
-                    >
-                      {insight.type}
-                    </Badge>
+            <div key={type} className="space-y-2">
+              <h4 className="text-xs font-semibold text-muted uppercase tracking-wider">
+                {typeLabel}
+              </h4>
+              {typeInsights.map((insight, index) => {
+                const Icon = getInsightIcon(insight.type)
+                const colors = getInsightColor(insight.type)
+                
+                return (
+                  <div 
+                    key={`${type}-${index}`} 
+                    className={`p-2 rounded-lg border ${colors}`}
+                  >
+                    <div className="flex items-start gap-2">
+                      <Icon className={`w-4 h-4 mt-0.5 flex-shrink-0 ${
+                        insight.type === 'strength' ? 'text-emerald' :
+                        insight.type === 'weakness' ? 'text-danger' :
+                        insight.type === 'opportunity' ? 'text-accent' :
+                        insight.type === 'tip' ? 'text-purple' :
+                        'text-muted'
+                      }`} />
+                      <div className="min-w-0 flex-1">
+                        <h5 className="font-medium text-sm text-foreground mb-1">{insight.title}</h5>
+                        <p className="text-xs text-muted leading-relaxed">
+                          {insight.description}
+                        </p>
+                      </div>
+                    </div>
                   </div>
-                  <p className="text-xs text-muted leading-relaxed">
-                    {insight.description}
-                  </p>
-                </div>
-              </div>
+                )
+              })}
             </div>
           )
         })}
