@@ -3,8 +3,6 @@ import { Panel, PanelHeader } from '../components/ui/panel'
 import { ChartFrame } from '../components/ui/chart-frame'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs'
 import CombatRoundOptimizer from '../components/optimizer/CombatRoundOptimizer'
-import { WeaponInfoPanel } from '../components/dpr/WeaponInfoPanel'
-import { AttackBreakdownDisplay } from '../components/dpr/AttackBreakdownDisplay'
 import { BuildFeaturesPanel } from '../components/dpr/BuildFeaturesPanel'
 import { ActiveEffectsDisplay } from '../components/dpr/ActiveEffectsDisplay'
 import { ACAnalysisPanel } from '../components/dpr/ACAnalysisPanel'
@@ -13,8 +11,9 @@ import { HeroMetrics } from '../components/dpr/HeroMetrics'
 import { SmartInsights } from '../components/dpr/SmartInsights'
 import { TacticalAdvice } from '../components/dpr/TacticalAdvice'
 import { 
-  PlayIcon,
-  Loader2
+  Loader2,
+  RefreshCw,
+  CheckCircle
 } from 'lucide-react'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import { useDPRWorker } from '../hooks/useDPRWorker'
@@ -50,15 +49,11 @@ export function DprLab() {
   // Ref to track if we're already in the process of calculating
   const isAutoCalculatingRef = useRef(false)
   
-  const [localConfig, setLocalConfig] = useState<{
-    round0BuffsEnabled: boolean
-    greedyResourceUse: boolean
-    autoGWMSS: boolean
-  }>({
+  const localConfig = useMemo(() => ({
     round0BuffsEnabled: false,
     greedyResourceUse: defaultGreedy,
     autoGWMSS: defaultAutoGWMSS
-  })
+  }), [defaultGreedy, defaultAutoGWMSS])
   
   // Fixed config for DPR calculations (AC range etc.)
   const fixedConfig = useMemo(() => ({
@@ -88,7 +83,7 @@ export function DprLab() {
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [localConfig.round0BuffsEnabled, localConfig.greedyResourceUse, localConfig.autoGWMSS, currentConfig, selectedBuild, setConfiguration]) // Track actual values
+  }, [localConfig, currentConfig, selectedBuild, setConfiguration]) // Track actual values
 
   // Handle auto-switching from builder build (but not if user has manually selected vault build)
   useEffect(() => {
@@ -174,16 +169,39 @@ export function DprLab() {
                   </div>
                 </div>
                 
-                <button
-                  onClick={() => {
-                    setSelectedBuild(null)
-                    setManualBuildSelection(true)
-                    setHasSelectedVaultBuild(false) // Reset vault build selection
-                  }}
-                  className="px-3 py-1 text-sm bg-muted/10 hover:bg-muted/20 rounded transition-colors"
-                >
-                  Change Build
-                </button>
+                <div className="flex items-center gap-3">
+                  {/* Auto-calculation status */}
+                  <div className="flex items-center gap-2 px-3 py-1 bg-green-500/10 text-green-600 rounded-full text-sm">
+                    <CheckCircle className="w-4 h-4" />
+                    <span>Auto-calculated</span>
+                  </div>
+                  
+                  {/* Manual recalculate button */}
+                  <button
+                    onClick={() => handleCalculate()}
+                    disabled={isCalculating}
+                    className="flex items-center gap-2 px-3 py-1 text-sm bg-blue-500/10 hover:bg-blue-500/20 text-blue-600 rounded transition-colors disabled:opacity-50"
+                    title="Recalculate DPR"
+                  >
+                    {isCalculating ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <RefreshCw className="w-4 h-4" />
+                    )}
+                    Recalc
+                  </button>
+                  
+                  <button
+                    onClick={() => {
+                      setSelectedBuild(null)
+                      setManualBuildSelection(true)
+                      setHasSelectedVaultBuild(false) // Reset vault build selection
+                    }}
+                    className="px-3 py-1 text-sm bg-muted/10 hover:bg-muted/20 rounded transition-colors"
+                  >
+                    Change Build
+                  </button>
+                </div>
               </div>
             </div>
           ) : (
@@ -271,10 +289,6 @@ export function DprLab() {
               <TabsTrigger value="analysis" className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground text-sm px-3 py-2">
                 <span className="hidden sm:inline">Analysis</span>
                 <span className="sm:hidden">Chart</span>
-              </TabsTrigger>
-              <TabsTrigger value="advanced" className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground text-sm px-3 py-2">
-                <span className="hidden sm:inline">Advanced</span>
-                <span className="sm:hidden">Config</span>
               </TabsTrigger>
               <TabsTrigger value="combat-optimizer" className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground text-sm px-3 py-2">
                 <span className="hidden sm:inline">Optimizer</span>
@@ -409,155 +423,6 @@ export function DprLab() {
               </div>
             </TabsContent>
 
-            {/* Advanced Tab - Raw data and configuration */}
-            <TabsContent value="advanced" className="mt-6">
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6">
-                {/* Configuration Panel */}
-                <div className="lg:col-span-5 space-y-6">
-                  <WeaponInfoPanel build={selectedBuild} />
-                  <AttackBreakdownDisplay build={selectedBuild} />
-                  
-                  <Panel className="bg-ink text-panel">
-                    <PanelHeader title="Advanced Configuration" className="text-panel bg-ink border-b border-border/20" />
-                    
-                    <div className="space-y-6">
-                      <div className="mb-6">
-                        <div className="w-full flex items-center justify-center gap-2 bg-accent/10 text-accent px-4 py-2 rounded font-medium border border-accent/30">
-                          {isCalculating ? (
-                            <>
-                              <Loader2 className="w-4 h-4 animate-spin" />
-                              Calculating...
-                            </>
-                          ) : currentResult ? (
-                            <>
-                              <PlayIcon className="w-4 h-4" />
-                              Auto-Calculated
-                            </>
-                          ) : (
-                            <>
-                              <PlayIcon className="w-4 h-4" />
-                              Ready for Calculation
-                            </>
-                          )}
-                        </div>
-                        
-                        <button
-                          onClick={handleCalculate}
-                          disabled={!selectedBuild || !isInitialized || isCalculating}
-                          className="w-full mt-2 text-sm text-muted hover:text-accent disabled:opacity-50 disabled:cursor-not-allowed underline"
-                        >
-                          Recalculate Manually
-                        </button>
-                      </div>
-
-                      <div>
-                        <h4 className="font-medium mb-3">Analysis Parameters</h4>
-                        <div className="space-y-2 text-sm">
-                          <div className="flex justify-between">
-                            <span className="text-muted">AC Range:</span>
-                            <span>10-30 (fixed)</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-muted">Combat Duration:</span>
-                            <span>3 Rounds (nova)</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div>
-                        <h4 className="font-medium mb-3">Simulation Options</h4>
-                        <div className="space-y-3">
-                          <label className="flex items-center justify-between">
-                            <span className="text-sm font-medium">Round 0 Buffs</span>
-                            <input 
-                              type="checkbox" 
-                              checked={localConfig.round0BuffsEnabled}
-                              onChange={(e) => setLocalConfig(prev => ({ ...prev, round0BuffsEnabled: e.target.checked }))}
-                              className="rounded"
-                            />
-                          </label>
-                          <label className="flex items-center justify-between">
-                            <span className="text-sm font-medium">Greedy Resource Use</span>
-                            <input 
-                              type="checkbox" 
-                              checked={localConfig.greedyResourceUse}
-                              onChange={(e) => setLocalConfig(prev => ({ ...prev, greedyResourceUse: e.target.checked }))}
-                              className="rounded"
-                            />
-                          </label>
-                          <label className="flex items-center justify-between">
-                            <span className="text-sm font-medium">Auto GWM/SS Optimization</span>
-                            <input 
-                              type="checkbox" 
-                              checked={localConfig.autoGWMSS}
-                              onChange={(e) => setLocalConfig(prev => ({ ...prev, autoGWMSS: e.target.checked }))}
-                              className="rounded"
-                            />
-                          </label>
-                        </div>
-                      </div>
-                    </div>
-                  </Panel>
-                </div>
-
-                {/* Full Chart */}
-                <div className="lg:col-span-7">
-                  <ChartFrame title="Complete DPR Analysis (AC 10-30)">
-                    <ResponsiveContainer width="100%" height={400}>
-                      <LineChart data={displayData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                        <XAxis 
-                          dataKey="ac" 
-                          axisLine={false}
-                          tickLine={false}
-                          tick={{ fontSize: 12, fill: 'var(--muted)' }}
-                          label={{ value: 'Target AC', position: 'insideBottom', offset: -10, style: { textAnchor: 'middle', fill: 'var(--muted)' } }}
-                        />
-                        <YAxis 
-                          axisLine={false}
-                          tickLine={false}
-                          tick={{ fontSize: 12, fill: 'var(--muted)' }}
-                          label={{ value: 'DPR', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fill: 'var(--muted)' } }}
-                        />
-                        <Tooltip 
-                          contentStyle={{
-                            backgroundColor: 'var(--panel)',
-                            border: '1px solid var(--border)',
-                            borderRadius: 'var(--radius)',
-                            color: 'var(--ink)'
-                          }}
-                        />
-                        <Line 
-                          type="monotone" 
-                          dataKey="normal" 
-                          stroke="var(--ink)" 
-                          strokeWidth={3}
-                          name="Normal"
-                          dot={{ fill: 'var(--ink)', strokeWidth: 0, r: 3 }}
-                        />
-                        <Line 
-                          type="monotone" 
-                          dataKey="advantage" 
-                          stroke="var(--accent)" 
-                          strokeWidth={3}
-                          name="Advantage"
-                          dot={{ fill: 'var(--accent)', strokeWidth: 0, r: 3 }}
-                        />
-                        <Line 
-                          type="monotone" 
-                          dataKey="disadvantage" 
-                          stroke="var(--danger)" 
-                          strokeWidth={3}
-                          name="Disadvantage"
-                          dot={{ fill: 'var(--danger)', strokeWidth: 0, r: 3 }}
-                        />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  </ChartFrame>
-                </div>
-              </div>
-            </TabsContent>
-            
             <TabsContent value="combat-optimizer" className="mt-6">
               <CombatRoundOptimizer />
             </TabsContent>
