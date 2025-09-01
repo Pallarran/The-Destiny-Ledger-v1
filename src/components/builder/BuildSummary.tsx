@@ -14,6 +14,193 @@ import {
   User
 } from 'lucide-react'
 
+// Spell slot progression tables
+const FULL_CASTER_SLOTS = {
+  1: [2, 0, 0, 0, 0, 0, 0, 0, 0],
+  2: [3, 0, 0, 0, 0, 0, 0, 0, 0],
+  3: [4, 2, 0, 0, 0, 0, 0, 0, 0],
+  4: [4, 3, 0, 0, 0, 0, 0, 0, 0],
+  5: [4, 3, 2, 0, 0, 0, 0, 0, 0],
+  6: [4, 3, 3, 0, 0, 0, 0, 0, 0],
+  7: [4, 3, 3, 1, 0, 0, 0, 0, 0],
+  8: [4, 3, 3, 2, 0, 0, 0, 0, 0],
+  9: [4, 3, 3, 3, 1, 0, 0, 0, 0],
+  10: [4, 3, 3, 3, 2, 0, 0, 0, 0],
+  11: [4, 3, 3, 3, 2, 1, 0, 0, 0],
+  12: [4, 3, 3, 3, 2, 1, 0, 0, 0],
+  13: [4, 3, 3, 3, 2, 1, 1, 0, 0],
+  14: [4, 3, 3, 3, 2, 1, 1, 0, 0],
+  15: [4, 3, 3, 3, 2, 1, 1, 1, 0],
+  16: [4, 3, 3, 3, 2, 1, 1, 1, 0],
+  17: [4, 3, 3, 3, 2, 1, 1, 1, 1],
+  18: [4, 3, 3, 3, 3, 1, 1, 1, 1],
+  19: [4, 3, 3, 3, 3, 2, 1, 1, 1],
+  20: [4, 3, 3, 3, 3, 2, 2, 1, 1]
+} as const
+
+const HALF_CASTER_SLOTS = {
+  1: [0, 0, 0, 0, 0],
+  2: [2, 0, 0, 0, 0],
+  3: [3, 0, 0, 0, 0],
+  4: [3, 0, 0, 0, 0],
+  5: [4, 2, 0, 0, 0],
+  6: [4, 2, 0, 0, 0],
+  7: [4, 3, 0, 0, 0],
+  8: [4, 3, 0, 0, 0],
+  9: [4, 3, 2, 0, 0],
+  10: [4, 3, 2, 0, 0],
+  11: [4, 3, 3, 0, 0],
+  12: [4, 3, 3, 0, 0],
+  13: [4, 3, 3, 1, 0],
+  14: [4, 3, 3, 1, 0],
+  15: [4, 3, 3, 2, 0],
+  16: [4, 3, 3, 2, 0],
+  17: [4, 3, 3, 3, 1],
+  18: [4, 3, 3, 3, 1],
+  19: [4, 3, 3, 3, 2],
+  20: [4, 3, 3, 3, 2]
+} as const
+
+const THIRD_CASTER_SLOTS = {
+  1: [0, 0, 0, 0],
+  2: [0, 0, 0, 0],
+  3: [2, 0, 0, 0],
+  4: [3, 0, 0, 0],
+  5: [3, 0, 0, 0],
+  6: [3, 0, 0, 0],
+  7: [4, 2, 0, 0],
+  8: [4, 2, 0, 0],
+  9: [4, 2, 0, 0],
+  10: [4, 3, 0, 0],
+  11: [4, 3, 0, 0],
+  12: [4, 3, 0, 0],
+  13: [4, 3, 2, 0],
+  14: [4, 3, 2, 0],
+  15: [4, 3, 2, 0],
+  16: [4, 3, 3, 0],
+  17: [4, 3, 3, 0],
+  18: [4, 3, 3, 0],
+  19: [4, 3, 3, 1],
+  20: [4, 3, 3, 1]
+} as const
+
+const WARLOCK_PACT_SLOTS = {
+  1: [1, 0, 0, 0, 0],
+  2: [0, 2, 0, 0, 0],
+  3: [0, 2, 0, 0, 0],
+  4: [0, 2, 0, 0, 0],
+  5: [0, 0, 2, 0, 0],
+  6: [0, 0, 2, 0, 0],
+  7: [0, 0, 2, 0, 0],
+  8: [0, 0, 2, 0, 0],
+  9: [0, 0, 0, 2, 0],
+  10: [0, 0, 0, 2, 0],
+  11: [0, 0, 0, 3, 0],
+  12: [0, 0, 0, 3, 0],
+  13: [0, 0, 0, 3, 0],
+  14: [0, 0, 0, 3, 0],
+  15: [0, 0, 0, 3, 0],
+  16: [0, 0, 0, 3, 0],
+  17: [0, 0, 0, 0, 4],
+  18: [0, 0, 0, 0, 4],
+  19: [0, 0, 0, 0, 4],
+  20: [0, 0, 0, 0, 4]
+} as const
+
+// Helper function to calculate total spell slots for multiclass builds
+function calculateTotalSpellSlots(timeline: any[]) {
+  // Group levels by class and subclass
+  const classLevels: Record<string, number> = {}
+  const subclassInfo: Record<string, string> = {}
+  
+  timeline.forEach(entry => {
+    const key = `${entry.classId}`
+    classLevels[key] = (classLevels[key] || 0) + 1
+    if (entry.subclassId) {
+      subclassInfo[key] = entry.subclassId
+    }
+  })
+
+  // Check if single class (simpler calculation)
+  const classKeys = Object.keys(classLevels)
+  if (classKeys.length === 1) {
+    const classId = classKeys[0]
+    const levels = classLevels[classId]
+    const subclassId = subclassInfo[classId]
+    
+    // Handle warlock pact magic
+    if (classId === 'warlock') {
+      const slots = WARLOCK_PACT_SLOTS[levels as keyof typeof WARLOCK_PACT_SLOTS]
+      return {
+        spellSlots: null,
+        warlockSlots: slots || null
+      }
+    }
+
+    // Get single class spell slots
+    let slots: readonly number[] | null = null
+    
+    if (['wizard', 'cleric', 'bard', 'sorcerer', 'druid'].includes(classId)) {
+      slots = FULL_CASTER_SLOTS[levels as keyof typeof FULL_CASTER_SLOTS]
+    }
+    else if (['paladin', 'ranger', 'artificer'].includes(classId)) {
+      slots = HALF_CASTER_SLOTS[levels as keyof typeof HALF_CASTER_SLOTS]
+    }
+    else if (classId === 'fighter' && subclassId === 'eldritch_knight') {
+      slots = THIRD_CASTER_SLOTS[levels as keyof typeof THIRD_CASTER_SLOTS]
+    }
+    else if (classId === 'rogue' && subclassId === 'arcane_trickster') {
+      slots = THIRD_CASTER_SLOTS[levels as keyof typeof THIRD_CASTER_SLOTS]
+    }
+    
+    return {
+      spellSlots: slots ? [...slots] : null,
+      warlockSlots: null
+    }
+  }
+
+  // Multiclass calculation (simplified - use highest single class for now)
+  let bestSlots: number[] | null = null
+  let warlockSlots: number[] | null = null
+  
+  Object.entries(classLevels).forEach(([classId, levels]) => {
+    const subclassId = subclassInfo[classId]
+    
+    if (classId === 'warlock') {
+      const slots = WARLOCK_PACT_SLOTS[levels as keyof typeof WARLOCK_PACT_SLOTS]
+      if (slots) {
+        warlockSlots = [...slots]
+      }
+      return
+    }
+
+    let slots: readonly number[] | null = null
+    
+    if (['wizard', 'cleric', 'bard', 'sorcerer', 'druid'].includes(classId)) {
+      slots = FULL_CASTER_SLOTS[levels as keyof typeof FULL_CASTER_SLOTS]
+    }
+    else if (['paladin', 'ranger', 'artificer'].includes(classId)) {
+      slots = HALF_CASTER_SLOTS[levels as keyof typeof HALF_CASTER_SLOTS]
+    }
+    else if (classId === 'fighter' && subclassId === 'eldritch_knight') {
+      slots = THIRD_CASTER_SLOTS[levels as keyof typeof THIRD_CASTER_SLOTS]
+    }
+    else if (classId === 'rogue' && subclassId === 'arcane_trickster') {
+      slots = THIRD_CASTER_SLOTS[levels as keyof typeof THIRD_CASTER_SLOTS]
+    }
+
+    // Use the highest spell progression found
+    if (slots && (!bestSlots || slots.some(s => s > 0))) {
+      bestSlots = [...slots]
+    }
+  })
+
+  return {
+    spellSlots: bestSlots,
+    warlockSlots: warlockSlots
+  }
+}
+
 export function BuildSummary() {
   const { 
     currentBuild
@@ -135,6 +322,9 @@ export function BuildSummary() {
   const conMod = getAbilityModifier(abilityScores.CON)
   const baseHP = mainClassData?.hitDie || 8
   const totalHP = baseHP + conMod + (totalLevel - 1) * (Math.floor(baseHP / 2) + 1 + conMod)
+  
+  // Calculate spell slots
+  const spellSlotData = calculateTotalSpellSlots(timeline)
   
   return (
     <div className="space-y-6">
@@ -331,6 +521,58 @@ export function BuildSummary() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Spell Slots */}
+      {(spellSlotData.spellSlots || spellSlotData.warlockSlots) && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Sparkles className="w-5 h-5" />
+              Spell Slots
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {spellSlotData.spellSlots && (
+              <div>
+                <h4 className="text-sm font-medium text-foreground mb-2">Spell Slots</h4>
+                <div className="grid grid-cols-9 gap-2 text-xs">
+                  <div className="font-medium text-center">Lv</div>
+                  {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(level => (
+                    <div key={level} className="font-medium text-center">{level}</div>
+                  ))}
+                  <div className="font-medium text-center">Slots</div>
+                  {spellSlotData.spellSlots.map((slots, idx) => (
+                    <div key={idx} className={`text-center ${slots > 0 ? 'text-accent font-medium' : 'text-muted'}`}>
+                      {slots || '-'}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            {spellSlotData.warlockSlots && (
+              <div>
+                <h4 className="text-sm font-medium text-foreground mb-2">Warlock Pact Magic</h4>
+                <div className="grid grid-cols-6 gap-2 text-xs">
+                  <div className="font-medium text-center">Lv</div>
+                  {[1, 2, 3, 4, 5].map(level => (
+                    <div key={level} className="font-medium text-center">{level}</div>
+                  ))}
+                  <div className="font-medium text-center">Slots</div>
+                  {spellSlotData.warlockSlots.map((slots, idx) => (
+                    <div key={idx} className={`text-center ${slots > 0 ? 'text-purple font-medium' : 'text-muted'}`}>
+                      {slots || '-'}
+                    </div>
+                  ))}
+                </div>
+                <p className="text-xs text-muted mt-2">
+                  Pact magic slots are regained on short rest and are all cast at the highest available level.
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
       
     </div>
   )
