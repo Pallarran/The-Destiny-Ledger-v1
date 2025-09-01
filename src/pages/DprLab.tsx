@@ -250,7 +250,7 @@ export function DprLab() {
       
       try {
         const { buildToCombatState, getWeaponConfig } = await import('../engine/simulator')
-        const { calculateBuildDPR } = await import('../engine/calculations')
+        await import('../engine/calculations')
         
         const combatState = buildToCombatState(selectedBuild)
         
