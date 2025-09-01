@@ -33,7 +33,15 @@ export function DprLab() {
   const { greedyResourceUse: defaultGreedy, autoCalculateGWMSS: defaultAutoGWMSS } = useSettingsStore()
   
   // Use selected build from store, fallback to builder build if available
-  const selectedBuild = storeSelectedBuild || (builderCurrentBuild ? exportToBuildConfiguration() : null)
+  const selectedBuild = useMemo(() => {
+    if (storeSelectedBuild) {
+      return storeSelectedBuild
+    }
+    if (builderCurrentBuild) {
+      return exportToBuildConfiguration()
+    }
+    return null
+  }, [storeSelectedBuild, builderCurrentBuild, exportToBuildConfiguration])
   
   // Track when user manually wants to select a different build
   const [manualBuildSelection, setManualBuildSelection] = useState(false)
@@ -81,13 +89,14 @@ export function DprLab() {
 
   // Handle auto-switching from builder build (but not if user has manually selected vault build)
   useEffect(() => {
-    if (builderCurrentBuild && !manualBuildSelection && !hasSelectedVaultBuild) {
+    // Only auto-set if no build is currently selected and conditions are met
+    if (!storeSelectedBuild && builderCurrentBuild && !manualBuildSelection && !hasSelectedVaultBuild) {
       const exportedBuild = exportToBuildConfiguration()
-      if (exportedBuild && !storeSelectedBuild) {
+      if (exportedBuild) {
         setSelectedBuild(exportedBuild)
       }
     }
-  }, [builderCurrentBuild, exportToBuildConfiguration, manualBuildSelection, hasSelectedVaultBuild, storeSelectedBuild, setSelectedBuild])
+  }, [builderCurrentBuild, manualBuildSelection, hasSelectedVaultBuild, storeSelectedBuild, setSelectedBuild, exportToBuildConfiguration])
 
   // Calculate DPR when build or config changes
   const handleCalculate = useCallback(async () => {
