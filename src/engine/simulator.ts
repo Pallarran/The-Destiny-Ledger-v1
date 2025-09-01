@@ -215,9 +215,9 @@ export function generateDPRCurves(
   }
   
   // Generate curves for each advantage state
-  const normalCurve: Array<{ ac: number; dpr: number }> = []
-  const advantageCurve: Array<{ ac: number; dpr: number }> = []
-  const disadvantageCurve: Array<{ ac: number; dpr: number }> = []
+  const normalCurve: Array<{ ac: number; dpr: number; withPowerAttack?: number }> = []
+  const advantageCurve: Array<{ ac: number; dpr: number; withPowerAttack?: number }> = []
+  const disadvantageCurve: Array<{ ac: number; dpr: number; withPowerAttack?: number }> = []
   const gwmSSBreakpoints: Array<{
     ac: number
     useGWMSS: boolean
@@ -237,17 +237,29 @@ export function generateDPRCurves(
     
     // Normal
     const normalResult = calculateBuildDPR(combatState, weaponConfig, simConfig)
-    normalCurve.push({ ac, dpr: normalResult.expectedDPR })
+    normalCurve.push({ 
+      ac, 
+      dpr: normalResult.withoutPowerAttack || normalResult.expectedDPR, // Use normal attack as primary
+      withPowerAttack: normalResult.withPowerAttack 
+    })
     
     // Advantage
     const advState = { ...combatState, hasAdvantage: true, hasDisadvantage: false }
     const advResult = calculateBuildDPR(advState, weaponConfig, simConfig)
-    advantageCurve.push({ ac, dpr: advResult.expectedDPR })
+    advantageCurve.push({ 
+      ac, 
+      dpr: advResult.withoutPowerAttack || advResult.expectedDPR, // Use normal attack as primary
+      withPowerAttack: advResult.withPowerAttack 
+    })
     
     // Disadvantage
     const disState = { ...combatState, hasAdvantage: false, hasDisadvantage: true }
     const disResult = calculateBuildDPR(disState, weaponConfig, simConfig)
-    disadvantageCurve.push({ ac, dpr: disResult.expectedDPR })
+    disadvantageCurve.push({ 
+      ac, 
+      dpr: disResult.withoutPowerAttack || disResult.expectedDPR, // Use normal attack as primary
+      withPowerAttack: disResult.withPowerAttack 
+    })
     
     // GWM/SS breakpoints
     if (combatState.hasGWM || combatState.hasSharpshooter) {

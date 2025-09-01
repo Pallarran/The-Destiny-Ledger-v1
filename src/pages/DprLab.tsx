@@ -147,7 +147,6 @@ export function DprLab() {
       
       try {
         const { buildToCombatState, getWeaponConfig } = await import('../engine/simulator')
-        const { calculateBuildDPR } = await import('../engine/calculations')
         
         const combatState = buildToCombatState(selectedBuild)
         
@@ -185,67 +184,21 @@ export function DprLab() {
           return
         }
         
-        // Calculate power attack DPR using the calculation engine
-        const normalPAData = currentResult.normalCurve.map(point => {
-          const simConfig = {
-            targetAC: point.ac,
-            rounds: 3,
-            round0Buffs: localConfig.round0BuffsEnabled,
-            greedyResourceUse: localConfig.greedyResourceUse,
-            autoGWMSS: false,
-            forceGWMSS: true // Force power attack usage
-          }
-          
-          const result = calculateBuildDPR(combatState, weaponConfig, simConfig)
-          
-          // Debug logging for first few AC values
-          if (point.ac <= 12) {
-            console.log(`AC ${point.ac}: Normal=${point.dpr.toFixed(2)}, PowerAttack=${result.expectedDPR.toFixed(2)}`)
-          }
-          
-          return {
-            ac: point.ac,
-            powerAttack: result.expectedDPR
-          }
-        })
+        // Extract power attack DPR from the existing calculation results
+        const normalPAData = currentResult.normalCurve.map(point => ({
+          ac: point.ac,
+          powerAttack: point.withPowerAttack || 0
+        }))
 
-        const advantagePAData = currentResult.advantageCurve.map(point => {
-          const simConfig = {
-            targetAC: point.ac,
-            rounds: 3,
-            round0Buffs: localConfig.round0BuffsEnabled,
-            greedyResourceUse: localConfig.greedyResourceUse,
-            autoGWMSS: false,
-            forceGWMSS: true // Force power attack usage
-          }
-          
-          // Advantage state
-          const advState = { ...combatState, hasAdvantage: true, hasDisadvantage: false }
-          const result = calculateBuildDPR(advState, weaponConfig, simConfig)
-          return {
-            ac: point.ac,
-            powerAttack: result.expectedDPR
-          }
-        })
+        const advantagePAData = currentResult.advantageCurve.map(point => ({
+          ac: point.ac,
+          powerAttack: point.withPowerAttack || 0
+        }))
 
-        const disadvantagePAData = currentResult.disadvantageCurve.map(point => {
-          const simConfig = {
-            targetAC: point.ac,
-            rounds: 3,
-            round0Buffs: localConfig.round0BuffsEnabled,
-            greedyResourceUse: localConfig.greedyResourceUse,
-            autoGWMSS: false,
-            forceGWMSS: true // Force power attack usage
-          }
-          
-          // Disadvantage state
-          const disState = { ...combatState, hasAdvantage: false, hasDisadvantage: true }
-          const result = calculateBuildDPR(disState, weaponConfig, simConfig)
-          return {
-            ac: point.ac,
-            powerAttack: result.expectedDPR
-          }
-        })
+        const disadvantagePAData = currentResult.disadvantageCurve.map(point => ({
+          ac: point.ac,
+          powerAttack: point.withPowerAttack || 0
+        }))
         
         const newPowerAttackData = {
           normal: normalPAData,

@@ -304,34 +304,62 @@ export function calculateBuildDPR(
     attacksPerRound += 1 // Haste gives one extra weapon attack
   }
   
-  // Calculate DPR
-  const finalAttackBonus = useGWMSS ? gwmssAttackBonus : attackBonus
-  const finalDamage = useGWMSS ? gwmssDamage : baseDamage
+  // Calculate both normal and power attack DPR when feat is available
+  let normalDPRPerAttack: number
+  let powerDPRPerAttack: number | undefined
+  let normalAverageDPR: number
+  let powerAverageDPR: number | undefined
   
-  const dprPerAttack = calculateSingleAttackDPR(
-    finalAttackBonus,
-    finalDamage,
+  // Always calculate normal attack DPR
+  normalDPRPerAttack = calculateSingleAttackDPR(
+    attackBonus,
+    baseDamage,
     config.targetAC,
     advantageState
   )
   
-  // Debug logging for DPR calculation
-  if (config.forceGWMSS && useGWMSS) {
-    // Test both calculations directly
-    const normalDPR = calculateSingleAttackDPR(attackBonus, baseDamage, config.targetAC, advantageState)
-    const powerDPR = calculateSingleAttackDPR(gwmssAttackBonus, gwmssDamage, config.targetAC, advantageState)
-    
-    console.log('DPR Calculation Debug:', {
-      targetAC: config.targetAC,
-      normal: { attack: attackBonus, damage: calculateDamageRoll(baseDamage), dpr: normalDPR },
-      power: { attack: gwmssAttackBonus, damage: calculateDamageRoll(gwmssDamage), dpr: powerDPR },
-      finalUsed: dprPerAttack,
-      shouldBeDifferent: normalDPR !== powerDPR
-    })
+  // Calculate normal rounds
+  let normalRound1DPR = normalDPRPerAttack * attacksPerRound
+  const normalRound2DPR = normalRound1DPR
+  const normalRound3DPR = normalRound1DPR
+  
+  // Action surge on round 1 if available and greedy
+  if (state.actionSurge && config.greedyResourceUse) {
+    normalRound1DPR += (normalDPRPerAttack * attacksPerRound)
   }
   
+  const normalTotalDPR = normalRound1DPR + normalRound2DPR + normalRound3DPR
+  normalAverageDPR = normalTotalDPR / 3
   
-  // Calculate rounds
+  // Calculate power attack DPR if feat is available
+  if (canUseGWM || canUseSharpshooter) {
+    powerDPRPerAttack = calculateSingleAttackDPR(
+      gwmssAttackBonus,
+      gwmssDamage,
+      config.targetAC,
+      advantageState
+    )
+    
+    // Calculate power attack rounds
+    let powerRound1DPR = powerDPRPerAttack * attacksPerRound
+    const powerRound2DPR = powerRound1DPR
+    const powerRound3DPR = powerRound1DPR
+    
+    // Action surge on round 1 if available and greedy
+    if (state.actionSurge && config.greedyResourceUse) {
+      powerRound1DPR += (powerDPRPerAttack * attacksPerRound)
+    }
+    
+    const powerTotalDPR = powerRound1DPR + powerRound2DPR + powerRound3DPR
+    powerAverageDPR = powerTotalDPR / 3
+  }
+  
+  // Determine which to use as primary (for backward compatibility)
+  const finalAttackBonus = useGWMSS ? gwmssAttackBonus : attackBonus
+  const dprPerAttack = useGWMSS ? (powerDPRPerAttack || normalDPRPerAttack) : normalDPRPerAttack
+  const averageDPR = useGWMSS ? (powerAverageDPR || normalAverageDPR) : normalAverageDPR
+  
+  // Calculate rounds for primary (for backward compatibility)
   let round1DPR = dprPerAttack * attacksPerRound
   const round2DPR = round1DPR
   const round3DPR = round1DPR
@@ -342,7 +370,6 @@ export function calculateBuildDPR(
   }
   
   const totalDPR = round1DPR + round2DPR + round3DPR
-  const averageDPR = totalDPR / 3
   
   // Debug logging removed - calculations confirmed working correctly
   
@@ -358,8 +385,8 @@ export function calculateBuildDPR(
     expectedDamagePerAttack: dprPerAttack,
     attacksPerRound,
     expectedDPR: averageDPR,
-    withPowerAttack: useGWMSS ? averageDPR : undefined,
-    withoutPowerAttack: useGWMSS ? undefined : averageDPR,
+    withPowerAttack: powerAverageDPR,
+    withoutPowerAttack: normalAverageDPR,
     shouldUsePowerAttack: useGWMSS,
     breakdown: {
       round1: round1DPR,

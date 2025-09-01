@@ -92,9 +92,9 @@ export interface DPRResult {
   roundBreakdown: number[]
   
   // Curves for charts
-  normalCurve: Array<{ ac: number; dpr: number }>
-  advantageCurve: Array<{ ac: number; dpr: number }>
-  disadvantageCurve: Array<{ ac: number; dpr: number }>
+  normalCurve: Array<{ ac: number; dpr: number; withPowerAttack?: number }>
+  advantageCurve: Array<{ ac: number; dpr: number; withPowerAttack?: number }>
+  disadvantageCurve: Array<{ ac: number; dpr: number; withPowerAttack?: number }>
   
   // GWM/SS analysis
   gwmSSBreakpoints: Array<{
