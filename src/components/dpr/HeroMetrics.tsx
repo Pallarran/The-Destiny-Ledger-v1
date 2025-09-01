@@ -168,6 +168,63 @@ function getRatingColor(rating: string): string {
   }
 }
 
+function getHitBonusBreakdown(metrics: HeroMetricsData, build: BuildConfiguration): string {
+  const combatState = buildToCombatState(build)
+  const weaponId = build.rangedWeapon || build.mainHandWeapon || 'longsword'
+  const weaponConfig = getWeaponConfig(weaponId, 0)
+  
+  if (!weaponConfig) return 'Hit bonus breakdown unavailable'
+  
+  const breakdown: string[] = []
+  
+  // Base components
+  breakdown.push(`Proficiency: +${combatState.proficiencyBonus}`)
+  breakdown.push(`Ability: +${combatState.abilityModifier}`)
+  
+  // Additional bonuses
+  if (combatState.attackBonuses.length > 0) {
+    const totalAttackBonuses = combatState.attackBonuses.reduce((sum, bonus) => sum + bonus, 0)
+    if (totalAttackBonuses !== 0) {
+      breakdown.push(`Features/Buffs: ${totalAttackBonuses >= 0 ? '+' : ''}${totalAttackBonuses}`)
+    }
+  }
+  
+  // Weapon enhancement
+  if (weaponConfig.enhancement && weaponConfig.enhancement > 0) {
+    breakdown.push(`Enhancement: +${weaponConfig.enhancement}`)
+  }
+  
+  return `Hit Bonus Breakdown:\n${breakdown.join('\n')}\nTotal: +${metrics.hitBonus}`
+}
+
+function getDamageBonusBreakdown(metrics: HeroMetricsData, build: BuildConfiguration): string {
+  const combatState = buildToCombatState(build)
+  const weaponId = build.rangedWeapon || build.mainHandWeapon || 'longsword'
+  const weaponConfig = getWeaponConfig(weaponId, 0)
+  
+  if (!weaponConfig) return 'Damage bonus breakdown unavailable'
+  
+  const breakdown: string[] = []
+  
+  // Base components
+  breakdown.push(`Ability: +${combatState.abilityModifier}`)
+  
+  // Additional bonuses
+  if (combatState.damageBonuses.length > 0) {
+    const totalDamageBonuses = combatState.damageBonuses.reduce((sum, bonus) => sum + bonus, 0)
+    if (totalDamageBonuses !== 0) {
+      breakdown.push(`Features/Buffs: ${totalDamageBonuses >= 0 ? '+' : ''}${totalDamageBonuses}`)
+    }
+  }
+  
+  // Weapon enhancement
+  if (weaponConfig.enhancement && weaponConfig.enhancement > 0) {
+    breakdown.push(`Enhancement: +${weaponConfig.enhancement}`)
+  }
+  
+  return `Damage Bonus Breakdown:\n${breakdown.join('\n')}\nTotal: ${metrics.damageBonus >= 0 ? '+' : ''}${metrics.damageBonus}`
+}
+
 function getRatingIcon(rating: string) {
   switch (rating) {
     case 'excellent': return TrendingUp
@@ -211,23 +268,41 @@ export function HeroMetrics({ build, result, config }: HeroMetricsProps) {
   return (
     <Card>
       <CardContent className="p-4 space-y-3">
-        {/* Weapon Info Row */}
-        <div className="border-b border-border/20 pb-2">
-          <div className="flex items-center justify-between text-sm">
-            <span className="font-medium text-foreground">{metrics.weaponName}</span>
-            <span className="text-muted">
-              <span className="text-accent">+{metrics.hitBonus}</span> to hit
-            </span>
-            <span className="text-muted">
-              {metrics.damageDice} <span className="text-accent">{metrics.damageBonus >= 0 ? '+' : ''}{metrics.damageBonus}</span>
-            </span>
+        {/* Weapon Info Row - Enhanced */}
+        <div className="bg-accent/5 border border-accent/20 rounded-lg p-3">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-accent"></div>
+              <span className="font-semibold text-foreground">{metrics.weaponName}</span>
+            </div>
+            <div className="flex items-center gap-4 text-sm">
+              {/* Hit Bonus with Tooltip */}
+              <div 
+                className="flex items-center gap-1 px-2 py-1 bg-accent/10 rounded border border-accent/30 cursor-help" 
+                title={getHitBonusBreakdown(metrics, build)}
+              >
+                <span className="text-muted">Hit:</span>
+                <span className="font-semibold text-accent">+{metrics.hitBonus}</span>
+              </div>
+              {/* Damage with Tooltip */}
+              <div 
+                className="flex items-center gap-1 px-2 py-1 bg-emerald/10 rounded border border-emerald/30 cursor-help"
+                title={getDamageBonusBreakdown(metrics, build)}
+              >
+                <span className="text-muted">{metrics.damageDice}</span>
+                <span className="font-semibold text-emerald">
+                  {metrics.damageBonus >= 0 ? '+' : ''}{metrics.damageBonus}
+                </span>
+              </div>
+            </div>
           </div>
           {metrics.additionalDamage.length > 0 && (
-            <div className="flex items-center gap-3 mt-1 text-xs text-muted">
+            <div className="flex items-center gap-3 text-xs">
               {metrics.additionalDamage.map((dmg, idx) => (
-                <span key={idx}>
-                  {dmg.source}: <span className="text-purple">{dmg.dice}</span>
-                </span>
+                <div key={idx} className="flex items-center gap-1 px-2 py-1 bg-purple/10 rounded border border-purple/20">
+                  <span className="text-muted">{dmg.source}:</span>
+                  <span className="font-medium text-purple">{dmg.dice}</span>
+                </div>
               ))}
             </div>
           )}
