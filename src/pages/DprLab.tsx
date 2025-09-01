@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { Panel, PanelHeader } from '../components/ui/panel'
 import { ChartFrame } from '../components/ui/chart-frame'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs'
@@ -61,12 +61,12 @@ export function DprLab() {
   })
   
   // Fixed config for DPR calculations (AC range etc.)
-  const fixedConfig = {
+  const fixedConfig = useMemo(() => ({
     acMin: 10,
     acMax: 30,
     acStep: 1,
     advantageState: 'normal' as const // Always calculate all three curves
-  }
+  }), [])
   
   
   // Initialize config when build changes
@@ -109,8 +109,10 @@ export function DprLab() {
       
     } catch (error) {
       console.error('DPR calculation failed:', error)
+    } finally {
+      setCalculating(false)
     }
-  }, [selectedBuild, isInitialized, fixedConfig, localConfig, calculateDPRCurves])
+  }, [selectedBuild, isInitialized, fixedConfig, localConfig, calculateDPRCurves, setCalculating, setResult])
   
   // Auto-calculate DPR when build changes or when conditions are met
   useEffect(() => {
