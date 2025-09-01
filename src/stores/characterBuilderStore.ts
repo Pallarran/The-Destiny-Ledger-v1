@@ -412,7 +412,8 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
         magicItems: currentBuild.equipment?.magicItems || currentBuild.magicItems || [],
         attunedItems: currentBuild.equipment?.attunedItems || currentBuild.attunedItems || [],
         activeBuffs: currentBuild.activeBuffs,
-        round0Buffs: currentBuild.round0Buffs
+        round0Buffs: currentBuild.round0Buffs,
+        downtimeTraining: currentBuild.downtimeTraining
       }
     },
     
