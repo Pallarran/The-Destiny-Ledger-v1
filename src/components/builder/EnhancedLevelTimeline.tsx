@@ -611,12 +611,30 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
     if (gainsSpells) {
       const currentSpells = entry.spellChoices || []
       
+      // Get all spells known from previous levels
+      const previousSpells = currentBuild?.enhancedLevelTimeline
+        ?.filter((e: any) => e.level < entry.level && e.classId === entry.classId)
+        ?.flatMap((e: any) => e.spellChoices || []) || []
+      
+      // Calculate how many new spells can be learned this level
+      const previousCantrips = previousSpells.filter((spellId: string) => {
+        // We'd need to check if spell is cantrip, but for now assume based on common patterns
+        return spellId.includes('cantrip') || ['fire_bolt', 'ray_of_frost', 'mage_hand', 'minor_illusion', 'prestidigitation', 'guidance', 'sacred_flame', 'spare_the_dying', 'druidcraft', 'produce_flame', 'vicious_mockery'].includes(spellId)
+      })
+      const previousLeveledSpells = previousSpells.filter((spellId: string) => !previousCantrips.includes(spellId))
+      
+      const newCantripsToLearn = Math.max(0, spellProgression.cantripsKnown - previousCantrips.length)
+      const newSpellsToLearn = Math.max(0, spellProgression.spellsKnown - previousLeveledSpells.length)
+      
       sections.push({
         id: 'spell_selection',
         title: `Spell Selection`,
         type: 'spell_selection',
-        isComplete: currentSpells.length > 0, // Basic completion check
+        isComplete: currentSpells.length >= (newCantripsToLearn + newSpellsToLearn),
         selectedSpells: currentSpells,
+        previousSpells: previousSpells, // Pass previously known spells
+        newCantripsToLearn: newCantripsToLearn,
+        newSpellsToLearn: newSpellsToLearn,
         spellsKnown: spellProgression.spellsKnown,
         cantripsKnown: spellProgression.cantripsKnown
       })
@@ -1247,6 +1265,9 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
               }}
               spellsKnown={section.spellsKnown}
               cantripsKnown={section.cantripsKnown}
+              previousSpells={section.previousSpells}
+              newCantripsToLearn={section.newCantripsToLearn}
+              newSpellsToLearn={section.newSpellsToLearn}
               subclassId={entry.subclassId}
             />
           </div>

@@ -12,6 +12,9 @@ interface SpellSelectionProps {
   spellsKnown?: number
   cantripsKnown?: number
   subclassId?: string
+  previousSpells?: string[] // Spells known from previous levels
+  newCantripsToLearn?: number // Number of new cantrips to learn this level
+  newSpellsToLearn?: number // Number of new spells to learn this level
 }
 
 const SPELL_SCHOOLS: Record<string, { color: string; icon: string }> = {
@@ -32,7 +35,10 @@ export const SpellSelection: React.FC<SpellSelectionProps> = ({
   onSpellsChange,
   spellsKnown,
   cantripsKnown,
-  subclassId
+  subclassId,
+  previousSpells = [],
+  newCantripsToLearn = 0,
+  newSpellsToLearn = 0
 }) => {
   const { currentBuild } = useCharacterBuilderStore()
   
@@ -61,6 +67,9 @@ export const SpellSelection: React.FC<SpellSelectionProps> = ({
   const filteredSpells = useMemo(() => {
     let spells = availableSpells
     
+    // Filter out spells already known from previous levels
+    spells = spells.filter((s: Spell) => !previousSpells.includes(s.id))
+    
     // Filter by level
     if (selectedLevel === 'cantrip') {
       spells = spells.filter((s: Spell) => s.level === 0)
@@ -80,10 +89,19 @@ export const SpellSelection: React.FC<SpellSelectionProps> = ({
     }
     
     return spells.sort((a: Spell, b: Spell) => a.name.localeCompare(b.name))
-  }, [availableSpells, selectedLevel, searchQuery])
+  }, [availableSpells, selectedLevel, searchQuery, previousSpells])
   
   // Calculate spell limits based on class and level
   const getSpellLimits = () => {
+    // Use the new progression values if available (shows only NEW spells to learn this level)
+    if (newCantripsToLearn > 0 || newSpellsToLearn > 0) {
+      return {
+        cantrips: newCantripsToLearn,
+        spells: newSpellsToLearn
+      }
+    }
+    
+    // Legacy logic for backward compatibility (shows total spells known)
     const limits = {
       cantrips: cantripsKnown || 0,
       spells: spellsKnown || 0
@@ -151,16 +169,33 @@ export const SpellSelection: React.FC<SpellSelectionProps> = ({
         <div className="flex items-center gap-2">
           <BookOpen className="w-5 h-5 text-purple-600" />
           <h3 className="font-semibold text-gray-900">
-            {isPreparedCaster ? 'Prepare Spells' : 'Known Spells'}
+            {newCantripsToLearn > 0 || newSpellsToLearn > 0 
+              ? `Learn New Spells (Level ${level})`
+              : isPreparedCaster ? 'Prepare Spells' : 'Known Spells'
+            }
           </h3>
         </div>
         <div className="flex items-center gap-3 text-sm">
-          <span className="text-gray-600">
-            Cantrips: {selectedCantrips.length}/{limits.cantrips}
-          </span>
-          <span className="text-gray-600">
-            Spells: {selectedLeveledSpells.length}/{limits.spells}
-          </span>
+          {newCantripsToLearn > 0 && (
+            <span className="text-gray-600">
+              New Cantrips: {selectedCantrips.length}/{newCantripsToLearn}
+            </span>
+          )}
+          {newSpellsToLearn > 0 && (
+            <span className="text-gray-600">
+              New Spells: {selectedLeveledSpells.length}/{newSpellsToLearn}
+            </span>
+          )}
+          {newCantripsToLearn === 0 && newSpellsToLearn === 0 && (
+            <>
+              <span className="text-gray-600">
+                Cantrips: {selectedCantrips.length}/{limits.cantrips}
+              </span>
+              <span className="text-gray-600">
+                Spells: {selectedLeveledSpells.length}/{limits.spells}
+              </span>
+            </>
+          )}
         </div>
       </div>
       
