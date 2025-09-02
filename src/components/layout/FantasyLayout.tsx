@@ -20,7 +20,8 @@ const pageTitles: Record<string, string> = {
 
 export function FantasyLayout({ children }: FantasyLayoutProps) {
   const location = useLocation()
-  const currentTitle = pageTitles[location.pathname] || 'THE DESTINY LEDGER'
+  const currentPage = pageTitles[location.pathname] || 'THE DESTINY LEDGER'
+  const isLandingPage = location.pathname === '/'
 
   return (
     <div className="relative min-h-screen parchment-bg overflow-hidden">
@@ -37,20 +38,21 @@ export function FantasyLayout({ children }: FantasyLayoutProps) {
         />
       </div>
 
-      {/* Content directly on parchment - no inner container */}
+      {/* Content directly on parchment */}
       <div className="relative min-h-screen flex flex-col" style={{ 
         padding: '80px 100px',  // Account for frame thickness
       }}>
-        {/* Fantasy Header */}
-        <FantasyHeader title={currentTitle} />
+        {/* Fantasy Header with Title Bar */}
+        <FantasyHeader currentPage={currentPage} isLandingPage={isLandingPage} />
 
-        {/* Content area with sidebar */}
-        <div className="flex flex-1 gap-8 mt-8">
-          <FantasySidebar />
+        {/* Content area */}
+        <div className="flex flex-1" style={{ minHeight: isLandingPage ? 'calc(100vh - 200px)' : 'auto' }}>
+          {/* Sidebar - only show on non-landing pages */}
+          {!isLandingPage && <FantasySidebar />}
           
           {/* Main content */}
-          <main className="flex-1 overflow-y-auto">
-            <div className="max-w-7xl mx-auto">
+          <main className={`flex-1 overflow-y-auto ${!isLandingPage ? 'ml-8' : ''}`}>
+            <div className={isLandingPage ? 'h-full flex items-center justify-center' : 'max-w-7xl mx-auto pt-6'}>
               {children}
             </div>
           </main>

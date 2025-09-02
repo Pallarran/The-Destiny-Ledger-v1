@@ -224,6 +224,14 @@ h1, h2 {
   position: relative;
 }
 
+/* Text truncation utilities */
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
 /* Header with ornate styling */
 .fantasy-header {
   background: linear-gradient(135deg, var(--ink) 0%, #2A3441 100%);
