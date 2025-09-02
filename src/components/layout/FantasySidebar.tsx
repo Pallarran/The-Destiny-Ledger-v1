@@ -22,19 +22,20 @@ export function FantasySidebar() {
   const location = useLocation()
 
   return (
-    <aside className="relative z-30 w-64 flex-shrink-0" style={{ marginLeft: '50px' }}>
+    <aside className="relative z-30 w-56 flex-shrink-0 border-r-2 border-gold/30">
       {/* Parchment scroll background */}
-      <div className="absolute inset-0 bg-panel shadow-xl border-r-2 border-gold/50" 
+      <div className="h-full bg-panel/50" 
            style={{ 
              backgroundImage: 'url(/The-Destiny-Ledger-v1/assets/parchment-texture.png)',
              backgroundSize: 'cover',
-             backgroundBlendMode: 'multiply'
+             backgroundBlendMode: 'multiply',
+             backgroundOpacity: 0.8
            }}>
         {/* Decorative top curl */}
-        <div className="h-8 bg-gradient-to-b from-gold/20 to-transparent border-b border-gold/30" />
+        <div className="h-2 bg-gradient-to-b from-gold/30 to-transparent" />
         
         {/* Navigation */}
-        <nav className="p-6 space-y-2">
+        <nav className="p-4 space-y-1">
           <h2 className="text-lg font-serif font-bold text-ink mb-4 text-center border-b border-gold/30 pb-2">
             NAVIGATION
           </h2>
@@ -64,7 +65,7 @@ export function FantasySidebar() {
         </nav>
 
         {/* Decorative bottom curl */}
-        <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-gold/20 to-transparent border-t border-gold/30" />
+        <div className="absolute bottom-0 left-0 right-0 h-2 bg-gradient-to-t from-gold/30 to-transparent" />
       </div>
     </aside>
   )

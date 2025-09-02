@@ -77,6 +77,28 @@ h1, h2 {
   box-shadow: var(--fantasy-shadow);
 }
 
+/* Full viewport frame wrapper */
+.fantasy-viewport-frame {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+}
+
+.fantasy-viewport-frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transform: scale(1.1);
+}
+
+/* Safe zone for content inside frame */
+.fantasy-safe-zone {
+  position: relative;
+  min-height: 100vh;
+  padding: 3rem 4rem;
+}
+
 /* Alternative approach using background overlay */
 .fantasy-frame-alt {
   position: relative;

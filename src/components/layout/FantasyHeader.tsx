@@ -9,19 +9,19 @@ interface FantasyHeaderProps {
 
 export function FantasyHeader({ title }: FantasyHeaderProps) {
   return (
-    <header className="relative z-40 h-20 flex items-center justify-between px-16 bg-gradient-to-r from-ink/90 via-ink/95 to-ink/90 border-b-2 border-gold shadow-lg">
+    <header className="relative z-40 h-16 flex items-center justify-between px-6 bg-gradient-to-r from-ink/90 via-ink/95 to-ink/90 border-b-2 border-gold/50">
       {/* Left: App Logo */}
       <Link to="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
         <img 
           src={`${import.meta.env.BASE_URL}destiny-ledger-main-logo.png`} 
           alt="The Destiny Ledger" 
-          className="w-14 h-14 drop-shadow-lg" 
+          className="w-12 h-12 drop-shadow-lg" 
         />
       </Link>
 
       {/* Center: Current Section Title */}
       <div className="absolute left-1/2 transform -translate-x-1/2">
-        <h1 className="text-2xl font-serif font-bold text-gold tracking-wider drop-shadow-lg">
+        <h1 className="text-xl font-serif font-bold text-gold tracking-wider drop-shadow-md">
           {title}
         </h1>
       </div>
