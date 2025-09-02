@@ -29,7 +29,8 @@
       "Bash(npx tsc:*)",
       "Bash(git rm:*)",
       "Bash(npx eslint:*)",
-      "Bash(del test_power_attack.js)"
+      "Bash(del test_power_attack.js)",
+      "WebFetch(domain:rpg.stackexchange.com)"
     ],
     "deny": [],
     "ask": []

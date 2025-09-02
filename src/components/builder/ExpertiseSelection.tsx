@@ -25,45 +25,9 @@ export function ExpertiseSelection({
   
   const [selectedExpertise, setSelectedExpertise] = useState<string[]>(currentExpertise)
   
-  // Get available skills for expertise (must be class proficiencies, not background)
-  // D&D 5e rule: You can only gain expertise in skills you're proficient with from your class
-  const availableSkills = (() => {
-    // Get class skill proficiencies only (not background skills)
-    const classSkills: string[] = []
-    
-    // Collect skills from class progression
-    currentBuild?.levelTimeline?.forEach(entry => {
-      // Level 1 entries contain the initial class skill selections
-      if (entry.level === 1) {
-        // The skills chosen at character creation are stored in the build's skillProficiencies
-        // But we need to filter out background skills
-        const backgroundSkillsMap: Record<string, string[]> = {
-          'acolyte': ['Insight', 'Religion'],
-          'criminal': ['Deception', 'Stealth'],
-          'folk_hero': ['Animal Handling', 'Survival'],
-          'noble': ['History', 'Persuasion'],
-          'sage': ['Arcana', 'History'],
-          'soldier': ['Athletics', 'Intimidation'],
-          'hermit': ['Medicine', 'Religion'],
-          'entertainer': ['Acrobatics', 'Performance'],
-          'guild_artisan': ['Insight', 'Persuasion'],
-          'outlander': ['Athletics', 'Survival']
-        }
-        
-        const backgroundSkills = backgroundSkillsMap[currentBuild.background || ''] || []
-        const allProficiencies = currentBuild?.skillProficiencies || []
-        
-        // Filter out background skills to get only class skills
-        allProficiencies.forEach(skill => {
-          if (!backgroundSkills.includes(skill)) {
-            classSkills.push(skill)
-          }
-        })
-      }
-    })
-    
-    return classSkills
-  })()
+  // Get available skills for expertise (must already be proficient from any source)
+  // D&D 5e rule: You can gain expertise in ANY skill proficiency you have (class, background, or racial)
+  const availableSkills = currentBuild?.skillProficiencies || []
   
   // Get skills that already have expertise (from earlier levels or other sources)
   const existingExpertise = new Set<string>()
