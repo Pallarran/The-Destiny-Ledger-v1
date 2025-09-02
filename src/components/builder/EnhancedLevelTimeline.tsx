@@ -685,12 +685,17 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
                   {/* Spell Slots display */}
                   {section.type === 'spell_slots' && section.spellSlots && (
                     <div className="mt-2 pt-2 border-t border-current/20">
-                      <div className="grid grid-cols-9 gap-1 text-xs">
-                        <div className="font-medium">Level:</div>
-                        {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(level => (
-                          <div key={level} className="font-medium text-center">{level}</div>
-                        ))}
-                        <div className="font-medium">Slots:</div>
+                      <div className="grid grid-cols-10 gap-1 text-xs min-w-0">
+                        <div className="font-medium text-center">L1</div>
+                        <div className="font-medium text-center">L2</div>
+                        <div className="font-medium text-center">L3</div>
+                        <div className="font-medium text-center">L4</div>
+                        <div className="font-medium text-center">L5</div>
+                        <div className="font-medium text-center">L6</div>
+                        <div className="font-medium text-center">L7</div>
+                        <div className="font-medium text-center">L8</div>
+                        <div className="font-medium text-center">L9</div>
+                        <div className="font-medium text-center">Slots</div>
                         {section.spellSlots.map((slots: number, idx: number) => (
                           <div key={idx} className={`text-center ${slots > 0 ? 'text-accent font-medium' : 'text-muted'}`}>
                             {slots || '-'}
