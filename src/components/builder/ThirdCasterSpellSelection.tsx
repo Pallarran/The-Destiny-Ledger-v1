@@ -169,7 +169,8 @@ export const ThirdCasterSpellSelection: React.FC<ThirdCasterSpellSelectionProps>
   }
   
   // Calculate max spell level available (third caster progression)
-  const maxSpellLevel = Math.min(4, Math.ceil((level - 1) / 6) + 1)
+  // Level 3-6: 1st, Level 7-12: 2nd, Level 13-18: 3rd, Level 19-20: 4th
+  const maxSpellLevel = level >= 19 ? 4 : level >= 13 ? 3 : level >= 7 ? 2 : 1
   
   const subclassName = subclassId === 'eldritch_knight' ? 'Eldritch Knight' : 'Arcane Trickster'
   const schoolNames = allowedSchools.join(' & ')

@@ -532,16 +532,21 @@ export function BuildSummary() {
                       'text-muted'
                     }`}>({skill.ability})</div>
                   </div>
-                  <Badge 
-                    variant="secondary"
-                    className={`text-xs shrink-0 ml-2 ${
-                      skill.hasExpertise ? 'bg-gold-600 text-white border-gold-700' :
-                      skill.isProficient ? 'bg-emerald-600 text-white border-emerald-700' :
-                      'bg-muted text-muted-foreground'
-                    }`}
-                  >
-                    {skill.modifier}
-                  </Badge>
+                  {(skill.hasExpertise || skill.isProficient) ? (
+                    <Badge 
+                      variant="secondary"
+                      className={`text-xs shrink-0 ml-2 ${
+                        skill.hasExpertise ? 'bg-gold-600 text-white border-gold-700' :
+                        'bg-emerald-600 text-white border-emerald-700'
+                      }`}
+                    >
+                      {skill.modifier}
+                    </Badge>
+                  ) : (
+                    <span className="text-xs shrink-0 ml-2 text-muted-foreground">
+                      {skill.modifier}
+                    </span>
+                  )}
                 </div>
               </div>
             ))}

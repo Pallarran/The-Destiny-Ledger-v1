@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react'
 import { BookOpen, Sparkles, Search, X, Check, Info } from 'lucide-react'
 import { getSpellsByClass, type Spell } from '../../rules/srd/spells'
 import { classes } from '../../rules/srd/classes'
+import { useCharacterBuilderStore } from '../../stores/characterBuilderStore'
 
 interface SpellSelectionProps {
   classId: string
@@ -33,6 +34,10 @@ export const SpellSelection: React.FC<SpellSelectionProps> = ({
   cantripsKnown,
   subclassId
 }) => {
+  const { currentBuild } = useCharacterBuilderStore()
+  
+  // Helper function to calculate ability modifier
+  const getAbilityModifier = (score: number) => Math.floor((score - 10) / 2)
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedLevel, setSelectedLevel] = useState<number | 'cantrip'>(1)
   const [expandedSpell, setExpandedSpell] = useState<string | null>(null)
@@ -86,9 +91,18 @@ export const SpellSelection: React.FC<SpellSelectionProps> = ({
     
     // For prepared casters, they can prepare a number of spells
     if (isPreparedCaster && !spellsKnown) {
-      const spellcastingMod = classId === 'cleric' || classId === 'druid' ? 
-        Math.floor((16 - 10) / 2) : // Assume 16 WIS for now
-        Math.floor((16 - 10) / 2)   // Assume 16 INT for wizard
+      // Get the actual spellcasting ability score and modifier
+      const abilityScores = currentBuild?.finalAbilityScores || currentBuild?.abilityScores || {}
+      let spellcastingMod = 0
+      
+      if (classId === 'cleric' || classId === 'druid' || classId === 'ranger') {
+        spellcastingMod = getAbilityModifier((abilityScores as any).WIS || 10)
+      } else if (classId === 'wizard' || classId === 'fighter' || classId === 'rogue') {
+        spellcastingMod = getAbilityModifier((abilityScores as any).INT || 10)
+      } else if (classId === 'bard' || classId === 'paladin' || classId === 'sorcerer' || classId === 'warlock') {
+        spellcastingMod = getAbilityModifier((abilityScores as any).CHA || 10)
+      }
+      
       limits.spells = Math.max(1, spellcastingMod + level)
     }
     
