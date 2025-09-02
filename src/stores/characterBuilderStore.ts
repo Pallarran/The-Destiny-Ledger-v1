@@ -795,7 +795,17 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
                 notes: entry.notes,
                 // Include new fields for fighting styles and archetypes
                 ...(entry.fightingStyle && { fightingStyle: entry.fightingStyle }),
-                ...(entry.archetype && { archetype: entry.archetype })
+                ...(entry.archetype && { archetype: entry.archetype }),
+                // Include all the choice-based class features
+                ...(entry.expertiseChoices && { expertiseChoices: entry.expertiseChoices }),
+                ...(entry.maneuverChoices && { maneuverChoices: entry.maneuverChoices }),
+                ...(entry.metamagicChoices && { metamagicChoices: entry.metamagicChoices }),
+                ...(entry.eldritchInvocationChoices && { eldritchInvocationChoices: entry.eldritchInvocationChoices }),
+                ...(entry.mysticArcanumChoices && { mysticArcanumChoices: entry.mysticArcanumChoices }),
+                ...(entry.pactBoonChoice && { pactBoonChoice: entry.pactBoonChoice }),
+                ...(entry.favoredEnemyChoice && { favoredEnemyChoice: entry.favoredEnemyChoice }),
+                ...(entry.naturalExplorerChoice && { naturalExplorerChoice: entry.naturalExplorerChoice }),
+                ...(entry.spellChoices && { spellChoices: entry.spellChoices })
               })
               console.log('Legacy entry after update:', legacyEntry)
             } else {
