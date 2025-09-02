@@ -9,6 +9,9 @@ interface ThirdCasterSpellSelectionProps {
   onSpellsChange: (spells: string[]) => void
   spellsKnown?: number
   cantripsKnown?: number
+  previousSpells?: string[] // Spells known from previous levels
+  newCantripsToLearn?: number // Number of new cantrips to learn this level
+  newSpellsToLearn?: number // Number of new spells to learn this level
 }
 
 const SPELL_SCHOOLS: Record<string, { color: string; icon: string }> = {
@@ -28,7 +31,10 @@ export const ThirdCasterSpellSelection: React.FC<ThirdCasterSpellSelectionProps>
   selectedSpells,
   onSpellsChange,
   spellsKnown,
-  cantripsKnown
+  cantripsKnown,
+  previousSpells = [],
+  newCantripsToLearn = 0,
+  newSpellsToLearn = 0
 }) => {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedLevel, setSelectedLevel] = useState<number | 'cantrip'>(1)
@@ -50,6 +56,9 @@ export const ThirdCasterSpellSelection: React.FC<ThirdCasterSpellSelectionProps>
   const availableSpells = useMemo(() => {
     let spells = getSpellsByClass(baseSpellClass)
     
+    // Filter out spells already known from previous levels
+    spells = spells.filter((spell: Spell) => !previousSpells.includes(spell.id))
+    
     // Filter by school restrictions for leveled spells
     spells = spells.filter((spell: Spell) => {
       // Cantrips: no school restriction
@@ -60,7 +69,7 @@ export const ThirdCasterSpellSelection: React.FC<ThirdCasterSpellSelectionProps>
     })
     
     return spells
-  }, [baseSpellClass, allowedSchools])
+  }, [baseSpellClass, allowedSchools, previousSpells])
   
   // Calculate unrestricted spell picks (spells that can be from any school)
   const getUnrestrictedPicks = (totalLevel: number) => {
@@ -123,8 +132,8 @@ export const ThirdCasterSpellSelection: React.FC<ThirdCasterSpellSelectionProps>
   })
   
   const limits = {
-    cantrips: cantripsKnown || 0,
-    spells: spellsKnown || 0,
+    cantrips: newCantripsToLearn > 0 ? newCantripsToLearn : (cantripsKnown || 0),
+    spells: newSpellsToLearn > 0 ? newSpellsToLearn : (spellsKnown || 0),
     unrestricted: unrestrictedPicks
   }
   
@@ -182,16 +191,33 @@ export const ThirdCasterSpellSelection: React.FC<ThirdCasterSpellSelectionProps>
         <div className="flex items-center gap-2">
           <BookOpen className="w-5 h-5 text-purple-600" />
           <h3 className="font-semibold text-gray-900">
-            {subclassName} Spells
+            {newCantripsToLearn > 0 || newSpellsToLearn > 0 
+              ? `Learn New ${subclassName} Spells (Level ${level})`
+              : `${subclassName} Spells`
+            }
           </h3>
         </div>
         <div className="flex items-center gap-3 text-sm">
-          <span className="text-gray-600">
-            Cantrips: {selectedCantrips.length}/{limits.cantrips}
-          </span>
-          <span className="text-gray-600">
-            Spells: {selectedLeveledSpells.length}/{limits.spells}
-          </span>
+          {newCantripsToLearn > 0 && (
+            <span className="text-gray-600">
+              New Cantrips: {selectedCantrips.length}/{newCantripsToLearn}
+            </span>
+          )}
+          {newSpellsToLearn > 0 && (
+            <span className="text-gray-600">
+              New Spells: {selectedLeveledSpells.length}/{newSpellsToLearn}
+            </span>
+          )}
+          {newCantripsToLearn === 0 && newSpellsToLearn === 0 && (
+            <>
+              <span className="text-gray-600">
+                Cantrips: {selectedCantrips.length}/{limits.cantrips}
+              </span>
+              <span className="text-gray-600">
+                Spells: {selectedLeveledSpells.length}/{limits.spells}
+              </span>
+            </>
+          )}
           {limits.unrestricted > 0 && (
             <span className="text-gray-600">
               Unrestricted: {selectedUnrestrictedSpells.length}/{limits.unrestricted}
