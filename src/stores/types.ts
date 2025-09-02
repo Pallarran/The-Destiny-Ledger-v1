@@ -102,6 +102,7 @@ export interface LevelEntry {
   pactBoonChoice?: string // Warlock Pact Boon chosen at this level
   favoredEnemyChoice?: string // Ranger Favored Enemy chosen at this level
   naturalExplorerChoice?: string // Ranger Natural Explorer terrain chosen at this level
+  spellChoices?: string[] // Spells learned/prepared at this level
 }
 
 // Legacy BuildConfiguration - will migrate to CanonicalBuild gradually

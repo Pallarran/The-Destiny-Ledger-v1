@@ -18,12 +18,15 @@ import { EldritchInvocationSelection } from './EldritchInvocationSelection'
 import { MysticArcanumSelection } from './MysticArcanumSelection'
 import { PactBoonSelection } from './PactBoonSelection'
 import { RangerFeatureSelection } from './RangerFeatureSelection'
+import { SpellSelection } from './SpellSelection'
+import { ThirdCasterSpellSelection } from './ThirdCasterSpellSelection'
 import { maneuvers, getManeuverProgression } from '../../rules/srd/maneuvers'
 import { metamagicOptions, getMetamagicProgression } from '../../rules/srd/metamagic'
 import { eldritchInvocations, getInvocationProgression } from '../../rules/srd/eldritchInvocations'
 import { allMysticArcanumSpells, getMysticArcanumAvailableAtLevel } from '../../rules/srd/mysticArcanum'
 import { pactBoons } from '../../rules/srd/pactBoons'
 import { favoredEnemies, naturalExplorerTerrains, getRangerFeaturesAtLevel } from '../../rules/srd/rangerFeatures'
+import { spellsKnownProgression } from '../../rules/srd/spells'
 
 const CLASS_ICONS = {
   fighter: Sword,
@@ -579,6 +582,85 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
             source: f.source
           }))
     })
+  }
+
+  // 3e. Spell Selection (for spellcasting classes)
+  const fullCasters = ['wizard', 'cleric', 'bard', 'sorcerer', 'druid']
+  const halfCasters = ['paladin', 'ranger', 'artificer']
+  const isSpellcaster = fullCasters.includes(entry.classId) || halfCasters.includes(entry.classId)
+  
+  if (isSpellcaster && classLevel > 0) {
+    // Get spell progression from rules
+    const classProgression = spellsKnownProgression[entry.classId as keyof typeof spellsKnownProgression]
+    const spellProgression = classProgression ? {
+      cantripsKnown: classProgression.cantrips[classLevel - 1] || 0,
+      spellsKnown: classProgression.spellsKnown[classLevel - 1] || 0
+    } : null
+    const previousProgression = classProgression && classLevel > 1 ? {
+      cantripsKnown: classProgression.cantrips[classLevel - 2] || 0,
+      spellsKnown: classProgression.spellsKnown[classLevel - 2] || 0
+    } : null
+    
+    // Check if this level grants new spells
+    const gainsSpells = spellProgression && (
+      !previousProgression ||
+      spellProgression.spellsKnown > previousProgression.spellsKnown ||
+      spellProgression.cantripsKnown > previousProgression.cantripsKnown
+    )
+    
+    if (gainsSpells) {
+      const currentSpells = entry.spellChoices || []
+      
+      sections.push({
+        id: 'spell_selection',
+        title: `Spell Selection`,
+        type: 'spell_selection',
+        isComplete: currentSpells.length > 0, // Basic completion check
+        selectedSpells: currentSpells,
+        spellsKnown: spellProgression.spellsKnown,
+        cantripsKnown: spellProgression.cantripsKnown
+      })
+    }
+  }
+  
+  // 3f. Third Caster Spell Selection (Eldritch Knight, Arcane Trickster)
+  const isThirdCaster = (entry.classId === 'fighter' && entry.subclassId === 'eldritch_knight') ||
+                       (entry.classId === 'rogue' && entry.subclassId === 'arcane_trickster')
+  
+  if (isThirdCaster && classLevel >= 3) { // Third casters start at level 3
+    const subclassId = entry.subclassId as 'eldritch_knight' | 'arcane_trickster'
+    const classProgression = spellsKnownProgression[subclassId]
+    const spellProgression = classProgression ? {
+      cantripsKnown: classProgression.cantrips[classLevel - 1] || 0,
+      spellsKnown: classProgression.spellsKnown[classLevel - 1] || 0
+    } : null
+    const previousProgression = classProgression && classLevel > 3 ? {
+      cantripsKnown: classProgression.cantrips[classLevel - 2] || 0,
+      spellsKnown: classProgression.spellsKnown[classLevel - 2] || 0
+    } : null
+    
+    // Check if this level grants new spells
+    const gainsSpells = spellProgression && (
+      classLevel === 3 || // First spell level
+      !previousProgression ||
+      spellProgression.spellsKnown > previousProgression.spellsKnown ||
+      spellProgression.cantripsKnown > previousProgression.cantripsKnown
+    )
+    
+    if (gainsSpells) {
+      const currentSpells = entry.spellChoices || []
+      
+      sections.push({
+        id: 'third_caster_spells',
+        title: `${subclassId === 'eldritch_knight' ? 'Eldritch Knight' : 'Arcane Trickster'} Spells`,
+        type: 'third_caster_spells',
+        isComplete: currentSpells.length > 0, // Basic completion check
+        selectedSpells: currentSpells,
+        spellsKnown: spellProgression.spellsKnown,
+        cantripsKnown: spellProgression.cantripsKnown,
+        subclassId: subclassId
+      })
+    }
   }
 
   // 4. ASI/Feat Choice
@@ -1149,6 +1231,39 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
                 }
               }}
               className="border-none bg-transparent"
+            />
+          </div>
+        )
+
+      case 'spell_selection':
+        return (
+          <div className="p-3 bg-panel/5">
+            <SpellSelection
+              classId={entry.classId}
+              level={classLevel}
+              selectedSpells={section.selectedSpells || []}
+              onSpellsChange={(spells) => {
+                updateLevel(entry.level, { spellChoices: spells })
+              }}
+              spellsKnown={section.spellsKnown}
+              cantripsKnown={section.cantripsKnown}
+              subclassId={entry.subclassId}
+            />
+          </div>
+        )
+
+      case 'third_caster_spells':
+        return (
+          <div className="p-3 bg-panel/5">
+            <ThirdCasterSpellSelection
+              subclassId={section.subclassId}
+              level={entry.level}
+              selectedSpells={section.selectedSpells || []}
+              onSpellsChange={(spells) => {
+                updateLevel(entry.level, { spellChoices: spells })
+              }}
+              spellsKnown={section.spellsKnown}
+              cantripsKnown={section.cantripsKnown}
             />
           </div>
         )

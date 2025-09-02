@@ -133,7 +133,14 @@ export function convertToCanonicalBuild(legacy: BuildConfiguration): CanonicalBu
     pactBoon: pactBoonChoice,
     favoredEnemies: favoredEnemyChoices,
     naturalExplorer: naturalExplorerChoices,
-    spells: [], // TODO: Extract from build if spellcaster
+    spells: (() => {
+      // Extract spell choices from level timeline
+      const spellChoices = legacy.levelTimeline?.flatMap(entry => entry.spellChoices || []) || []
+      return spellChoices.map(spellId => ({
+        spell: spellId,
+        known: true // Default to known for now
+      }))
+    })(),
     equipment: {
       weapons,
       armor: legacy.armor,
@@ -178,7 +185,8 @@ export function convertToLegacyBuild(canonical: CanonicalBuild): Partial<BuildCo
         mysticArcanumChoices: {}, // TODO: Distribute canonical.mysticArcanum to correct levels
         pactBoonChoice: undefined, // TODO: Set canonical.pactBoon at level 3
         favoredEnemyChoice: undefined, // TODO: Set canonical.favoredEnemies at levels 1, 6, 14
-        naturalExplorerChoice: undefined // TODO: Set canonical.naturalExplorer at levels 1, 6, 10
+        naturalExplorerChoice: undefined, // TODO: Set canonical.naturalExplorer at levels 1, 6, 10
+        spellChoices: [] // TODO: Distribute canonical.spells to correct levels
       })
     }
   }
@@ -197,7 +205,7 @@ export function convertToLegacyBuild(canonical: CanonicalBuild): Partial<BuildCo
   const weapons = canonical.equipment.weapons
   const mainHandWeapon = weapons[0]
   const offHandWeapon = weapons[1]
-  const rangedWeapon = weapons.find(w => w.includes('bow') || w.includes('crossbow'))
+  const rangedWeapon = weapons.find((w: string) => w.includes('bow') || w.includes('crossbow'))
   
   // Convert toggles to active buffs
   const activeBuffs: string[] = []

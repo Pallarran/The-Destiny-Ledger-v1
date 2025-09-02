@@ -4,6 +4,7 @@ import { useCharacterBuilderStore } from '../../stores/characterBuilderStore'
 import { getRace, getClass } from '../../rules/loaders'
 import type { ClassDefinition } from '../../rules/types'
 import { getAllSkills, getProficiencyBonus } from '../../rules/srd/skills'
+import { getCanonicalBuild } from '../../utils/buildConverter'
 import { armor } from '../../rules/srd/armor'
 import { 
   Dices, 
@@ -222,6 +223,9 @@ export function BuildSummary() {
     return <div className="text-center text-muted">Loading character sheet...</div>
   }
   
+  // Get canonical build for expertise information  
+  const canonicalBuild = getCanonicalBuild(currentBuild)
+  
   // Calculate basic stats
   const timeline = currentBuild.enhancedLevelTimeline || []
   const totalLevel = timeline.length > 0 ? Math.max(...timeline.map(l => l.level), 1) : 1
@@ -282,13 +286,8 @@ export function BuildSummary() {
     ) || backgroundSkills.some(bgSkill => 
       bgSkill.toLowerCase() === skill.name.toLowerCase()
     ) || false
-    // Check expertise from level timeline (class features) and downtime training
-    // Note: expertiseChoices stores lowercase skill names, skill.name is capitalized
-    const hasExpertise = currentBuild?.levelTimeline?.some(entry => 
-      entry.expertiseChoices?.some(expertiseSkill => 
-        expertiseSkill.toLowerCase() === skill.name.toLowerCase()
-      )
-    ) || currentBuild?.downtimeTraining?.trainedSkillExpertise?.some(expertiseSkill =>
+    // Check expertise from canonical build
+    const hasExpertise = canonicalBuild.profs.expertise.some(expertiseSkill => 
       expertiseSkill.toLowerCase() === skill.name.toLowerCase()
     ) || false
     
