@@ -15,6 +15,14 @@
   --danger: #BE4B49;
   --radius: 16px;
   --shadow: 0 1px 0 rgba(0,0,0,.10), inset 0 0 0 1px var(--border);
+  
+  /* Fantasy Assets */
+  --frame-asset: url('/assets/ornate-frame.png');
+  --parchment-asset: url('/assets/parchment-texture.png');
+  
+  /* Enhanced shadows for depth */
+  --fantasy-shadow: 0 8px 32px rgba(0,0,0,0.3), 0 2px 8px rgba(0,0,0,0.2);
+  --frame-shadow: 0 4px 16px rgba(30, 35, 42, 0.4), inset 0 1px 0 rgba(255,255,255,0.1);
 }
 
 * {
@@ -54,4 +62,89 @@ h1, h2 {
   .glow {
     filter: none;
   }
+}
+
+/* Fantasy Frame Utilities */
+.fantasy-frame {
+  position: relative;
+  background: var(--panel);
+  background-image: var(--parchment-asset);
+  background-size: cover;
+  background-blend-mode: multiply;
+  padding: 2rem;
+  border-radius: var(--radius);
+  box-shadow: var(--fantasy-shadow);
+}
+
+.fantasy-frame::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: var(--frame-asset);
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.fantasy-frame > * {
+  position: relative;
+  z-index: 2;
+}
+
+/* Parchment Background Utility */
+.parchment-bg {
+  background: var(--panel);
+  background-image: var(--parchment-asset);
+  background-size: cover;
+  background-blend-mode: multiply;
+}
+
+/* Ornate Panel - Enhanced version of existing panel */
+.ornate-panel {
+  background: var(--panel);
+  background-image: var(--parchment-asset);
+  background-size: cover;
+  background-blend-mode: multiply;
+  color: var(--ink);
+  border-radius: var(--radius);
+  box-shadow: var(--frame-shadow);
+  border: 3px solid var(--gold);
+  border-image: linear-gradient(45deg, var(--gold), var(--border), var(--gold)) 1;
+  position: relative;
+  padding: 1.5rem;
+}
+
+/* Fantasy Card Styling */
+.fantasy-card {
+  background: linear-gradient(145deg, var(--panel) 0%, rgba(237, 226, 203, 0.9) 100%);
+  background-image: var(--parchment-asset);
+  background-size: cover;
+  background-blend-mode: multiply;
+  border: 2px solid var(--gold);
+  border-radius: var(--radius);
+  box-shadow: var(--frame-shadow);
+  position: relative;
+}
+
+/* Header with ornate styling */
+.fantasy-header {
+  background: linear-gradient(135deg, var(--ink) 0%, #2A3441 100%);
+  color: var(--gold);
+  text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+  border-bottom: 2px solid var(--gold);
+  position: relative;
+}
+
+.fantasy-header::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, var(--gold) 50%, transparent 100%);
 }

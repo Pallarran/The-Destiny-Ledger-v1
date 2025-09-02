@@ -21,7 +21,9 @@ export default {
         xl: "var(--radius)"
       },
       boxShadow: {
-        etched: "var(--shadow)"
+        etched: "var(--shadow)",
+        fantasy: "var(--fantasy-shadow)",
+        frame: "var(--frame-shadow)"
       },
       fontFamily: {
         'serif': ['Cinzel', 'Cormorant Garamond', 'serif'],

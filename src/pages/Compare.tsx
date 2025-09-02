@@ -1,10 +1,9 @@
 import { useState, useMemo } from 'react'
-import { Panel, PanelHeader } from '../components/ui/panel'
+import { FantasyFrame, FantasyPanel } from '../components/ui/fantasy-frame'
 import { ChartFrame } from '../components/ui/chart-frame'
 import { Button } from '../components/ui/button'
 import { Switch } from '../components/ui/switch'
 import { Badge } from '../components/ui/badge'
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
 import { useVaultStore } from '../stores/vaultStore'
 import { buildToCombatState, getWeaponConfig } from '../engine/simulator'
 import { calculateBuildDPR } from '../engine/calculations'
@@ -199,8 +198,7 @@ export function Compare() {
   if (selectedBuilds.length === 0) {
     return (
       <div className="space-y-6">
-        <Panel>
-          <PanelHeader title="COMPARE BUILDS" />
+        <FantasyFrame title="COMPARE BUILDS" variant="ornate">
           
           <div className="text-center py-12">
             <h3 className="text-xl font-semibold text-foreground mb-2">Select Builds to Compare</h3>
@@ -241,15 +239,14 @@ export function Compare() {
               </div>
             )}
           </div>
-        </Panel>
+        </FantasyFrame>
       </div>
     )
   }
 
   return (
     <div className="space-y-6">
-      <Panel>
-        <PanelHeader title="COMPARE BUILDS" />
+      <FantasyFrame title="COMPARE BUILDS" variant="ornate">
         
         {/* Enhanced Build Selection Header with Controls */}
         <div className="sticky top-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-10 -mx-6 px-6 py-4 border-b border-border">
@@ -421,11 +418,7 @@ export function Compare() {
         {/* Enhanced Comparison Table */}
         {selectedBuilds.length >= 2 && (
           <div className="mt-6">
-            <Card>
-              <CardHeader className="sticky top-20 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-10">
-                <CardTitle>Side-by-Side Comparison</CardTitle>
-              </CardHeader>
-              <CardContent>
+            <FantasyPanel title="Side-by-Side Comparison" className="sticky top-20 z-10">
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead>
@@ -532,11 +525,10 @@ export function Compare() {
                     <p className="text-xs mt-1">Try disabling "Differences only" to see all metrics</p>
                   </div>
                 )}
-              </CardContent>
-            </Card>
+            </FantasyPanel>
           </div>
         )}
-      </Panel>
+      </FantasyFrame>
     </div>
   )
 }

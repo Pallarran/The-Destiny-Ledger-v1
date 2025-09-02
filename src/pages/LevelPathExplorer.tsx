@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { Panel, PanelHeader } from '../components/ui/panel'
+import { FantasyFrame, FantasyPanel } from '../components/ui/fantasy-frame'
 import { Button } from '../components/ui/button'
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer } from 'recharts'
 import { usePathExplorerStore } from '../stores/pathExplorerStore'
@@ -44,17 +44,15 @@ export function LevelPathExplorer() {
 
   return (
     <div className="space-y-6">
-      <Panel>
-        <PanelHeader title="LEVEL PATH EXPLORER" />
+      <FantasyFrame title="LEVEL PATH EXPLORER" variant="ornate">
         
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Configuration Panel */}
           <div>
-            <Panel className="p-4">
-              <h3 className="font-semibold mb-4 flex items-center gap-2">
+            <FantasyPanel title="Optimization Config" className="p-4">
+              <div className="flex items-center gap-2 mb-4">
                 <Settings className="w-5 h-5" />
-                Optimization Config
-              </h3>
+              </div>
               
               <div className="space-y-4">
                 <div>
@@ -167,7 +165,7 @@ export function LevelPathExplorer() {
                   </div>
                 )}
               </div>
-            </Panel>
+            </FantasyPanel>
           </div>
 
           {/* Results Panel */}
@@ -193,7 +191,7 @@ export function LevelPathExplorer() {
               </div>
 
               {isOptimizing && (
-                <Panel className="p-8">
+                <FantasyPanel className="p-8">
                   <div className="text-center">
                     <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-accent" />
                     <h4 className="font-medium mb-2">Optimizing Character Progressions</h4>
@@ -206,11 +204,11 @@ export function LevelPathExplorer() {
                       <span>• Checking milestone requirements</span>
                     </div>
                   </div>
-                </Panel>
+                </FantasyPanel>
               )}
 
               {!isOptimizing && optimizedPaths.length === 0 && (
-                <Panel className="p-8">
+                <FantasyPanel className="p-8">
                   <div className="text-center">
                     <Target className="w-12 h-12 text-muted mx-auto mb-4" />
                     <h4 className="font-medium mb-2">Ready to Optimize</h4>
@@ -218,11 +216,11 @@ export function LevelPathExplorer() {
                       Configure your constraints and click "Optimize Paths" to find the best character progression routes.
                     </p>
                   </div>
-                </Panel>
+                </FantasyPanel>
               )}
 
               {optimizedPaths.map((path) => (
-                <Panel key={path.id} className="p-4">
+                <FantasyPanel key={path.id} className="p-4">
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex-1">
                       <h4 className="font-semibold mb-1">{path.name}</h4>
@@ -304,12 +302,12 @@ export function LevelPathExplorer() {
                       </div>
                     </div>
                   )}
-                </Panel>
+                </FantasyPanel>
               ))}
             </div>
           </div>
         </div>
-      </Panel>
+      </FantasyFrame>
     </div>
   )
 }
