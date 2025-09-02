@@ -286,14 +286,6 @@ export function BuildSummary() {
     ) || backgroundSkills.some(bgSkill => 
       bgSkill.toLowerCase() === skill.name.toLowerCase()
     ) || false
-    // Debug expertise data for the first few skills
-    if (['Acrobatics', 'Athletics', 'Deception'].includes(skill.name)) {
-      console.log(`Debug ${skill.name}:`, {
-        canonicalExpertise: canonicalBuild.profs.expertise,
-        levelTimelineExpertise: currentBuild?.levelTimeline?.map(e => e.expertiseChoices).filter(Boolean),
-        downtimeExpertise: currentBuild?.downtimeTraining?.trainedSkillExpertise
-      })
-    }
     
     // Check expertise from canonical build AND legacy timeline (for backwards compatibility)
     const hasCanonicalExpertise = canonicalBuild.profs.expertise.some(expertiseSkill => 

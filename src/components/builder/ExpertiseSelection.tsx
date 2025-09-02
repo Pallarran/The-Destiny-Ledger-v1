@@ -25,9 +25,30 @@ export function ExpertiseSelection({
   
   const [selectedExpertise, setSelectedExpertise] = useState<string[]>(currentExpertise)
   
+  // Get background skills (hardcoded for now since backgrounds aren't in a proper data file)
+  const getBackgroundSkills = (background: string): string[] => {
+    const backgroundSkills: Record<string, string[]> = {
+      'acolyte': ['Insight', 'Religion'],
+      'criminal': ['Deception', 'Stealth'],
+      'folk_hero': ['Animal Handling', 'Survival'],
+      'noble': ['History', 'Persuasion'],
+      'sage': ['Arcana', 'History'],
+      'soldier': ['Athletics', 'Intimidation'],
+      'hermit': ['Medicine', 'Religion'],
+      'entertainer': ['Acrobatics', 'Performance'],
+      'guild_artisan': ['Insight', 'Persuasion'],
+      'outlander': ['Athletics', 'Survival']
+    }
+    return backgroundSkills[background] || []
+  }
+  
+  const backgroundSkills = getBackgroundSkills(currentBuild?.background || '')
+  
   // Get available skills for expertise (must already be proficient from any source)
   // D&D 5e rule: You can gain expertise in ANY skill proficiency you have (class, background, or racial)
-  const availableSkills = currentBuild?.skillProficiencies || []
+  const classSkills = currentBuild?.skillProficiencies || []
+  const allProficientSkills = [...new Set([...classSkills, ...backgroundSkills])]
+  const availableSkills = allProficientSkills
   
   // Get skills that already have expertise (from earlier levels or other sources)
   const existingExpertise = new Set<string>()
