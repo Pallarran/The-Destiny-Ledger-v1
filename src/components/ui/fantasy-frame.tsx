@@ -3,24 +3,28 @@ import { cn } from "../../lib/utils"
 
 interface FantasyFrameProps extends React.HTMLAttributes<HTMLDivElement> {
   variant?: "default" | "ornate" | "card"
+  frameStyle?: "border-image" | "background-overlay"
   title?: string
   showFrame?: boolean
 }
 
 const FantasyFrame = React.forwardRef<HTMLDivElement, FantasyFrameProps>(
-  ({ className, variant = "default", title, showFrame = true, children, ...props }, ref) => {
-    const baseClasses = {
-      default: "fantasy-frame",
-      ornate: "ornate-panel",
-      card: "fantasy-card"
+  ({ className, variant = "default", frameStyle = "border-image", title, showFrame = true, children, ...props }, ref) => {
+    const getFrameClass = () => {
+      if (!showFrame) return "border-0 shadow-etched bg-panel"
+      
+      if (variant === "default") {
+        return frameStyle === "border-image" ? "fantasy-frame" : "fantasy-frame-alt"
+      }
+      
+      return variant === "ornate" ? "ornate-panel" : "fantasy-card"
     }
 
     return (
       <div
         ref={ref}
         className={cn(
-          baseClasses[variant],
-          !showFrame && "border-0 shadow-etched bg-panel",
+          getFrameClass(),
           className
         )}
         {...props}

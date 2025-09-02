@@ -72,22 +72,38 @@ h1, h2 {
   background-size: cover;
   background-blend-mode: multiply;
   padding: 2rem;
+  border: 30px solid transparent;
+  border-image: var(--frame-asset) 30 stretch;
+  box-shadow: var(--fantasy-shadow);
+}
+
+/* Alternative approach using background overlay */
+.fantasy-frame-alt {
+  position: relative;
+  background: var(--panel);
+  background-image: var(--parchment-asset);
+  background-size: cover;
+  background-blend-mode: multiply;
+  padding: 3rem;
   border-radius: var(--radius);
   box-shadow: var(--fantasy-shadow);
 }
 
-.fantasy-frame::before {
+.fantasy-frame-alt::before {
   content: '';
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  top: -20px;
+  left: -20px;
+  right: -20px;
+  bottom: -20px;
   background-image: var(--frame-asset);
   background-size: 100% 100%;
   background-repeat: no-repeat;
+  background-position: center;
   pointer-events: none;
-  z-index: 1;
+  z-index: -1;
+  /* Debug: add a fallback border to see if the element exists */
+  border: 2px solid rgba(200, 168, 107, 0.5);
 }
 
 .fantasy-frame > * {
