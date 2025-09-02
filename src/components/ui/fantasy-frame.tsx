@@ -18,7 +18,7 @@ const FantasyFrame = React.forwardRef<HTMLDivElement, FantasyFrameProps>(
           case "border-image": return "fantasy-frame"
           case "background-overlay": return "fantasy-frame-alt"
           case "test": return "fantasy-frame-test"
-          case "img-overlay": return "relative parchment-bg p-16 shadow-fantasy"
+          case "img-overlay": return "relative bg-panel p-16 shadow-fantasy"
           default: return "fantasy-frame"
         }
       }
@@ -39,8 +39,16 @@ const FantasyFrame = React.forwardRef<HTMLDivElement, FantasyFrameProps>(
           <img 
             src="/assets/ornate-frame.png" 
             alt=""
-            className="absolute inset-0 w-full h-full object-cover pointer-events-none z-30"
-            style={{ transform: 'scale(1.2)' }}
+            className="absolute pointer-events-none z-30"
+            style={{ 
+              top: '-40px',
+              left: '-40px', 
+              right: '-40px',
+              bottom: '-40px',
+              width: 'calc(100% + 80px)',
+              height: 'calc(100% + 80px)',
+              objectFit: 'fill'
+            }}
           />
         )}
         <div className="relative z-40">
@@ -69,7 +77,7 @@ const FantasyPanel = React.forwardRef<HTMLDivElement, FantasyPanelProps>(
     return (
       <div
         ref={ref}
-        className={cn("fantasy-card p-6", className)}
+        className={cn("panel p-6", className)}
         {...props}
       >
         {(header || title) && (
