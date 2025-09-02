@@ -706,14 +706,20 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
             }
             
             // Calculate class level for this class
-            const existingClassLevels = (state.currentBuild.enhancedLevelTimeline || [])
-              .filter(e => e.classId === classId).length
-            const classLevel = existingClassLevels + 1
+            const existingClassEntries = (state.currentBuild.enhancedLevelTimeline || [])
+              .filter(e => e.classId === classId)
+            const classLevel = existingClassEntries.length + 1
+            
+            // Inherit subclass from the most recent level of the same class
+            const mostRecentClassEntry = existingClassEntries
+              .sort((a, b) => b.level - a.level)[0] // Get the most recent entry
+            const inheritedSubclassId = mostRecentClassEntry?.subclassId
             
             const newEntry: BuilderLevelEntry = {
               level,
               classId,
-              features: getFeaturesForLevel(classId, classLevel, level),
+              subclassId: inheritedSubclassId,
+              features: getFeaturesForLevel(classId, classLevel, level, inheritedSubclassId),
               isCompleted: false,
               validationErrors: []
             }
