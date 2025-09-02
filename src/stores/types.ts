@@ -43,6 +43,8 @@ export interface CanonicalBuild {
   feats: FeatId[]
   fightingStyles: StyleId[]
   maneuvers: string[] // Battle Master maneuver IDs
+  metamagic: string[] // Sorcerer metamagic option IDs
+  eldritchInvocations: string[] // Warlock eldritch invocation IDs
   spells: Array<{
     spell: SpellId
     prepared?: boolean
@@ -90,6 +92,8 @@ export interface LevelEntry {
   archetype?: string
   expertiseChoices?: string[] // Skills chosen for expertise at this level
   maneuverChoices?: string[] // Battle Master maneuvers chosen at this level
+  metamagicChoices?: string[] // Sorcerer metamagic options chosen at this level
+  eldritchInvocationChoices?: string[] // Warlock eldritch invocations chosen at this level
 }
 
 // Legacy BuildConfiguration - will migrate to CanonicalBuild gradually

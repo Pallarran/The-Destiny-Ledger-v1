@@ -13,7 +13,11 @@ import { Plus, Sword, BookOpen, Shield, Star, ChevronRight, AlertTriangle, Check
 import type { BuilderLevelEntry } from '../../types/character'
 import { ExpertiseSelection } from './ExpertiseSelection'
 import { ManeuverSelection } from './ManeuverSelection'
+import { MetamagicSelection } from './MetamagicSelection'
+import { EldritchInvocationSelection } from './EldritchInvocationSelection'
 import { maneuvers, getManeuverProgression } from '../../rules/srd/maneuvers'
+import { metamagicOptions, getMetamagicProgression } from '../../rules/srd/metamagic'
+import { eldritchInvocations, getInvocationProgression } from '../../rules/srd/eldritchInvocations'
 
 const CLASS_ICONS = {
   fighter: Sword,
@@ -349,6 +353,59 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
         currentManeuvers: currentManeuvers,
         progression: progression
       })
+    }
+  }
+
+  // 1c. Metamagic Choice (for Sorcerer)
+  let metamagicFeature = null
+  if (entry.classId === 'sorcerer') {
+    // Look for explicit Sorcerer metamagic features at this level
+    metamagicFeature = classFeatures.find((f: any) => 
+      f.id === 'metamagic' || f.id === 'metamagic_2' || f.id === 'metamagic_3'
+    )
+    
+    if (metamagicFeature) {
+      const progression = getMetamagicProgression(entry.level)
+      if (progression) {
+        const currentMetamagic = entry.metamagicChoices || []
+        
+        sections.push({
+          id: 'metamagic',
+          title: `Metamagic (${metamagicFeature.name})`,
+          type: 'metamagic',
+          isComplete: currentMetamagic.length === progression.count,
+          metamagicCount: progression.count,
+          currentMetamagic: currentMetamagic,
+          progression: progression
+        })
+      }
+    }
+  }
+
+  // 1d. Eldritch Invocation Choice (for Warlock)
+  let eldritchInvocationFeature = null
+  if (entry.classId === 'warlock') {
+    // Look for explicit Warlock eldritch invocation features at this level
+    eldritchInvocationFeature = classFeatures.find((f: any) => 
+      f.id === 'eldritch_invocations' || f.id.includes('invocation')
+    )
+    
+    if (eldritchInvocationFeature || entry.level >= 2) {
+      const invocationCount = getInvocationProgression(entry.level)
+      if (invocationCount > 0) {
+        const currentInvocations = entry.eldritchInvocationChoices || []
+        
+        sections.push({
+          id: 'eldritch_invocations',
+          title: `Eldritch Invocations (${invocationCount} known)`,
+          type: 'eldritch_invocations',
+          isComplete: currentInvocations.length === invocationCount,
+          invocationCount: invocationCount,
+          currentInvocations: currentInvocations,
+          level: entry.level,
+          pactBoon: undefined // TODO: Get actual pact boon from earlier levels
+        })
+      }
     }
   }
 
@@ -694,6 +751,58 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
                       )}
                     </div>
                   )}
+
+                  {/* Metamagic Selection */}
+                  {section.type === 'metamagic' && (
+                    <div className="mt-2 pt-2 border-t border-current/20">
+                      {section.currentMetamagic && section.currentMetamagic.length > 0 ? (
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2 text-xs">
+                            <Sparkles className="w-3 h-3 text-indigo-600" />
+                            <span className="font-medium">Current Metamagic:</span>
+                          </div>
+                          <div className="flex flex-wrap gap-1 ml-5">
+                            {section.currentMetamagic.map((metamagicId: string) => (
+                              <Badge key={metamagicId} variant="secondary" className="text-xs">
+                                {metamagicOptions[metamagicId]?.name}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                          <AlertTriangle className="w-3 h-3" />
+                          <span>Choose {section.metamagicCount} metamagic options</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Eldritch Invocation Selection */}
+                  {section.type === 'eldritch_invocations' && (
+                    <div className="mt-2 pt-2 border-t border-current/20">
+                      {section.currentInvocations && section.currentInvocations.length > 0 ? (
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2 text-xs">
+                            <Star className="w-3 h-3 text-purple-600" />
+                            <span className="font-medium">Current Invocations:</span>
+                          </div>
+                          <div className="flex flex-wrap gap-1 ml-5">
+                            {section.currentInvocations.map((invocationId: string) => (
+                              <Badge key={invocationId} variant="secondary" className="text-xs">
+                                {eldritchInvocations[invocationId]?.name}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                          <AlertTriangle className="w-3 h-3" />
+                          <span>Choose {section.invocationCount} eldritch invocations</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 {/* Expandable Content */}
@@ -738,6 +847,44 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
                 updateLevel(entry.level, { maneuverChoices: maneuvers })
                 // Only close when all choices are made
                 if (maneuvers.length === section.maneuverCount) {
+                  setExpandedSection(null)
+                }
+              }}
+              className="border-none bg-transparent"
+            />
+          </div>
+        )
+
+      case 'metamagic':
+        return (
+          <div className="p-3 bg-panel/5">
+            <MetamagicSelection
+              metamagicCount={section.metamagicCount}
+              currentMetamagic={section.currentMetamagic}
+              onMetamagicSelected={(metamagic) => {
+                updateLevel(entry.level, { metamagicChoices: metamagic })
+                // Only close when all choices are made
+                if (metamagic.length === section.metamagicCount) {
+                  setExpandedSection(null)
+                }
+              }}
+              className="border-none bg-transparent"
+            />
+          </div>
+        )
+
+      case 'eldritch_invocations':
+        return (
+          <div className="p-3 bg-panel/5">
+            <EldritchInvocationSelection
+              level={section.level}
+              invocationCount={section.invocationCount}
+              currentInvocations={section.currentInvocations}
+              pactBoon={section.pactBoon}
+              onInvocationsSelected={(invocations) => {
+                updateLevel(entry.level, { eldritchInvocationChoices: invocations })
+                // Only close when all choices are made
+                if (invocations.length === section.invocationCount) {
                   setExpandedSection(null)
                 }
               }}

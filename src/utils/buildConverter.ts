@@ -59,6 +59,12 @@ export function convertToCanonicalBuild(legacy: BuildConfiguration): CanonicalBu
   // Extract maneuver choices from level timeline
   const maneuverChoices = legacy.levelTimeline?.flatMap(entry => entry.maneuverChoices || []) || []
   
+  // Extract metamagic choices from level timeline
+  const metamagicChoices = legacy.levelTimeline?.flatMap(entry => entry.metamagicChoices || []) || []
+  
+  // Extract eldritch invocation choices from level timeline
+  const eldritchInvocationChoices = legacy.levelTimeline?.flatMap(entry => entry.eldritchInvocationChoices || []) || []
+  
   // Extract feats from level timeline and downtime training
   const levelFeats = legacy.levelTimeline
     ?.filter(entry => entry.asiOrFeat === 'feat')
@@ -106,6 +112,8 @@ export function convertToCanonicalBuild(legacy: BuildConfiguration): CanonicalBu
     feats,
     fightingStyles,
     maneuvers: maneuverChoices,
+    metamagic: metamagicChoices,
+    eldritchInvocations: eldritchInvocationChoices,
     spells: [], // TODO: Extract from build if spellcaster
     equipment: {
       weapons,
@@ -145,7 +153,9 @@ export function convertToLegacyBuild(canonical: CanonicalBuild): Partial<BuildCo
         features: [], // TODO: Populate from canonical.features for this level
         asiOrFeat: undefined, // TODO: Determine from canonical.feats
         featId: undefined,
-        maneuverChoices: [] // TODO: Distribute canonical.maneuvers to correct levels
+        maneuverChoices: [], // TODO: Distribute canonical.maneuvers to correct levels
+        metamagicChoices: [], // TODO: Distribute canonical.metamagic to correct levels
+        eldritchInvocationChoices: [] // TODO: Distribute canonical.eldritchInvocations to correct levels
       })
     }
   }
