@@ -9,30 +9,30 @@ interface FantasyHeaderProps {
 
 export function FantasyHeader({ title }: FantasyHeaderProps) {
   return (
-    <header className="relative z-40 h-16 flex items-center justify-between px-6 bg-gradient-to-r from-ink/90 via-ink/95 to-ink/90 border-b-2 border-gold/50">
+    <header className="relative z-40 flex items-center justify-between py-4">
       {/* Left: App Logo */}
-      <Link to="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+      <Link to="/" className="flex items-center hover:opacity-80 transition-opacity">
         <img 
           src={`${import.meta.env.BASE_URL}destiny-ledger-main-logo.png`} 
           alt="The Destiny Ledger" 
-          className="w-12 h-12 drop-shadow-lg" 
+          className="w-16 h-16 drop-shadow-xl" 
         />
       </Link>
 
       {/* Center: Current Section Title */}
       <div className="absolute left-1/2 transform -translate-x-1/2">
-        <h1 className="text-xl font-serif font-bold text-gold tracking-wider drop-shadow-md">
+        <h1 className="text-2xl font-serif font-bold text-ink tracking-widest">
           {title}
         </h1>
       </div>
 
       {/* Right: Version & Settings */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-3 text-sm">
         <LegalModal />
         <VersionWatermark />
         <Link 
           to="/settings"
-          className="p-2 text-gold hover:text-panel transition-colors"
+          className="p-2 text-ink hover:text-gold transition-colors rounded-lg hover:bg-ink/10"
         >
           <Settings className="w-5 h-5" />
         </Link>

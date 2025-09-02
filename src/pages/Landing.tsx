@@ -55,49 +55,49 @@ export function Landing() {
   ]
 
   return (
-    <div className="space-y-8">
-      {/* Main content area - no panel needed since whole app is framed */}
+    <div className="space-y-12">
+      {/* Main content area */}
       <div className="text-center">
-        <div className="max-w-6xl mx-auto">
+        <div className="max-w-5xl mx-auto">
           {/* Logo */}
-          <div className="mb-8">
+          <div className="mb-12">
             <img 
               src={`${import.meta.env.BASE_URL}destiny-ledger-logo-with-name.png`} 
               alt="The Destiny Ledger"
-              className="mx-auto mb-4 w-full h-auto drop-shadow-2xl"
-              style={{ maxWidth: '400px' }}
+              className="mx-auto w-full h-auto drop-shadow-2xl"
+              style={{ maxWidth: '450px' }}
             />
           </div>
           
           {/* App Description */}
-          <div className="space-y-4 mb-12 bg-panel/90 backdrop-blur-sm rounded-lg p-8 shadow-xl border-2 border-gold/30">
-            <h1 className="text-3xl font-serif font-bold text-ink">
+          <div className="space-y-6 mb-16">
+            <h1 className="text-4xl font-serif font-bold text-ink tracking-wide">
               Master the Art of Character Optimization
             </h1>
-            <p className="text-lg text-ink/90 max-w-4xl mx-auto font-medium">
+            <p className="text-xl text-ink/80 max-w-4xl mx-auto leading-relaxed">
               The ultimate D&D 5e character optimizer featuring closed-form mathematical DPR calculations, 
               comprehensive build analysis, and multi-dimensional character comparison tools.
             </p>
           </div>
 
           {/* Feature Cards Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {features.map((feature, index) => {
               const IconComponent = feature.icon
               return (
                 <Link 
                   key={index}
                   to={feature.link} 
-                  className="block bg-panel/90 backdrop-blur-sm rounded-lg p-6 hover:shadow-2xl transition-all duration-300 hover:scale-105 border-2 border-gold/20 hover:border-gold/50 group">
+                  className="block bg-ink/5 rounded-2xl p-8 hover:shadow-2xl transition-all duration-300 hover:scale-105 hover:bg-ink/10 group border border-ink/10 hover:border-gold/50">
                   <div className="text-center">
                     <div className="flex flex-col items-center">
-                      <div className="flex-shrink-0 w-16 h-16 bg-gold/10 rounded-full flex items-center justify-center group-hover:bg-gold/20 transition-colors mb-4 border-2 border-gold/30">
-                        <IconComponent className={`w-8 h-8 ${feature.color} group-hover:scale-110 transition-transform`} />
+                      <div className="flex-shrink-0 w-20 h-20 bg-gradient-to-br from-gold/20 to-gold/5 rounded-2xl flex items-center justify-center group-hover:from-gold/30 group-hover:to-gold/10 transition-all mb-6 border border-gold/20">
+                        <IconComponent className={`w-10 h-10 ${feature.color} group-hover:scale-110 transition-transform drop-shadow-sm`} />
                       </div>
-                      <h3 className="text-xl font-serif font-bold text-ink group-hover:text-gold transition-colors mb-2">
+                      <h3 className="text-2xl font-serif font-bold text-ink group-hover:text-gold transition-colors mb-3 tracking-wide">
                         {feature.title}
                       </h3>
-                      <p className="text-sm text-ink/80 leading-relaxed">
+                      <p className="text-base text-ink/70 leading-relaxed group-hover:text-ink/90 transition-colors">
                         {feature.description}
                       </p>
                     </div>

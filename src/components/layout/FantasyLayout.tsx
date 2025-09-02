@@ -23,49 +23,37 @@ export function FantasyLayout({ children }: FantasyLayoutProps) {
   const currentTitle = pageTitles[location.pathname] || 'THE DESTINY LEDGER'
 
   return (
-    <div className="relative min-h-screen bg-bg">
-      {/* Full-screen ornate frame - fixed positioning with proper aspect ratio */}
+    <div className="relative min-h-screen parchment-bg overflow-hidden">
+      {/* Full-screen ornate frame */}
       <div className="fixed inset-0 pointer-events-none z-50">
         <img 
           src="/The-Destiny-Ledger-v1/assets/ornate-frame.png" 
           alt=""
           className="absolute inset-0 w-full h-full"
           style={{ 
-            objectFit: 'contain',
-            transform: 'scale(1.15)',  // Slightly scale up to ensure edges are covered
+            objectFit: 'fill',
+            padding: '8px',  // Small padding to prevent edge clipping
           }}
         />
       </div>
 
-      {/* Safe zone container - accounts for frame thickness */}
-      <div className="relative min-h-screen" style={{ 
-        padding: '60px',  // Uniform padding to stay inside frame
-        paddingTop: '40px',
-        paddingBottom: '40px'
+      {/* Content directly on parchment - no inner container */}
+      <div className="relative min-h-screen flex flex-col" style={{ 
+        padding: '80px 100px',  // Account for frame thickness
       }}>
-        {/* Inner viewport with parchment background */}
-        <div className="relative min-h-full bg-panel/95 rounded-lg shadow-2xl overflow-hidden"
-             style={{ 
-               backgroundImage: 'url(/The-Destiny-Ledger-v1/assets/parchment-texture.png)',
-               backgroundSize: 'cover',
-               backgroundBlendMode: 'multiply',
-               minHeight: 'calc(100vh - 80px)'
-             }}>
-          
-          {/* Fantasy Header */}
-          <FantasyHeader title={currentTitle} />
+        {/* Fantasy Header */}
+        <FantasyHeader title={currentTitle} />
 
-          {/* Content area with sidebar */}
-          <div className="flex" style={{ minHeight: 'calc(100vh - 160px)' }}>
-            <FantasySidebar />
-            
-            {/* Main content */}
-            <main className="flex-1 p-6 overflow-y-auto">
-              <div className="max-w-7xl mx-auto">
-                {children}
-              </div>
-            </main>
-          </div>
+        {/* Content area with sidebar */}
+        <div className="flex flex-1 gap-8 mt-8">
+          <FantasySidebar />
+          
+          {/* Main content */}
+          <main className="flex-1 overflow-y-auto">
+            <div className="max-w-7xl mx-auto">
+              {children}
+            </div>
+          </main>
         </div>
       </div>
     </div>
