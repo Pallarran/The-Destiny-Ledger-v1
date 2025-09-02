@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react'
 import { BookOpen, Search, X, Check, Info, AlertCircle } from 'lucide-react'
 import { getSpellsByClass, type Spell } from '../../rules/srd/spells'
+import { useSettingsStore } from '../../stores/settingsStore'
 
 interface ThirdCasterSpellSelectionProps {
   subclassId: 'eldritch_knight' | 'arcane_trickster'
@@ -36,6 +37,7 @@ export const ThirdCasterSpellSelection: React.FC<ThirdCasterSpellSelectionProps>
   newCantripsToLearn = 0,
   newSpellsToLearn = 0
 }) => {
+  const { allowUnrestrictedThirdCasterSpells } = useSettingsStore()
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedLevel, setSelectedLevel] = useState<number | 'cantrip'>(1)
   const [expandedSpell, setExpandedSpell] = useState<string | null>(null)
@@ -45,12 +47,17 @@ export const ThirdCasterSpellSelection: React.FC<ThirdCasterSpellSelectionProps>
   
   // Define school restrictions
   const allowedSchools = useMemo(() => {
+    if (allowUnrestrictedThirdCasterSpells) {
+      // If setting is enabled, allow all wizard schools
+      return ['Abjuration', 'Conjuration', 'Divination', 'Enchantment', 'Evocation', 'Illusion', 'Necromancy', 'Transmutation']
+    }
+    
     if (subclassId === 'eldritch_knight') {
       return ['Abjuration', 'Evocation'] // EK restricted to Abjuration + Evocation
     } else {
       return ['Enchantment', 'Illusion'] // AT restricted to Enchantment + Illusion
     }
-  }, [subclassId])
+  }, [subclassId, allowUnrestrictedThirdCasterSpells])
   
   // Get all available spells for this subclass
   const availableSpells = useMemo(() => {
@@ -73,6 +80,11 @@ export const ThirdCasterSpellSelection: React.FC<ThirdCasterSpellSelectionProps>
   
   // Calculate unrestricted spell picks (spells that can be from any school)
   const getUnrestrictedPicks = (totalLevel: number) => {
+    if (allowUnrestrictedThirdCasterSpells) {
+      // If setting is enabled, no special unrestricted picks needed since all schools are allowed
+      return 0
+    }
+    
     if (subclassId === 'eldritch_knight') {
       // EK gets unrestricted picks at levels 8, 14, 20
       if (totalLevel >= 20) return 3
@@ -227,16 +239,30 @@ export const ThirdCasterSpellSelection: React.FC<ThirdCasterSpellSelectionProps>
       </div>
       
       {/* School Restrictions Info */}
-      <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
+      <div className={`p-3 border rounded-lg ${
+        allowUnrestrictedThirdCasterSpells 
+          ? 'bg-green-50 border-green-200' 
+          : 'bg-amber-50 border-amber-200'
+      }`}>
         <div className="flex items-start gap-2">
-          <AlertCircle className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
-          <div className="text-sm text-amber-800">
+          <AlertCircle className={`w-4 h-4 mt-0.5 flex-shrink-0 ${
+            allowUnrestrictedThirdCasterSpells ? 'text-green-600' : 'text-amber-600'
+          }`} />
+          <div className={`text-sm ${
+            allowUnrestrictedThirdCasterSpells ? 'text-green-800' : 'text-amber-800'
+          }`}>
             <p className="font-medium">School Restrictions:</p>
-            <p>
-              Level 1+ spells must be from <strong>{schoolNames}</strong> schools, 
-              except for {limits.unrestricted} unrestricted pick{limits.unrestricted !== 1 ? 's' : ''} 
-              {limits.unrestricted > 0 && ' (any school)'}
-            </p>
+            {allowUnrestrictedThirdCasterSpells ? (
+              <p>
+                <strong>Unrestricted mode enabled:</strong> All wizard spell schools are available for selection.
+              </p>
+            ) : (
+              <p>
+                Level 1+ spells must be from <strong>{schoolNames}</strong> schools, 
+                except for {limits.unrestricted} unrestricted pick{limits.unrestricted !== 1 ? 's' : ''} 
+                {limits.unrestricted > 0 && ' (any school)'}
+              </p>
+            )}
           </div>
         </div>
       </div>

@@ -31,6 +31,7 @@ export function Settings() {
     theme,
     reducedMotion,
     showAdvancedTooltips,
+    allowUnrestrictedThirdCasterSpells,
     updateRoleWeight,
     updateDefaultAbilityMethod,
     updateDefaultPointBuyLimit,
@@ -39,6 +40,7 @@ export function Settings() {
     setTheme,
     toggleReducedMotion,
     toggleAdvancedTooltips,
+    toggleAllowUnrestrictedThirdCasterSpells,
     resetToDefaults
   } = useSettingsStore()
 
@@ -60,7 +62,8 @@ export function Settings() {
     greedyResourceUse,
     theme,
     reducedMotion,
-    showAdvancedTooltips
+    showAdvancedTooltips,
+    allowUnrestrictedThirdCasterSpells
   ])
 
   // Save settings to localStorage
@@ -73,7 +76,8 @@ export function Settings() {
       greedyResourceUse,
       theme,
       reducedMotion,
-      showAdvancedTooltips
+      showAdvancedTooltips,
+      allowUnrestrictedThirdCasterSpells
     }
     localStorage.setItem('destinyLedgerSettings', JSON.stringify(settings))
   }, [
@@ -84,7 +88,8 @@ export function Settings() {
     greedyResourceUse,
     theme,
     reducedMotion,
-    showAdvancedTooltips
+    showAdvancedTooltips,
+    allowUnrestrictedThirdCasterSpells
   ])
 
   const handleExportBuilds = () => {
@@ -100,7 +105,8 @@ export function Settings() {
         greedyResourceUse,
         theme,
         reducedMotion,
-        showAdvancedTooltips
+        showAdvancedTooltips,
+        allowUnrestrictedThirdCasterSpells
       }
     }
     
@@ -297,6 +303,17 @@ export function Settings() {
                     id="greedy-resources"
                     checked={greedyResourceUse}
                     onCheckedChange={toggleGreedyResourceUse}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="unrestricted-spells" className="flex-1 cursor-pointer">
+                    Allow unrestricted spell schools for Eldritch Knight/Arcane Trickster
+                  </Label>
+                  <Switch
+                    id="unrestricted-spells"
+                    checked={allowUnrestrictedThirdCasterSpells}
+                    onCheckedChange={toggleAllowUnrestrictedThirdCasterSpells}
                   />
                 </div>
               </div>

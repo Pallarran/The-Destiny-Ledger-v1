@@ -231,4 +231,7 @@ export interface AppSettings {
   theme: 'modern-fantasy' | 'classic-dark' | 'high-contrast'
   reducedMotion: boolean
   showAdvancedTooltips: boolean
+  
+  // Spell selection overrides
+  allowUnrestrictedThirdCasterSpells: boolean
 }

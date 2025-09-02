@@ -12,6 +12,7 @@ interface SettingsState extends AppSettings {
   setTheme: (theme: AppSettings['theme']) => void
   toggleReducedMotion: () => void
   toggleAdvancedTooltips: () => void
+  toggleAllowUnrestrictedThirdCasterSpells: () => void
   resetToDefaults: () => void
   loadSettings: (settings: AppSettings) => void
 }
@@ -31,7 +32,8 @@ const defaultSettings: AppSettings = {
   greedyResourceUse: true,
   theme: 'modern-fantasy',
   reducedMotion: false,
-  showAdvancedTooltips: true
+  showAdvancedTooltips: true,
+  allowUnrestrictedThirdCasterSpells: false
 }
 
 export const useSettingsStore = create<SettingsState>()(
@@ -87,6 +89,12 @@ export const useSettingsStore = create<SettingsState>()(
     toggleAdvancedTooltips: () => {
       set((state) => {
         state.showAdvancedTooltips = !state.showAdvancedTooltips
+      })
+    },
+    
+    toggleAllowUnrestrictedThirdCasterSpells: () => {
+      set((state) => {
+        state.allowUnrestrictedThirdCasterSpells = !state.allowUnrestrictedThirdCasterSpells
       })
     },
     
