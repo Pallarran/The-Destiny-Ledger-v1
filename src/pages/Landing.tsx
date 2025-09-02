@@ -1,6 +1,4 @@
 import { Link } from 'react-router-dom'
-import { Panel } from '../components/ui/panel'
-import { Card, CardContent } from '../components/ui/card'
 import { 
   Archive, 
   User, 
@@ -57,61 +55,59 @@ export function Landing() {
   ]
 
   return (
-    <div className="space-y-6">
-      {/* Main Panel */}
-      <Panel className="text-center py-8">
+    <div className="space-y-8">
+      {/* Main content area - no panel needed since whole app is framed */}
+      <div className="text-center">
         <div className="max-w-6xl mx-auto">
           {/* Logo */}
-          <div className="mb-6">
+          <div className="mb-8">
             <img 
               src={`${import.meta.env.BASE_URL}destiny-ledger-logo-with-name.png`} 
               alt="The Destiny Ledger"
-              className="mx-auto mb-4 w-full h-auto"
-              style={{ maxWidth: '346px' }}
+              className="mx-auto mb-4 w-full h-auto drop-shadow-2xl"
+              style={{ maxWidth: '400px' }}
             />
           </div>
           
           {/* App Description */}
-          <div className="space-y-3 mb-8">
-            <h1 className="text-2xl font-bold text-foreground">
+          <div className="space-y-4 mb-12 bg-panel/90 backdrop-blur-sm rounded-lg p-8 shadow-xl border-2 border-gold/30">
+            <h1 className="text-3xl font-serif font-bold text-ink">
               Master the Art of Character Optimization
             </h1>
-            <p className="text-lg text-foreground/80 max-w-4xl mx-auto">
+            <p className="text-lg text-ink/90 max-w-4xl mx-auto font-medium">
               The ultimate D&D 5e character optimizer featuring closed-form mathematical DPR calculations, 
               comprehensive build analysis, and multi-dimensional character comparison tools.
             </p>
           </div>
 
-          {/* Feature Cards in Single Row */}
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          {/* Feature Cards Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {features.map((feature, index) => {
               const IconComponent = feature.icon
               return (
-                <Card 
-                  key={index} 
-                  className="hover:shadow-lg transition-all duration-200 hover:scale-105 cursor-pointer group border-border/20"
-                >
-                  <Link to={feature.link} className="block">
-                    <CardContent className="p-4 text-center">
-                      <div className="flex flex-col items-center">
-                        <div className="flex-shrink-0 w-12 h-12 bg-accent/10 rounded-lg flex items-center justify-center group-hover:bg-accent/20 transition-colors mb-3">
-                          <IconComponent className={`w-6 h-6 ${feature.color} group-hover:scale-110 transition-transform`} />
-                        </div>
-                        <h3 className="font-semibold text-sm mb-2 text-foreground group-hover:text-accent transition-colors">
-                          {feature.title}
-                        </h3>
-                        <p className="text-xs text-foreground/70 leading-relaxed">
-                          {feature.description}
-                        </p>
+                <Link 
+                  key={index}
+                  to={feature.link} 
+                  className="block bg-panel/90 backdrop-blur-sm rounded-lg p-6 hover:shadow-2xl transition-all duration-300 hover:scale-105 border-2 border-gold/20 hover:border-gold/50 group">
+                  <div className="text-center">
+                    <div className="flex flex-col items-center">
+                      <div className="flex-shrink-0 w-16 h-16 bg-gold/10 rounded-full flex items-center justify-center group-hover:bg-gold/20 transition-colors mb-4 border-2 border-gold/30">
+                        <IconComponent className={`w-8 h-8 ${feature.color} group-hover:scale-110 transition-transform`} />
                       </div>
-                    </CardContent>
-                  </Link>
-                </Card>
+                      <h3 className="text-xl font-serif font-bold text-ink group-hover:text-gold transition-colors mb-2">
+                        {feature.title}
+                      </h3>
+                      <p className="text-sm text-ink/80 leading-relaxed">
+                        {feature.description}
+                      </p>
+                    </div>
+                  </div>
+                </Link>
               )
             })}
           </div>
         </div>
-      </Panel>
+      </div>
     </div>
   )
 }

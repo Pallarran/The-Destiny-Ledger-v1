@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
-import { Layout } from './components/layout/Layout'
+import { FantasyLayout } from './components/layout/FantasyLayout'
 import { Landing } from './pages/Landing'
 import { BuildVault } from './pages/BuildVault'
 import { CharacterBuilder } from './pages/CharacterBuilder'
@@ -15,7 +15,7 @@ function App() {
   
   return (
     <Router basename={basename}>
-      <Layout>
+      <FantasyLayout>
         <Routes>
           <Route path="/" element={<Landing />} />
           <Route path="/vault" element={<BuildVault />} />
@@ -27,7 +27,7 @@ function App() {
           <Route path="/party" element={<PartyOptimizer />} />
           <Route path="/settings" element={<Settings />} />
         </Routes>
-      </Layout>
+      </FantasyLayout>
     </Router>
   )
 }
