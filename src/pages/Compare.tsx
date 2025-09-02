@@ -452,18 +452,18 @@ export function Compare() {
                               return (
                                 <td key={build.id} className="py-3 px-2 text-center">
                                   <div className="flex items-center justify-center gap-1">
-                                    <span className={`font-medium ${
-                                      isHighest ? 'text-green-600' : 
-                                      isLowest && metric.hasDifference ? 'text-red-600' : 
-                                      'text-foreground'
+                                    <span className={`font-semibold ${
+                                      isHighest ? 'text-emerald-700' : 
+                                      isLowest && metric.hasDifference ? 'text-danger' : 
+                                      'text-ink'
                                     }`}>
                                       {metric.format ? metric.format(value) : value}
                                     </span>
                                     {metric.hasDifference && isHighest && (
-                                      <TrendingUp className="w-3 h-3 text-green-600" />
+                                      <TrendingUp className="w-3 h-3 text-emerald-700" />
                                     )}
                                     {metric.hasDifference && isLowest && (
-                                      <TrendingDown className="w-3 h-3 text-red-600" />
+                                      <TrendingDown className="w-3 h-3 text-danger" />
                                     )}
                                     {metric.hasDifference && difference === 'mid' && selectedBuilds.length > 2 && (
                                       <Minus className="w-3 h-3 text-muted" />
@@ -505,7 +505,7 @@ export function Compare() {
                                   buildRating === 'excellent' ? 'bg-green-500/10 text-green-600 border-green-500/20' :
                                   buildRating === 'good' ? 'bg-blue-500/10 text-blue-600 border-blue-500/20' :
                                   buildRating === 'average' ? 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20' :
-                                  'bg-red-500/10 text-red-600 border-red-500/20'
+                                  'bg-red-500/10 text-danger border-red-500/20'
                                 }`}
                               >
                                 {buildRating.replace('-', ' ')}

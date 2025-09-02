@@ -37,7 +37,7 @@ const FantasyFrame = React.forwardRef<HTMLDivElement, FantasyFrameProps>(
       >
         {frameStyle === "img-overlay" && (
           <img 
-            src="/assets/ornate-frame.png" 
+            src="/The-Destiny-Ledger-v1/assets/ornate-frame.png" 
             alt=""
             className="absolute pointer-events-none z-30"
             style={{ 
