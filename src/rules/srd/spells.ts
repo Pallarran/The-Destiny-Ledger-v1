@@ -825,6 +825,87 @@ export const level1Spells: Record<string, Spell> = {
     description: 'This spell creates an invisible, mindless, shapeless force that performs simple tasks at your command until the spell ends. The servant springs into existence in an unoccupied space on the ground within range. It has AC 10, 1 hit point, and a Strength of 2, and it can\'t attack. If it drops to 0 hit points, the spell ends.',
     classes: ['bard', 'warlock', 'wizard'],
     tags: ['utility', 'servant', 'conjuration', 'ritual']
+  },
+  color_spray: {
+    id: 'color_spray',
+    name: 'Color Spray',
+    level: 1,
+    school: 'Illusion',
+    castingTime: '1 action',
+    range: 'Self (15-foot cone)',
+    components: 'V, S, M',
+    duration: '1 round',
+    description: 'A dazzling array of flashing, colored light springs from your hand. Roll 6d10; the total is how many hit points of creatures this spell can affect. Creatures in a 15-foot cone originating from you are affected in ascending order of their current hit points.',
+    atHigherLevels: 'When you cast this spell using a spell slot of 2nd level or higher, roll an additional 2d10 for each slot level above 1st.',
+    classes: ['sorcerer', 'wizard'],
+    tags: ['illusion', 'aoe', 'debuff']
+  },
+  detect_evil_and_good: {
+    id: 'detect_evil_and_good',
+    name: 'Detect Evil and Good',
+    level: 1,
+    school: 'Divination',
+    castingTime: '1 action',
+    range: 'Self',
+    components: 'V, S',
+    duration: 'Concentration, up to 10 minutes',
+    description: 'For the duration, you know if there is an aberration, celestial, elemental, fey, fiend, or undead within 30 feet of you, as well as where the creature is located.',
+    classes: ['cleric', 'paladin'],
+    tags: ['utility', 'divination', 'self', 'concentration']
+  },
+  false_life: {
+    id: 'false_life',
+    name: 'False Life',
+    level: 1,
+    school: 'Necromancy',
+    castingTime: '1 action',
+    range: 'Self',
+    components: 'V, S, M',
+    duration: '1 hour',
+    description: 'Bolstering yourself with a necromantic facsimile of life, you gain 1d4 + 4 temporary hit points for the duration.',
+    atHigherLevels: 'When you cast this spell using a spell slot of 2nd level or higher, you gain 5 additional temporary hit points for each slot level above 1st.',
+    classes: ['sorcerer', 'wizard'],
+    tags: ['self', 'necromancy', 'temporary hp']
+  },
+  hideous_laughter: {
+    id: 'hideous_laughter',
+    name: 'Hideous Laughter',
+    level: 1,
+    school: 'Enchantment',
+    castingTime: '1 action',
+    range: '30 feet',
+    components: 'V, S, M',
+    duration: 'Concentration, up to 1 minute',
+    description: 'A creature of your choice that you can see within range perceives everything as hilariously funny and falls into fits of laughter if this spell affects it. The target must succeed on a Wisdom saving throw or fall prone, becoming incapacitated and unable to stand up for the duration.',
+    classes: ['bard', 'wizard'],
+    tags: ['save', 'enchantment', 'incapacitate', 'concentration']
+  },
+  inflict_wounds: {
+    id: 'inflict_wounds',
+    name: 'Inflict Wounds',
+    level: 1,
+    school: 'Necromancy',
+    castingTime: '1 action',
+    range: 'Touch',
+    components: 'V, S',
+    duration: 'Instantaneous',
+    description: 'Make a melee spell attack against a creature you can reach. On a hit, the target takes 3d10 necrotic damage.',
+    atHigherLevels: 'When you cast this spell using a spell slot of 2nd level or higher, the damage increases by 1d10 for each slot level above 1st.',
+    classes: ['cleric'],
+    tags: ['touch', 'necrotic', 'damage', 'necromancy']
+  },
+  jump: {
+    id: 'jump',
+    name: 'Jump',
+    level: 1,
+    school: 'Transmutation',
+    castingTime: '1 action',
+    range: 'Touch',
+    components: 'V, S, M',
+    duration: '1 minute',
+    description: 'You touch a creature. The creature\'s jump distance is tripled until the spell ends.',
+    classes: ['druid', 'ranger', 'sorcerer', 'wizard'],
+    tags: ['touch', 'transmutation', 'movement', 'buff']
   }
 }
 
