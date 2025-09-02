@@ -394,6 +394,20 @@ export const level1Spells: Record<string, Spell> = {
     classes: ['bard', 'druid', 'ranger'],
     tags: ['enchantment', 'charm', 'social', 'animals']
   },
+  bane: {
+    id: 'bane',
+    name: 'Bane',
+    level: 1,
+    school: 'Enchantment',
+    castingTime: '1 action',
+    range: '30 feet',
+    components: 'V, S, M',
+    duration: 'Concentration, up to 1 minute',
+    description: 'Up to three creatures of your choice that you can see within range must make Charisma saving throws. Whenever a target that fails this saving throw makes an attack roll or a saving throw before the spell ends, the target must roll a d4 and subtract the number rolled from the attack roll or saving throw.',
+    atHigherLevels: 'When you cast this spell using a spell slot of 2nd level or higher, you can target one additional creature for each slot level above 1st.',
+    classes: ['bard', 'cleric'],
+    tags: ['debuff', 'enchantment', 'concentration', 'save']
+  },
   armor_of_agathys: {
     id: 'armor_of_agathys',
     name: 'Armor of Agathys',
@@ -450,6 +464,33 @@ export const level1Spells: Record<string, Spell> = {
     classes: ['bard', 'druid', 'sorcerer', 'warlock', 'wizard'],
     tags: ['enchantment', 'charm', 'social', 'save']
   },
+  command: {
+    id: 'command',
+    name: 'Command',
+    level: 1,
+    school: 'Enchantment',
+    castingTime: '1 action',
+    range: '60 feet',
+    components: 'V',
+    duration: '1 round',
+    description: 'You speak a one-word command to a creature you can see within range. The target must succeed on a Wisdom saving throw or follow the command on its next turn. The spell has no effect if the target is undead, if it doesn\'t understand your language, or if your command is directly harmful to it. Some typical commands and their effects follow: Approach, Drop, Flee, Grovel, Halt.',
+    atHigherLevels: 'When you cast this spell using a spell slot of 2nd level or higher, you can affect one additional creature for each slot level above 1st. The creatures must be within 30 feet of each other when you target them.',
+    classes: ['cleric', 'paladin'],
+    tags: ['control', 'enchantment', 'save']
+  },
+  comprehend_languages: {
+    id: 'comprehend_languages',
+    name: 'Comprehend Languages',
+    level: 1,
+    school: 'Divination',
+    castingTime: '1 action',
+    range: 'Self',
+    components: 'V, S, M',
+    duration: '1 hour',
+    description: 'For the duration, you understand the literal meaning of any spoken language that you hear. You also understand any written language that you see, but you must be touching the surface on which the words are written. It takes about 1 minute to read one page of text.',
+    classes: ['bard', 'sorcerer', 'warlock', 'wizard'],
+    tags: ['utility', 'communication', 'divination', 'self', 'ritual']
+  },
   cure_wounds: {
     id: 'cure_wounds',
     name: 'Cure Wounds',
@@ -503,6 +544,32 @@ export const level1Spells: Record<string, Spell> = {
     classes: ['druid'],
     tags: ['control', 'restraint', 'area', 'conjuration', 'concentration']
   },
+  feather_fall: {
+    id: 'feather_fall',
+    name: 'Feather Fall',
+    level: 1,
+    school: 'Transmutation',
+    castingTime: '1 reaction',
+    range: '60 feet',
+    components: 'V, M',
+    duration: '1 minute',
+    description: 'Choose up to five falling creatures within range. A falling creature\'s rate of descent slows to 60 feet per round until the spell ends. If the creature lands before the spell ends, it takes no falling damage and can land on its feet, and the spell ends for that creature.',
+    classes: ['bard', 'sorcerer', 'wizard'],
+    tags: ['utility', 'safety', 'transmutation', 'reaction']
+  },
+  find_familiar: {
+    id: 'find_familiar',
+    name: 'Find Familiar',
+    level: 1,
+    school: 'Conjuration',
+    castingTime: '1 hour',
+    range: '10 feet',
+    components: 'V, S, M',
+    duration: 'Instantaneous',
+    description: 'You gain the service of a familiar, a spirit that takes an animal form you choose. The familiar has the statistics of the chosen form, though it is a celestial, fey, or fiend (your choice) instead of a beast. Your familiar acts independently of you, but it always obeys your commands. In combat, it rolls its own initiative and acts on its own turn. A familiar can\'t attack, but it can take other actions as normal.',
+    classes: ['wizard'],
+    tags: ['summoning', 'familiar', 'conjuration', 'ritual']
+  },
   faerie_fire: {
     id: 'faerie_fire',
     name: 'Faerie Fire',
@@ -515,6 +582,32 @@ export const level1Spells: Record<string, Spell> = {
     description: 'Each object in a 20-foot cube within range is outlined in blue, green, or violet light (your choice). Any creature in the area when the spell is cast is also outlined in light if it fails a Dexterity saving throw.',
     classes: ['bard', 'druid'],
     tags: ['debuff', 'advantage', 'light', 'evocation', 'aoe', 'concentration', 'save']
+  },
+  goodberry: {
+    id: 'goodberry',
+    name: 'Goodberry',
+    level: 1,
+    school: 'Transmutation',
+    castingTime: '1 action',
+    range: 'Touch',
+    components: 'V, S, M',
+    duration: 'Instantaneous',
+    description: 'Up to ten berries appear in your hand and are infused with magic for the duration. A creature can use its action to eat one berry. Eating a berry restores 1 hit point, and the berry provides enough nourishment to sustain a creature for one day. The berries lose their potency if they have not been consumed within 24 hours of the casting of this spell.',
+    classes: ['druid', 'ranger'],
+    tags: ['healing', 'utility', 'transmutation', 'touch']
+  },
+  grease: {
+    id: 'grease',
+    name: 'Grease',
+    level: 1,
+    school: 'Conjuration',
+    castingTime: '1 action',
+    range: '60 feet',
+    components: 'V, S, M',
+    duration: '1 minute',
+    description: 'Slick grease covers the ground in a 10-foot square centered on a point within range and turns it into difficult terrain for the duration. When the grease appears, each creature standing in its area must succeed on a Dexterity saving throw or fall prone. A creature that enters the area or ends its turn there must also succeed on a Dexterity saving throw or fall prone.',
+    classes: ['wizard'],
+    tags: ['control', 'area', 'conjuration', 'save']
   },
   guiding_bolt: {
     id: 'guiding_bolt',
@@ -544,6 +637,34 @@ export const level1Spells: Record<string, Spell> = {
     classes: ['bard', 'cleric', 'druid'],
     tags: ['healing', 'support', 'evocation', 'bonus-action', 'ranged']
   },
+  hellish_rebuke: {
+    id: 'hellish_rebuke',
+    name: 'Hellish Rebuke',
+    level: 1,
+    school: 'Evocation',
+    castingTime: '1 reaction',
+    range: '60 feet',
+    components: 'V, S',
+    duration: 'Instantaneous',
+    description: 'You point your finger, and the creature that damaged you is momentarily surrounded by hellish flames. The creature must make a Dexterity saving throw. It takes 2d10 fire damage on a failed save, or half as much damage on a successful one.',
+    atHigherLevels: 'When you cast this spell using a spell slot of 2nd level or higher, the damage increases by 1d10 for each slot level above 1st.',
+    classes: ['warlock'],
+    tags: ['damage', 'fire', 'reaction', 'evocation', 'save']
+  },
+  heroism: {
+    id: 'heroism',
+    name: 'Heroism',
+    level: 1,
+    school: 'Enchantment',
+    castingTime: '1 action',
+    range: 'Touch',
+    components: 'V, S',
+    duration: 'Concentration, up to 1 minute',
+    description: 'A willing creature you touch is imbued with bravery. Until the spell ends, the creature is immune to being frightened and gains temporary hit points equal to your spellcasting ability modifier at the start of each of its turns. When the spell ends, the target loses any remaining temporary hit points from this spell.',
+    atHigherLevels: 'When you cast this spell using a spell slot of 2nd level or higher, you can target one additional creature for each slot level above 1st.',
+    classes: ['bard', 'paladin'],
+    tags: ['buff', 'immunity', 'enchantment', 'touch', 'concentration']
+  },
   hex: {
     id: 'hex',
     name: 'Hex',
@@ -572,6 +693,19 @@ export const level1Spells: Record<string, Spell> = {
     classes: ['ranger'],
     tags: ['damage', 'buff', 'tracking', 'divination', 'bonus-action', 'concentration']
   },
+  identify: {
+    id: 'identify',
+    name: 'Identify',
+    level: 1,
+    school: 'Divination',
+    castingTime: '1 minute',
+    range: 'Touch',
+    components: 'V, S, M',
+    duration: 'Instantaneous',
+    description: 'You choose one object that you must touch throughout the casting of the spell. If it is a magic item or some other magic-imbued object, you learn its properties and how to use them, whether it requires attunement to use, and how many charges it has, if any. You learn whether any spells are affecting the item and what they are.',
+    classes: ['bard', 'wizard'],
+    tags: ['detection', 'utility', 'divination', 'touch', 'ritual']
+  },
   mage_armor: {
     id: 'mage_armor',
     name: 'Mage Armor',
@@ -599,6 +733,19 @@ export const level1Spells: Record<string, Spell> = {
     classes: ['sorcerer', 'wizard'],
     tags: ['damage', 'force', 'auto-hit', 'evocation', 'ranged']
   },
+  sanctuary: {
+    id: 'sanctuary',
+    name: 'Sanctuary',
+    level: 1,
+    school: 'Abjuration',
+    castingTime: '1 bonus action',
+    range: '30 feet',
+    components: 'V, S, M',
+    duration: '1 minute',
+    description: 'You ward a creature within range against attack. Until the spell ends, any creature who targets the warded creature with an attack or a harmful spell must first make a Wisdom saving throw. On a failed save, the creature must choose a new target or lose the attack or spell. This spell doesn\'t protect the warded creature from area effects, such as the explosion of a fireball.',
+    classes: ['cleric'],
+    tags: ['protection', 'buff', 'abjuration', 'bonus-action']
+  },
   shield: {
     id: 'shield',
     name: 'Shield',
@@ -611,6 +758,32 @@ export const level1Spells: Record<string, Spell> = {
     description: 'An invisible barrier of magical force appears and protects you. Until the start of your next turn, you have a +5 bonus to AC, including against the triggering attack, and you take no damage from magic missile.',
     classes: ['sorcerer', 'wizard'],
     tags: ['defense', 'reaction', 'abjuration', 'self']
+  },
+  shield_of_faith: {
+    id: 'shield_of_faith',
+    name: 'Shield of Faith',
+    level: 1,
+    school: 'Abjuration',
+    castingTime: '1 bonus action',
+    range: '60 feet',
+    components: 'V, S, M',
+    duration: 'Concentration, up to 10 minutes',
+    description: 'A shimmering field appears and surrounds a creature of your choice within range, granting it a +2 bonus to AC for the duration.',
+    classes: ['cleric', 'paladin'],
+    tags: ['buff', 'defense', 'abjuration', 'bonus-action', 'concentration']
+  },
+  speak_with_animals: {
+    id: 'speak_with_animals',
+    name: 'Speak with Animals',
+    level: 1,
+    school: 'Divination',
+    castingTime: '1 action',
+    range: 'Self',
+    components: 'V, S',
+    duration: '10 minutes',
+    description: 'You gain the ability to comprehend and verbally communicate with beasts for the duration. The knowledge and awareness of many beasts is limited by their intelligence, but at minimum, beasts can give you information about nearby locations and monsters, including whatever they can perceive or have perceived within the past day.',
+    classes: ['bard', 'druid', 'ranger'],
+    tags: ['utility', 'communication', 'divination', 'self', 'ritual']
   },
   sleep: {
     id: 'sleep',
@@ -625,6 +798,33 @@ export const level1Spells: Record<string, Spell> = {
     atHigherLevels: 'When you cast this spell using a spell slot of 2nd level or higher, roll an additional 2d8 for each slot level above 1st.',
     classes: ['bard', 'sorcerer', 'wizard'],
     tags: ['control', 'incapacitation', 'enchantment', 'aoe']
+  },
+  thunderwave: {
+    id: 'thunderwave',
+    name: 'Thunderwave',
+    level: 1,
+    school: 'Evocation',
+    castingTime: '1 action',
+    range: 'Self (15-foot cube)',
+    components: 'V, S',
+    duration: 'Instantaneous',
+    description: 'A wave of thunderous force sweeps out from you. Each creature in a 15-foot cube originating from you must make a Constitution saving throw. On a failed save, a creature takes 2d8 thunder damage and is pushed 10 feet away from you. On a successful save, the creature takes half as much damage and isn\'t pushed.',
+    atHigherLevels: 'When you cast this spell using a spell slot of 2nd level or higher, the damage increases by 1d8 for each slot level above 1st.',
+    classes: ['bard', 'druid', 'sorcerer', 'wizard'],
+    tags: ['damage', 'thunder', 'aoe', 'push', 'evocation', 'self', 'save']
+  },
+  unseen_servant: {
+    id: 'unseen_servant',
+    name: 'Unseen Servant',
+    level: 1,
+    school: 'Conjuration',
+    castingTime: '1 action',
+    range: '60 feet',
+    components: 'V, S, M',
+    duration: '1 hour',
+    description: 'This spell creates an invisible, mindless, shapeless force that performs simple tasks at your command until the spell ends. The servant springs into existence in an unoccupied space on the ground within range. It has AC 10, 1 hit point, and a Strength of 2, and it can\'t attack. If it drops to 0 hit points, the spell ends.',
+    classes: ['bard', 'warlock', 'wizard'],
+    tags: ['utility', 'servant', 'conjuration', 'ritual']
   }
 }
 
@@ -683,19 +883,46 @@ export const level2Spells: Record<string, Spell> = {
     classes: ['bard', 'sorcerer', 'wizard'],
     tags: ['detection', 'utility', 'divination', 'self', 'concentration']
   },
-  fireball: {
-    id: 'fireball',
-    name: 'Fireball',
-    level: 3,
+  darkness: {
+    id: 'darkness',
+    name: 'Darkness',
+    level: 2,
     school: 'Evocation',
     castingTime: '1 action',
-    range: '150 feet',
+    range: '60 feet',
+    components: 'V, M',
+    duration: 'Concentration, up to 10 minutes',
+    description: 'Magical darkness spreads from a point you choose within range to fill a 15-foot-radius sphere for the duration. The darkness spreads around corners. A creature with darkvision can\'t see through this darkness, and nonmagical light can\'t illuminate it.',
+    classes: ['sorcerer', 'warlock', 'wizard'],
+    tags: ['utility', 'area', 'evocation', 'concentration']
+  },
+  enhance_ability: {
+    id: 'enhance_ability',
+    name: 'Enhance Ability',
+    level: 2,
+    school: 'Transmutation',
+    castingTime: '1 action',
+    range: 'Touch',
     components: 'V, S, M',
-    duration: 'Instantaneous',
-    description: 'A bright streak flashes from your pointing finger to a point you choose within range and then blossoms with a low roar into an explosion of flame. Each creature in a 20-foot-radius sphere centered on that point must make a Dexterity saving throw. A target takes 8d6 fire damage on a failed save, or half as much damage on a successful one.',
-    atHigherLevels: 'When you cast this spell using a spell slot of 4th level or higher, the damage increases by 1d6 for each slot level above 3rd.',
-    classes: ['sorcerer', 'wizard'],
-    tags: ['damage', 'fire', 'aoe', 'evocation', 'save']
+    duration: 'Concentration, up to 1 hour',
+    description: 'You touch a creature and bestow upon it a magical enhancement. Choose one of the following effects; the target gains that effect until the spell ends. Bear\'s Endurance: The target has advantage on Constitution checks. It also gains 2d6 temporary hit points, which are lost when the spell ends.',
+    atHigherLevels: 'When you cast this spell using a spell slot of 3rd level or higher, you can target one additional creature for each slot level above 2nd.',
+    classes: ['bard', 'cleric', 'druid', 'sorcerer'],
+    tags: ['buff', 'enhancement', 'transmutation', 'touch', 'concentration']
+  },
+  heat_metal: {
+    id: 'heat_metal',
+    name: 'Heat Metal',
+    level: 2,
+    school: 'Transmutation',
+    castingTime: '1 action',
+    range: '60 feet',
+    components: 'V, S, M',
+    duration: 'Concentration, up to 1 minute',
+    description: 'Choose a manufactured metal object, such as a metal weapon or a suit of heavy or medium metal armor, that you can see within range. You cause the object to glow red-hot. Any creature in physical contact with the object takes 2d8 fire damage when you cast the spell. Until the spell ends, you can use a bonus action on each of your subsequent turns to cause this damage again.',
+    atHigherLevels: 'When you cast this spell using a spell slot of 3rd level or higher, the damage increases by 1d8 for each slot level above 2nd.',
+    classes: ['bard', 'druid'],
+    tags: ['damage', 'fire', 'transmutation', 'concentration', 'bonus-action']
   },
   hold_person: {
     id: 'hold_person',
@@ -725,6 +952,72 @@ export const level2Spells: Record<string, Spell> = {
     classes: ['bard', 'sorcerer', 'warlock', 'wizard'],
     tags: ['utility', 'stealth', 'illusion', 'touch', 'concentration']
   },
+  knock: {
+    id: 'knock',
+    name: 'Knock',
+    level: 2,
+    school: 'Transmutation',
+    castingTime: '1 action',
+    range: '60 feet',
+    components: 'V',
+    duration: 'Instantaneous',
+    description: 'Choose an object that you can see within range. The object can be a door, a box, a chest, a set of manacles, a padlock, or another object that contains a mundane or magical means that prevents access. A target that is held shut by a mundane lock or that is stuck or barred becomes unlocked, unstuck, or unbarred. If the object has multiple locks, only one of them is unlocked.',
+    classes: ['bard', 'sorcerer', 'wizard'],
+    tags: ['utility', 'unlock', 'transmutation']
+  },
+  lesser_restoration: {
+    id: 'lesser_restoration',
+    name: 'Lesser Restoration',
+    level: 2,
+    school: 'Abjuration',
+    castingTime: '1 action',
+    range: 'Touch',
+    components: 'V, S',
+    duration: 'Instantaneous',
+    description: 'You touch a creature and can end either one disease or one condition afflicting it. The condition can be blinded, deafened, paralyzed, or poisoned.',
+    classes: ['bard', 'cleric', 'druid', 'paladin', 'ranger'],
+    tags: ['healing', 'restoration', 'abjuration', 'touch']
+  },
+  levitate: {
+    id: 'levitate',
+    name: 'Levitate',
+    level: 2,
+    school: 'Transmutation',
+    castingTime: '1 action',
+    range: '60 feet',
+    components: 'V, S, M',
+    duration: 'Concentration, up to 10 minutes',
+    description: 'One creature or object of your choice that you can see within range rises vertically, up to 20 feet, and remains suspended there for the duration. The spell can levitate a target that weighs up to 500 pounds. An unwilling creature that succeeds on a Constitution saving throw is unaffected.',
+    classes: ['sorcerer', 'wizard'],
+    tags: ['utility', 'movement', 'transmutation', 'concentration', 'save']
+  },
+  magic_weapon: {
+    id: 'magic_weapon',
+    name: 'Magic Weapon',
+    level: 2,
+    school: 'Transmutation',
+    castingTime: '1 bonus action',
+    range: 'Touch',
+    components: 'V, S',
+    duration: 'Concentration, up to 1 hour',
+    description: 'You touch a nonmagical weapon. Until the spell ends, that weapon becomes a magic weapon with a +1 bonus to attack rolls and damage rolls.',
+    atHigherLevels: 'When you cast this spell using a spell slot of 4th level or higher, the bonus increases to +2. When you use a spell slot of 6th level or higher, the bonus increases to +3.',
+    classes: ['paladin', 'wizard'],
+    tags: ['buff', 'weapon', 'transmutation', 'touch', 'bonus-action', 'concentration']
+  },
+  mirror_image: {
+    id: 'mirror_image',
+    name: 'Mirror Image',
+    level: 2,
+    school: 'Illusion',
+    castingTime: '1 action',
+    range: 'Self',
+    components: 'V, S',
+    duration: '1 minute',
+    description: 'Three illusory duplicates of yourself appear in your space. Until the spell ends, the duplicates move with you and mimic your actions, shifting position so it\'s impossible to track which image is real. You can use your action to dismiss the illusory duplicates.',
+    classes: ['sorcerer', 'warlock', 'wizard'],
+    tags: ['defense', 'illusion', 'self']
+  },
   misty_step: {
     id: 'misty_step',
     name: 'Misty Step',
@@ -737,6 +1030,33 @@ export const level2Spells: Record<string, Spell> = {
     description: 'Briefly surrounded by silvery mist, you teleport up to 30 feet to an unoccupied space that you can see.',
     classes: ['sorcerer', 'warlock', 'wizard'],
     tags: ['teleportation', 'mobility', 'conjuration', 'self', 'bonus-action']
+  },
+  moonbeam: {
+    id: 'moonbeam',
+    name: 'Moonbeam',
+    level: 2,
+    school: 'Evocation',
+    castingTime: '1 action',
+    range: '120 feet',
+    components: 'V, S, M',
+    duration: 'Concentration, up to 1 minute',
+    description: 'A silvery beam of pale light shines down in a 5-foot-radius, 40-foot-high cylinder centered on a point within range. Until the spell ends, dim light fills the cylinder. When a creature enters the spell\'s area for the first time on a turn or starts its turn there, it is engulfed in ghostly flames that cause searing pain, and it must make a Constitution saving throw. It takes 2d10 radiant damage on a failed save, or half as much damage on a successful one.',
+    atHigherLevels: 'When you cast this spell using a spell slot of 3rd level or higher, the damage increases by 1d10 for each slot level above 2nd.',
+    classes: ['druid'],
+    tags: ['damage', 'radiant', 'area', 'evocation', 'concentration', 'save']
+  },
+  pass_without_trace: {
+    id: 'pass_without_trace',
+    name: 'Pass without Trace',
+    level: 2,
+    school: 'Abjuration',
+    castingTime: '1 action',
+    range: 'Self',
+    components: 'V, S, M',
+    duration: 'Concentration, up to 1 hour',
+    description: 'A veil of shadows and silence radiates from you, masking you and your companions from detection. For the duration, each creature you choose within 30 feet of you (including you) has a +10 bonus to Dexterity (Stealth) checks and can\'t be tracked except by magical means. A creature that receives this bonus leaves behind no tracks or other traces of its passage.',
+    classes: ['druid', 'ranger'],
+    tags: ['buff', 'stealth', 'utility', 'abjuration', 'self', 'concentration']
   },
   scorching_ray: {
     id: 'scorching_ray',
@@ -751,6 +1071,46 @@ export const level2Spells: Record<string, Spell> = {
     atHigherLevels: 'When you cast this spell using a spell slot of 3rd level or higher, you create one additional ray for each slot level above 2nd.',
     classes: ['sorcerer', 'wizard'],
     tags: ['damage', 'fire', 'multi-target', 'evocation', 'ranged']
+  },
+  shatter: {
+    id: 'shatter',
+    name: 'Shatter',
+    level: 2,
+    school: 'Evocation',
+    castingTime: '1 action',
+    range: '60 feet',
+    components: 'V, S, M',
+    duration: 'Instantaneous',
+    description: 'A sudden loud ringing noise, painfully intense, erupts from a point of your choice within range. Each creature in a 10-foot-radius sphere centered on that point must make a Constitution saving throw. A creature takes 3d8 thunder damage on a failed save, or half as much damage on a successful one. A creature made of inorganic materials such as stone, crystal, or metal has disadvantage on this saving throw.',
+    atHigherLevels: 'When you cast this spell using a spell slot of 3rd level or higher, the damage increases by 1d8 for each slot level above 2nd.',
+    classes: ['bard', 'sorcerer', 'warlock', 'wizard'],
+    tags: ['damage', 'thunder', 'aoe', 'evocation', 'save']
+  },
+  silence: {
+    id: 'silence',
+    name: 'Silence',
+    level: 2,
+    school: 'Illusion',
+    castingTime: '1 action',
+    range: '120 feet',
+    components: 'V, S',
+    duration: 'Concentration, up to 10 minutes',
+    description: 'For the duration, no sound can be created within or pass through a 20-foot-radius sphere centered on a point you choose within range. Any creature or object entirely inside the sphere is immune to thunder damage, and creatures are deafened while entirely inside it. Casting a spell that includes a verbal component is impossible there.',
+    classes: ['bard', 'cleric', 'ranger'],
+    tags: ['utility', 'area', 'illusion', 'concentration', 'ritual']
+  },
+  spider_climb: {
+    id: 'spider_climb',
+    name: 'Spider Climb',
+    level: 2,
+    school: 'Transmutation',
+    castingTime: '1 action',
+    range: 'Touch',
+    components: 'V, S, M',
+    duration: 'Concentration, up to 1 hour',
+    description: 'Until the spell ends, one willing creature you touch gains the ability to move up, down, and across vertical surfaces and upside down along ceilings, while leaving its hands free. The target also gains a climbing speed equal to its walking speed.',
+    classes: ['sorcerer', 'warlock', 'wizard'],
+    tags: ['utility', 'movement', 'transmutation', 'touch', 'concentration']
   },
   spiritual_weapon: {
     id: 'spiritual_weapon',
@@ -778,6 +1138,32 @@ export const level2Spells: Record<string, Spell> = {
     description: 'You conjure a mass of thick, sticky webbing at a point of your choice within range. The webs fill a 20-foot cube from that point for the duration. The webs are difficult terrain and lightly obscure their area.',
     classes: ['sorcerer', 'wizard'],
     tags: ['control', 'restraint', 'area', 'conjuration', 'concentration']
+  },
+  suggestion: {
+    id: 'suggestion',
+    name: 'Suggestion',
+    level: 2,
+    school: 'Enchantment',
+    castingTime: '1 action',
+    range: '30 feet',
+    components: 'V, M',
+    duration: 'Concentration, up to 8 hours',
+    description: 'You suggest a course of activity (limited to a sentence or two) and magically influence a creature you can see within range that can hear and understand you. Creatures that can\'t be charmed are immune to this effect. The suggestion must be worded in such a manner as to make the course of action sound reasonable.',
+    classes: ['bard', 'sorcerer', 'warlock', 'wizard'],
+    tags: ['control', 'suggestion', 'enchantment', 'concentration', 'save']
+  },
+  zone_of_truth: {
+    id: 'zone_of_truth',
+    name: 'Zone of Truth',
+    level: 2,
+    school: 'Enchantment',
+    castingTime: '1 action',
+    range: '60 feet',
+    components: 'V, S',
+    duration: '10 minutes',
+    description: 'You create a magical zone that guards against deception in a 15-foot-radius sphere centered on a point of your choice within range. Until the spell ends, a creature that enters the spell\'s area for the first time on a turn or starts its turn there must make a Charisma saving throw. On a failed save, a creature can\'t speak a deliberate lie while in the radius.',
+    classes: ['bard', 'cleric', 'paladin'],
+    tags: ['utility', 'truth', 'enchantment', 'save']
   }
 }
 
@@ -811,6 +1197,19 @@ export const level3Spells: Record<string, Spell> = {
     classes: ['sorcerer', 'warlock', 'wizard'],
     tags: ['reaction', 'interrupt', 'abjuration']
   },
+  daylight: {
+    id: 'daylight',
+    name: 'Daylight',
+    level: 3,
+    school: 'Evocation',
+    castingTime: '1 action',
+    range: '60 feet',
+    components: 'V, S',
+    duration: '1 hour',
+    description: 'A 60-foot-radius sphere of light spreads out from a point you choose within range. The sphere is bright light and sheds dim light for an additional 60 feet. If you chose a point on an object you are holding or one that isn\'t being worn or carried, the light shines from the object and moves with it.',
+    classes: ['cleric', 'druid', 'paladin', 'ranger', 'sorcerer'],
+    tags: ['utility', 'light', 'evocation']
+  },
   dispel_magic: {
     id: 'dispel_magic',
     name: 'Dispel Magic',
@@ -824,6 +1223,20 @@ export const level3Spells: Record<string, Spell> = {
     atHigherLevels: 'When you cast this spell using a spell slot of 4th level or higher, you automatically end the effects of a spell on the target if the spell\'s level is equal to or less than the level of the spell slot you used.',
     classes: ['bard', 'cleric', 'druid', 'paladin', 'sorcerer', 'warlock', 'wizard'],
     tags: ['utility', 'dispel', 'abjuration']
+  },
+  fireball: {
+    id: 'fireball',
+    name: 'Fireball',
+    level: 3,
+    school: 'Evocation',
+    castingTime: '1 action',
+    range: '150 feet',
+    components: 'V, S, M',
+    duration: 'Instantaneous',
+    description: 'A bright streak flashes from your pointing finger to a point you choose within range and then blossoms with a low roar into an explosion of flame. Each creature in a 20-foot-radius sphere centered on that point must make a Dexterity saving throw. A target takes 8d6 fire damage on a failed save, or half as much damage on a successful one.',
+    atHigherLevels: 'When you cast this spell using a spell slot of 4th level or higher, the damage increases by 1d6 for each slot level above 3rd.',
+    classes: ['sorcerer', 'wizard'],
+    tags: ['damage', 'fire', 'aoe', 'evocation', 'save']
   },
   fly: {
     id: 'fly',
@@ -865,11 +1278,144 @@ export const level3Spells: Record<string, Spell> = {
     atHigherLevels: 'When you cast this spell using a spell slot of 4th level or higher, the damage increases by 1d6 for each slot level above 3rd.',
     classes: ['sorcerer', 'wizard'],
     tags: ['damage', 'lightning', 'line', 'evocation', 'self', 'save']
+  },
+  mass_healing_word: {
+    id: 'mass_healing_word',
+    name: 'Mass Healing Word',
+    level: 3,
+    school: 'Evocation',
+    castingTime: '1 bonus action',
+    range: '60 feet',
+    components: 'V',
+    duration: 'Instantaneous',
+    description: 'As you call out words of restoration, up to six creatures of your choice that you can see within range regain hit points equal to 1d4 + your spellcasting ability modifier. This spell has no effect on undead or constructs.',
+    atHigherLevels: 'When you cast this spell using a spell slot of 4th level or higher, the healing increases by 1d4 for each slot level above 3rd.',
+    classes: ['cleric'],
+    tags: ['healing', 'support', 'evocation', 'bonus-action', 'mass']
+  },
+  remove_curse: {
+    id: 'remove_curse',
+    name: 'Remove Curse',
+    level: 3,
+    school: 'Abjuration',
+    castingTime: '1 action',
+    range: 'Touch',
+    components: 'V, S',
+    duration: 'Instantaneous',
+    description: 'At your touch, all curses affecting one creature or object end. If the object is a cursed magic item, its curse remains, but the spell breaks its owner\'s attunement to the object so it can be removed or discarded.',
+    classes: ['cleric', 'paladin', 'warlock', 'wizard'],
+    tags: ['utility', 'restoration', 'abjuration', 'touch']
+  },
+  revivify: {
+    id: 'revivify',
+    name: 'Revivify',
+    level: 3,
+    school: 'Conjuration',
+    castingTime: '1 action',
+    range: 'Touch',
+    components: 'V, S, M',
+    duration: 'Instantaneous',
+    description: 'You touch a creature that has died within the last minute. That creature returns to life with 1 hit point. This spell can\'t return to life a creature that has died of old age, nor can it restore any missing body parts.',
+    classes: ['cleric', 'paladin'],
+    tags: ['healing', 'resurrection', 'conjuration', 'touch']
+  },
+  sending: {
+    id: 'sending',
+    name: 'Sending',
+    level: 3,
+    school: 'Evocation',
+    castingTime: '1 action',
+    range: 'Unlimited',
+    components: 'V, S, M',
+    duration: '1 round',
+    description: 'You send a short message of twenty-five words or less to a creature with which you are familiar. The creature hears the message in its mind, recognizes you as the sender if it knows you, and can answer in a like manner immediately. The spell enables creatures with Intelligence scores of at least 1 to understand the meaning of your message.',
+    classes: ['bard', 'cleric', 'wizard'],
+    tags: ['communication', 'utility', 'evocation']
+  },
+  slow: {
+    id: 'slow',
+    name: 'Slow',
+    level: 3,
+    school: 'Transmutation',
+    castingTime: '1 action',
+    range: '120 feet',
+    components: 'V, S, M',
+    duration: 'Concentration, up to 1 minute',
+    description: 'You alter time around up to six creatures of your choice in a 40-foot cube within range. Each target must succeed on a Wisdom saving throw or be affected by this spell for the duration. An affected target\'s speed is halved, it takes a −2 penalty to AC and Dexterity saving throws, and it can\'t use reactions.',
+    classes: ['sorcerer', 'wizard'],
+    tags: ['control', 'debuff', 'transmutation', 'concentration', 'save']
+  },
+  spirit_guardians: {
+    id: 'spirit_guardians',
+    name: 'Spirit Guardians',
+    level: 3,
+    school: 'Conjuration',
+    castingTime: '1 action',
+    range: 'Self',
+    components: 'V, S, M',
+    duration: 'Concentration, up to 10 minutes',
+    description: 'You call forth spirits to protect you. They flit around you to a distance of 15 feet for the duration. If you are good or neutral, their spectral form appears angelic or fey (your choice). If you are evil, they appear fiendish. When you cast this spell, you can designate any number of creatures you can see to be unaffected by it.',
+    atHigherLevels: 'When you cast this spell using a spell slot of 4th level or higher, the damage increases by 1d8 for each slot level above 3rd.',
+    classes: ['cleric'],
+    tags: ['damage', 'area', 'conjuration', 'self', 'concentration']
+  },
+  tiny_hut: {
+    id: 'tiny_hut',
+    name: 'Tiny Hut',
+    level: 3,
+    school: 'Evocation',
+    castingTime: '1 minute',
+    range: 'Self',
+    components: 'V, S, M',
+    duration: '8 hours',
+    description: 'A 10-foot-radius immobile dome of force springs into existence around and above you and remains stationary for the duration. The spell ends if you leave its area. Nine creatures of Medium size or smaller can fit inside the dome with you. The spell fails if its area includes a larger creature or more than nine creatures.',
+    classes: ['bard', 'wizard'],
+    tags: ['utility', 'shelter', 'evocation', 'ritual']
+  },
+  tongues: {
+    id: 'tongues',
+    name: 'Tongues',
+    level: 3,
+    school: 'Divination',
+    castingTime: '1 action',
+    range: 'Touch',
+    components: 'V, M',
+    duration: '1 hour',
+    description: 'This spell grants the creature you touch the ability to understand any spoken language it hears. Moreover, when the target speaks, any creature that knows at least one language and can hear the target understands what it says.',
+    classes: ['bard', 'cleric', 'sorcerer', 'warlock', 'wizard'],
+    tags: ['utility', 'communication', 'divination', 'touch']
+  },
+  water_breathing: {
+    id: 'water_breathing',
+    name: 'Water Breathing',
+    level: 3,
+    school: 'Transmutation',
+    castingTime: '1 action',
+    range: '30 feet',
+    components: 'V, S, M',
+    duration: '24 hours',
+    description: 'This spell grants up to ten willing creatures you can see within range the ability to breathe underwater until the spell ends. Affected creatures also retain their normal mode of respiration.',
+    classes: ['druid', 'ranger', 'sorcerer', 'wizard'],
+    tags: ['utility', 'exploration', 'transmutation', 'ritual']
   }
 }
 
 // Level 4 Spells - Key Level 4 Spells from SRD
 export const level4Spells: Record<string, Spell> = {
+  banishment: {
+    id: 'banishment',
+    name: 'Banishment',
+    level: 4,
+    school: 'Abjuration',
+    castingTime: '1 action',
+    range: '60 feet',
+    components: 'V, S, M',
+    duration: 'Concentration, up to 1 minute',
+    description: 'You attempt to send one creature that you can see within range to another plane of existence. The target must succeed on a Charisma saving throw or be banished. If the target is native to the plane of existence you\'re on, you banish the target to a harmless demiplane. While there, the target is incapacitated. The target remains there until the spell ends, at which point the target reappears in the space it left or in the nearest unoccupied space if that space is occupied.',
+    atHigherLevels: 'When you cast this spell using a spell slot of 5th level or higher, you can target one additional creature for each slot level above 4th.',
+    classes: ['cleric', 'paladin', 'sorcerer', 'warlock', 'wizard'],
+    tags: ['control', 'banishment', 'abjuration', 'concentration', 'save']
+  },
   confusion: {
     id: 'confusion',
     name: 'Confusion',
@@ -983,6 +1529,46 @@ export const level5Spells: Record<string, Spell> = {
     classes: ['bard', 'sorcerer', 'wizard'],
     tags: ['control', 'domination', 'enchantment', 'concentration', 'save']
   },
+  greater_restoration: {
+    id: 'greater_restoration',
+    name: 'Greater Restoration',
+    level: 5,
+    school: 'Abjuration',
+    castingTime: '1 action',
+    range: 'Touch',
+    components: 'V, S, M',
+    duration: 'Instantaneous',
+    description: 'You imbue a creature you touch with positive energy to undo a debilitating effect. You can reduce the target\'s exhaustion level by one, or end one of the following effects on the target: One effect that charmed or petrified the target, One curse, including the target\'s attunement to a cursed magic item, Any reduction to one of the target\'s ability scores, One effect reducing the target\'s hit point maximum.',
+    classes: ['bard', 'cleric', 'druid'],
+    tags: ['healing', 'restoration', 'abjuration', 'touch']
+  },
+  mass_cure_wounds: {
+    id: 'mass_cure_wounds',
+    name: 'Mass Cure Wounds',
+    level: 5,
+    school: 'Evocation',
+    castingTime: '1 action',
+    range: '60 feet',
+    components: 'V, S',
+    duration: 'Instantaneous',
+    description: 'A wave of healing energy washes out from a point of your choice within range. Choose up to six creatures in a 30-foot-radius sphere centered on that point. Each target regains hit points equal to 3d8 + your spellcasting ability modifier. This spell has no effect on undead or constructs.',
+    atHigherLevels: 'When you cast this spell using a spell slot of 6th level or higher, the healing increases by 1d8 for each slot level above 5th.',
+    classes: ['bard', 'cleric', 'druid'],
+    tags: ['healing', 'support', 'evocation', 'mass', 'aoe']
+  },
+  raise_dead: {
+    id: 'raise_dead',
+    name: 'Raise Dead',
+    level: 5,
+    school: 'Necromancy',
+    castingTime: '1 hour',
+    range: 'Touch',
+    components: 'V, S, M',
+    duration: 'Instantaneous',
+    description: 'You return a dead creature you touch to life, provided that it has been dead no longer than 10 days. If the creature\'s soul is both willing and at liberty to rejoin the body, the creature returns to life with 1 hit point. This spell also neutralizes any poisons and cures nonmagical diseases that affected the creature at the time it died.',
+    classes: ['bard', 'cleric', 'paladin'],
+    tags: ['healing', 'resurrection', 'necromancy', 'touch']
+  },
   scrying: {
     id: 'scrying',
     name: 'Scrying',
@@ -1008,6 +1594,19 @@ export const level5Spells: Record<string, Spell> = {
     description: 'You gain the ability to move or manipulate creatures or objects by thought. When you cast the spell, and as your action each round for the duration, you can exert your will on one creature or object that you can see within range.',
     classes: ['sorcerer', 'wizard'],
     tags: ['utility', 'manipulation', 'transmutation', 'concentration']
+  },
+  wall_of_force: {
+    id: 'wall_of_force',
+    name: 'Wall of Force',
+    level: 5,
+    school: 'Evocation',
+    castingTime: '1 action',
+    range: '120 feet',
+    components: 'V, S, M',
+    duration: 'Concentration, up to 10 minutes',
+    description: 'An invisible wall of force springs into existence at a point you choose within range. The wall appears in any orientation you choose, as a horizontal or vertical barrier or at an angle. It can be free floating or resting on a solid surface. You can form it into a hemispherical dome or a sphere with a radius of up to 10 feet, or you can shape a flat surface made up of ten 10-foot-by-10-foot panels.',
+    classes: ['wizard'],
+    tags: ['utility', 'wall', 'barrier', 'evocation', 'concentration']
   }
 }
 
