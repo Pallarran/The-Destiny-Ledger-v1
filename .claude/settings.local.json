@@ -30,7 +30,13 @@
       "Bash(git rm:*)",
       "Bash(npx eslint:*)",
       "Bash(del test_power_attack.js)",
-      "WebFetch(domain:rpg.stackexchange.com)"
+      "WebFetch(domain:rpg.stackexchange.com)",
+      "WebFetch(domain:5thsrd.org)",
+      "WebFetch(domain:dnd5e.info)",
+      "WebFetch(domain:www.dnd5eapi.co)",
+      "Bash(python:*)",
+      "Bash(git restore:*)",
+      "Bash(del:*)"
     ],
     "deny": [],
     "ask": []
