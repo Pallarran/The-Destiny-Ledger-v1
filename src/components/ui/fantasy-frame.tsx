@@ -3,7 +3,7 @@ import { cn } from "../../lib/utils"
 
 interface FantasyFrameProps extends React.HTMLAttributes<HTMLDivElement> {
   variant?: "default" | "ornate" | "card"
-  frameStyle?: "border-image" | "background-overlay"
+  frameStyle?: "border-image" | "background-overlay" | "test" | "img-overlay"
   title?: string
   showFrame?: boolean
 }
@@ -14,7 +14,13 @@ const FantasyFrame = React.forwardRef<HTMLDivElement, FantasyFrameProps>(
       if (!showFrame) return "border-0 shadow-etched bg-panel"
       
       if (variant === "default") {
-        return frameStyle === "border-image" ? "fantasy-frame" : "fantasy-frame-alt"
+        switch (frameStyle) {
+          case "border-image": return "fantasy-frame"
+          case "background-overlay": return "fantasy-frame-alt"
+          case "test": return "fantasy-frame-test"
+          case "img-overlay": return "relative parchment-bg p-16 shadow-fantasy"
+          default: return "fantasy-frame"
+        }
       }
       
       return variant === "ornate" ? "ornate-panel" : "fantasy-card"
@@ -29,14 +35,24 @@ const FantasyFrame = React.forwardRef<HTMLDivElement, FantasyFrameProps>(
         )}
         {...props}
       >
-        {title && (
-          <div className="fantasy-header -mx-6 -mt-6 mb-6 px-6 py-3 rounded-t-xl">
-            <h2 className="text-xl font-serif font-semibold tracking-wide">
-              {title}
-            </h2>
-          </div>
+        {frameStyle === "img-overlay" && (
+          <img 
+            src="/assets/ornate-frame.png" 
+            alt=""
+            className="absolute inset-0 w-full h-full object-cover pointer-events-none z-30"
+            style={{ transform: 'scale(1.2)' }}
+          />
         )}
-        {children}
+        <div className="relative z-40">
+          {title && (
+            <div className="fantasy-header -mx-6 -mt-6 mb-6 px-6 py-3 rounded-t-xl">
+              <h2 className="text-xl font-serif font-semibold tracking-wide">
+                {title}
+              </h2>
+            </div>
+          )}
+          {children}
+        </div>
       </div>
     )
   }

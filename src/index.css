@@ -84,7 +84,7 @@ h1, h2 {
   background-image: var(--parchment-asset);
   background-size: cover;
   background-blend-mode: multiply;
-  padding: 3rem;
+  padding: 4rem;
   border-radius: var(--radius);
   box-shadow: var(--fantasy-shadow);
 }
@@ -92,23 +92,79 @@ h1, h2 {
 .fantasy-frame-alt::before {
   content: '';
   position: absolute;
-  top: -20px;
-  left: -20px;
-  right: -20px;
-  bottom: -20px;
-  background-image: var(--frame-asset);
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('/assets/ornate-frame.png') no-repeat center;
+  background-size: 100% 100%;
+  pointer-events: none;
+  z-index: 1;
+  /* Remove debug border once frame is working */
+  border: 2px solid rgba(200, 168, 107, 0.8);
+  opacity: 1;
+}
+
+/* Frame test - improved overlay approach */
+.fantasy-frame-test {
+  position: relative;
+  background: var(--panel);
+  background-image: var(--parchment-asset);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-blend-mode: multiply;
+  padding: 4rem;
+  box-shadow: var(--fantasy-shadow);
+  /* Remove debug border once frame works */
+  border: 8px solid var(--gold);
+}
+
+.fantasy-frame-test::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('/assets/ornate-frame.png') no-repeat center;
+  background-size: contain;
+  pointer-events: none;
+  z-index: 5;
+}
+
+/* Frame overlay - ensure it's above parchment */
+.fantasy-frame-test::after {
+  content: '';
+  position: absolute;
+  top: -30px;
+  left: -30px;
+  right: -30px;
+  bottom: -30px;
+  background: url('/assets/ornate-frame.png');
   background-size: 100% 100%;
   background-repeat: no-repeat;
   background-position: center;
   pointer-events: none;
-  z-index: -1;
-  /* Debug: add a fallback border to see if the element exists */
-  border: 2px solid rgba(200, 168, 107, 0.5);
+  z-index: 25;
+  /* Remove this border once frame is visible */
+  border: 3px solid red;
 }
 
-.fantasy-frame > * {
+/* Simple frame visibility test */
+.frame-test {
+  width: 200px;
+  height: 200px;
+  background: url('/assets/ornate-frame.png') no-repeat center;
+  background-size: contain;
+  border: 2px solid red;
+  margin: 20px;
+}
+
+.fantasy-frame > *,
+.fantasy-frame-test > * {
   position: relative;
-  z-index: 2;
+  z-index: 20;
 }
 
 /* Parchment Background Utility */

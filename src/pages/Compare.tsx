@@ -246,7 +246,7 @@ export function Compare() {
 
   return (
     <div className="space-y-6">
-      <FantasyFrame title="COMPARE BUILDS" variant="default" frameStyle="background-overlay">
+      <FantasyFrame title="COMPARE BUILDS" variant="default" frameStyle="img-overlay">
         
         {/* Enhanced Build Selection Header with Controls */}
         <div className="sticky top-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-10 -mx-6 px-6 py-4 border-b border-border">
