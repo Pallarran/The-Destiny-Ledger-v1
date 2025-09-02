@@ -436,7 +436,17 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
           abilityIncreases: entry.abilityIncreases,
           notes: entry.notes,
           fightingStyle: (entry as any).fightingStyle,
-          archetype: (entry as any).archetype
+          archetype: (entry as any).archetype,
+          // Include all choice-based class features
+          expertiseChoices: (entry as any).expertiseChoices,
+          maneuverChoices: (entry as any).maneuverChoices,
+          metamagicChoices: (entry as any).metamagicChoices,
+          eldritchInvocationChoices: (entry as any).eldritchInvocationChoices,
+          mysticArcanumChoices: (entry as any).mysticArcanumChoices,
+          pactBoonChoice: (entry as any).pactBoonChoice,
+          favoredEnemyChoice: (entry as any).favoredEnemyChoice,
+          naturalExplorerChoice: (entry as any).naturalExplorerChoice,
+          spellChoices: (entry as any).spellChoices
         })),
         currentLevel: currentBuild.currentLevel,
         mainHandWeapon: currentBuild.selectedMainHand,
