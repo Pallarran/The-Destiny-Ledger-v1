@@ -518,37 +518,43 @@ export function BuildSummary() {
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
             {skillBonuses.map(skill => (
-              <div key={skill.name} className="flex items-center gap-3 p-2 bg-panel/5 rounded hover:bg-panel/10 transition-colors">
-                <div className={`w-2 h-2 rounded-full ${
-                  skill.hasExpertise ? 'bg-gold' : 
-                  skill.isProficient ? 'bg-emerald' : 
-                  'bg-muted'
-                }`} />
-                <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium">{skill.name}</div>
-                  <div className="text-xs text-muted">({skill.ability})</div>
+              <div key={skill.name} className="flex items-center gap-3 p-0 rounded overflow-hidden">
+                <div className={`flex-1 flex items-center justify-between px-3 py-2 ${
+                  skill.hasExpertise ? 'bg-gold text-ink' : 
+                  skill.isProficient ? 'bg-emerald text-white' : 
+                  'bg-panel/5 hover:bg-panel/10 transition-colors'
+                }`}>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-medium">{skill.name}</div>
+                    <div className={`text-xs ${
+                      skill.hasExpertise ? 'text-ink/70' :
+                      skill.isProficient ? 'text-white/70' :
+                      'text-muted'
+                    }`}>({skill.ability})</div>
+                  </div>
+                  <Badge 
+                    variant="secondary"
+                    className={`text-xs shrink-0 ml-2 ${
+                      skill.hasExpertise ? 'bg-gold-600 text-white border-gold-700' :
+                      skill.isProficient ? 'bg-emerald-600 text-white border-emerald-700' :
+                      'bg-muted text-muted-foreground'
+                    }`}
+                  >
+                    {skill.modifier}
+                  </Badge>
                 </div>
-                <Badge 
-                  variant={skill.isProficient ? "default" : "secondary"} 
-                  className={`text-xs shrink-0 ${skill.hasExpertise ? 'bg-gold text-ink' : ''}`}
-                >
-                  {skill.modifier}
-                </Badge>
               </div>
             ))}
           </div>
           <div className="mt-4 flex gap-4 text-xs text-muted">
-            <span className="inline-flex items-center gap-1">
-              <div className="w-2 h-2 rounded-full bg-muted" />
-              Untrained
+            <span className="inline-flex items-center gap-2">
+              <div className="px-2 py-1 bg-panel/5 rounded text-xs">Untrained</div>
             </span>
-            <span className="inline-flex items-center gap-1">
-              <div className="w-2 h-2 rounded-full bg-emerald" />
-              Proficient
+            <span className="inline-flex items-center gap-2">
+              <div className="px-2 py-1 bg-emerald text-white rounded text-xs">Proficient</div>
             </span>
-            <span className="inline-flex items-center gap-1">
-              <div className="w-2 h-2 rounded-full bg-gold" />
-              Expertise
+            <span className="inline-flex items-center gap-2">
+              <div className="px-2 py-1 bg-gold text-ink rounded text-xs">Expertise</div>
             </span>
           </div>
         </CardContent>
