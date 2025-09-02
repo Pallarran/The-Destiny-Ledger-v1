@@ -28,8 +28,7 @@ export function FantasySidebar() {
            style={{ 
              backgroundImage: 'url(/The-Destiny-Ledger-v1/assets/parchment-texture.png)',
              backgroundSize: 'cover',
-             backgroundBlendMode: 'multiply',
-             backgroundOpacity: 0.8
+             backgroundBlendMode: 'multiply'
            }}>
         {/* Decorative top curl */}
         <div className="h-2 bg-gradient-to-b from-gold/30 to-transparent" />
