@@ -9,15 +9,21 @@ import { feats } from '../../rules/srd/feats'
 import { subclasses } from '../../rules/srd/subclasses'
 import { getClass } from '../../rules/loaders'
 import { getProficiencyBonus } from '../../rules/srd/skills'
-import { Plus, Sword, BookOpen, Shield, Star, ChevronRight, AlertTriangle, CheckCircle, Clock, Heart, TrendingUp, Sparkles, Trash2, Crown } from 'lucide-react'
+import { Plus, Sword, BookOpen, Shield, Star, ChevronRight, AlertTriangle, CheckCircle, Clock, Heart, TrendingUp, Sparkles, Trash2, Crown, Target, TreePine } from 'lucide-react'
 import type { BuilderLevelEntry } from '../../types/character'
 import { ExpertiseSelection } from './ExpertiseSelection'
 import { ManeuverSelection } from './ManeuverSelection'
 import { MetamagicSelection } from './MetamagicSelection'
 import { EldritchInvocationSelection } from './EldritchInvocationSelection'
+import { MysticArcanumSelection } from './MysticArcanumSelection'
+import { PactBoonSelection } from './PactBoonSelection'
+import { RangerFeatureSelection } from './RangerFeatureSelection'
 import { maneuvers, getManeuverProgression } from '../../rules/srd/maneuvers'
 import { metamagicOptions, getMetamagicProgression } from '../../rules/srd/metamagic'
 import { eldritchInvocations, getInvocationProgression } from '../../rules/srd/eldritchInvocations'
+import { allMysticArcanumSpells, getMysticArcanumAvailableAtLevel } from '../../rules/srd/mysticArcanum'
+import { pactBoons } from '../../rules/srd/pactBoons'
+import { favoredEnemies, naturalExplorerTerrains, getRangerFeaturesAtLevel } from '../../rules/srd/rangerFeatures'
 
 const CLASS_ICONS = {
   fighter: Sword,
@@ -406,6 +412,79 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
           pactBoon: undefined // TODO: Get actual pact boon from earlier levels
         })
       }
+    }
+  }
+
+  // 1e. Mystic Arcanum Choice (for Warlock)
+  if (entry.classId === 'warlock') {
+    const availableArcanumLevels = getMysticArcanumAvailableAtLevel(entry.level)
+    
+    for (const spellLevel of availableArcanumLevels) {
+      const currentMysticArcanum = entry.mysticArcanumChoices || {}
+      const hasSpellAtLevel = !!currentMysticArcanum[spellLevel]
+      
+      // Check if this is the level where this Mystic Arcanum becomes available
+      const shouldShow = (
+        (spellLevel === 6 && entry.level === 11) ||
+        (spellLevel === 7 && entry.level === 13) ||
+        (spellLevel === 8 && entry.level === 15) ||
+        (spellLevel === 9 && entry.level === 17)
+      )
+      
+      if (shouldShow) {
+        sections.push({
+          id: `mystic_arcanum_${spellLevel}`,
+          title: `Mystic Arcanum (${spellLevel === 6 ? '6th' : spellLevel === 7 ? '7th' : spellLevel === 8 ? '8th' : '9th'} Level)`,
+          type: 'mystic_arcanum',
+          isComplete: hasSpellAtLevel,
+          spellLevel: spellLevel,
+          currentSpell: currentMysticArcanum[spellLevel],
+        })
+      }
+    }
+  }
+
+  // 1f. Pact Boon Choice (for Warlock level 3)
+  if (entry.classId === 'warlock' && entry.level === 3) {
+    const currentPactBoon = entry.pactBoonChoice
+    
+    sections.push({
+      id: 'pact_boon',
+      title: 'Pact Boon',
+      type: 'pact_boon',
+      isComplete: !!currentPactBoon,
+      currentPactBoon: currentPactBoon,
+    })
+  }
+
+  // 1g. Ranger Features (Favored Enemy & Natural Explorer)
+  if (entry.classId === 'ranger') {
+    const rangerFeatures = getRangerFeaturesAtLevel(entry.level)
+    
+    // Favored Enemy selection
+    if (rangerFeatures.favoredEnemy) {
+      const currentFavoredEnemy = entry.favoredEnemyChoice
+      
+      sections.push({
+        id: 'favored_enemy',
+        title: 'Favored Enemy',
+        type: 'favored_enemy',
+        isComplete: !!currentFavoredEnemy,
+        currentSelection: currentFavoredEnemy,
+      })
+    }
+    
+    // Natural Explorer selection
+    if (rangerFeatures.naturalExplorer) {
+      const currentNaturalExplorer = entry.naturalExplorerChoice
+      
+      sections.push({
+        id: 'natural_explorer',
+        title: 'Natural Explorer',
+        type: 'natural_explorer',
+        isComplete: !!currentNaturalExplorer,
+        currentSelection: currentNaturalExplorer,
+      })
     }
   }
 
@@ -808,6 +887,102 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
                       )}
                     </div>
                   )}
+
+                  {/* Mystic Arcanum Selection */}
+                  {section.type === 'mystic_arcanum' && (
+                    <div className="mt-2 pt-2 border-t border-current/20">
+                      {section.currentSpell ? (
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2 text-xs">
+                            <Crown className="w-3 h-3 text-purple-600" />
+                            <span className="font-medium">Mystic Arcanum:</span>
+                          </div>
+                          <div className="flex flex-wrap gap-1 ml-5">
+                            <Badge variant="secondary" className="text-xs">
+                              {allMysticArcanumSpells[section.spellLevel as keyof typeof allMysticArcanumSpells]?.[section.currentSpell]?.name}
+                            </Badge>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                          <AlertTriangle className="w-3 h-3" />
+                          <span>Choose {section.spellLevel === 6 ? '6th' : section.spellLevel === 7 ? '7th' : section.spellLevel === 8 ? '8th' : '9th'}-level Mystic Arcanum spell</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Pact Boon Selection */}
+                  {section.type === 'pact_boon' && (
+                    <div className="mt-2 pt-2 border-t border-current/20">
+                      {section.currentPactBoon ? (
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2 text-xs">
+                            <Crown className="w-3 h-3 text-purple-600" />
+                            <span className="font-medium">Pact Boon:</span>
+                          </div>
+                          <div className="flex flex-wrap gap-1 ml-5">
+                            <Badge variant="secondary" className="text-xs">
+                              {pactBoons[section.currentPactBoon]?.name}
+                            </Badge>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                          <AlertTriangle className="w-3 h-3" />
+                          <span>Choose your Pact Boon</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Favored Enemy Selection */}
+                  {section.type === 'favored_enemy' && (
+                    <div className="mt-2 pt-2 border-t border-current/20">
+                      {section.currentSelection ? (
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2 text-xs">
+                            <Target className="w-3 h-3 text-green-600" />
+                            <span className="font-medium">Favored Enemy:</span>
+                          </div>
+                          <div className="flex flex-wrap gap-1 ml-5">
+                            <Badge variant="secondary" className="text-xs">
+                              {favoredEnemies[section.currentSelection]?.name}
+                            </Badge>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                          <AlertTriangle className="w-3 h-3" />
+                          <span>Choose your Favored Enemy</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Natural Explorer Selection */}
+                  {section.type === 'natural_explorer' && (
+                    <div className="mt-2 pt-2 border-t border-current/20">
+                      {section.currentSelection ? (
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2 text-xs">
+                            <TreePine className="w-3 h-3 text-green-600" />
+                            <span className="font-medium">Natural Explorer:</span>
+                          </div>
+                          <div className="flex flex-wrap gap-1 ml-5">
+                            <Badge variant="secondary" className="text-xs">
+                              {naturalExplorerTerrains[section.currentSelection]?.name}
+                            </Badge>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                          <AlertTriangle className="w-3 h-3" />
+                          <span>Choose your Natural Explorer terrain</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 {/* Expandable Content */}
@@ -890,6 +1065,86 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
                 updateLevel(entry.level, { eldritchInvocationChoices: invocations })
                 // Only close when all choices are made
                 if (invocations.length === section.invocationCount) {
+                  setExpandedSection(null)
+                }
+              }}
+              className="border-none bg-transparent"
+            />
+          </div>
+        )
+
+      case 'mystic_arcanum':
+        return (
+          <div className="p-3 bg-panel/5">
+            <MysticArcanumSelection
+              spellLevel={section.spellLevel}
+              currentSpell={section.currentSpell}
+              onSpellSelected={(spellId) => {
+                const currentChoices = entry.mysticArcanumChoices || {}
+                const updatedChoices = { ...currentChoices }
+                
+                if (spellId) {
+                  updatedChoices[section.spellLevel] = spellId
+                } else {
+                  delete updatedChoices[section.spellLevel]
+                }
+                
+                updateLevel(entry.level, { mysticArcanumChoices: updatedChoices })
+                // Close when spell is selected
+                if (spellId) {
+                  setExpandedSection(null)
+                }
+              }}
+              className="border-none bg-transparent"
+            />
+          </div>
+        )
+
+      case 'pact_boon':
+        return (
+          <div className="p-3 bg-panel/5">
+            <PactBoonSelection
+              currentPactBoon={section.currentPactBoon}
+              onPactBoonSelected={(pactBoonId) => {
+                updateLevel(entry.level, { pactBoonChoice: pactBoonId })
+                // Close when pact boon is selected
+                if (pactBoonId) {
+                  setExpandedSection(null)
+                }
+              }}
+              className="border-none bg-transparent"
+            />
+          </div>
+        )
+
+      case 'favored_enemy':
+        return (
+          <div className="p-3 bg-panel/5">
+            <RangerFeatureSelection
+              featureType="favored_enemy"
+              currentSelection={section.currentSelection}
+              onSelectionChanged={(selection) => {
+                updateLevel(entry.level, { favoredEnemyChoice: selection })
+                // Close when selection is made
+                if (selection) {
+                  setExpandedSection(null)
+                }
+              }}
+              className="border-none bg-transparent"
+            />
+          </div>
+        )
+
+      case 'natural_explorer':
+        return (
+          <div className="p-3 bg-panel/5">
+            <RangerFeatureSelection
+              featureType="natural_explorer"
+              currentSelection={section.currentSelection}
+              onSelectionChanged={(selection) => {
+                updateLevel(entry.level, { naturalExplorerChoice: selection })
+                // Close when selection is made
+                if (selection) {
                   setExpandedSection(null)
                 }
               }}

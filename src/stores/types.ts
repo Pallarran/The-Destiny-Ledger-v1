@@ -45,6 +45,10 @@ export interface CanonicalBuild {
   maneuvers: string[] // Battle Master maneuver IDs
   metamagic: string[] // Sorcerer metamagic option IDs
   eldritchInvocations: string[] // Warlock eldritch invocation IDs
+  mysticArcanum: Record<number, string> // Warlock Mystic Arcanum spells by level (6th, 7th, 8th, 9th)
+  pactBoon?: string // Warlock Pact Boon selection (blade, chain, tome)
+  favoredEnemies: string[] // Ranger Favored Enemy selections
+  naturalExplorer: string[] // Ranger Natural Explorer terrain selections
   spells: Array<{
     spell: SpellId
     prepared?: boolean
@@ -94,6 +98,10 @@ export interface LevelEntry {
   maneuverChoices?: string[] // Battle Master maneuvers chosen at this level
   metamagicChoices?: string[] // Sorcerer metamagic options chosen at this level
   eldritchInvocationChoices?: string[] // Warlock eldritch invocations chosen at this level
+  mysticArcanumChoices?: Record<number, string> // Warlock Mystic Arcanum spells chosen at this level
+  pactBoonChoice?: string // Warlock Pact Boon chosen at this level
+  favoredEnemyChoice?: string // Ranger Favored Enemy chosen at this level
+  naturalExplorerChoice?: string // Ranger Natural Explorer terrain chosen at this level
 }
 
 // Legacy BuildConfiguration - will migrate to CanonicalBuild gradually

@@ -65,6 +65,21 @@ export function convertToCanonicalBuild(legacy: BuildConfiguration): CanonicalBu
   // Extract eldritch invocation choices from level timeline
   const eldritchInvocationChoices = legacy.levelTimeline?.flatMap(entry => entry.eldritchInvocationChoices || []) || []
   
+  // Extract mystic arcanum choices from level timeline
+  const mysticArcanumChoices: Record<number, string> = {}
+  for (const entry of legacy.levelTimeline || []) {
+    if (entry.mysticArcanumChoices) {
+      Object.assign(mysticArcanumChoices, entry.mysticArcanumChoices)
+    }
+  }
+  
+  // Extract pact boon choice from level timeline
+  const pactBoonChoice = legacy.levelTimeline?.find(entry => entry.pactBoonChoice)?.pactBoonChoice
+  
+  // Extract ranger feature choices from level timeline
+  const favoredEnemyChoices = legacy.levelTimeline?.map(entry => entry.favoredEnemyChoice).filter((choice): choice is string => Boolean(choice)) || []
+  const naturalExplorerChoices = legacy.levelTimeline?.map(entry => entry.naturalExplorerChoice).filter((choice): choice is string => Boolean(choice)) || []
+  
   // Extract feats from level timeline and downtime training
   const levelFeats = legacy.levelTimeline
     ?.filter(entry => entry.asiOrFeat === 'feat')
@@ -114,6 +129,10 @@ export function convertToCanonicalBuild(legacy: BuildConfiguration): CanonicalBu
     maneuvers: maneuverChoices,
     metamagic: metamagicChoices,
     eldritchInvocations: eldritchInvocationChoices,
+    mysticArcanum: mysticArcanumChoices,
+    pactBoon: pactBoonChoice,
+    favoredEnemies: favoredEnemyChoices,
+    naturalExplorer: naturalExplorerChoices,
     spells: [], // TODO: Extract from build if spellcaster
     equipment: {
       weapons,
@@ -155,7 +174,11 @@ export function convertToLegacyBuild(canonical: CanonicalBuild): Partial<BuildCo
         featId: undefined,
         maneuverChoices: [], // TODO: Distribute canonical.maneuvers to correct levels
         metamagicChoices: [], // TODO: Distribute canonical.metamagic to correct levels
-        eldritchInvocationChoices: [] // TODO: Distribute canonical.eldritchInvocations to correct levels
+        eldritchInvocationChoices: [], // TODO: Distribute canonical.eldritchInvocations to correct levels
+        mysticArcanumChoices: {}, // TODO: Distribute canonical.mysticArcanum to correct levels
+        pactBoonChoice: undefined, // TODO: Set canonical.pactBoon at level 3
+        favoredEnemyChoice: undefined, // TODO: Set canonical.favoredEnemies at levels 1, 6, 14
+        naturalExplorerChoice: undefined // TODO: Set canonical.naturalExplorer at levels 1, 6, 10
       })
     }
   }
