@@ -18,7 +18,7 @@ const FantasyFrame = React.forwardRef<HTMLDivElement, FantasyFrameProps>(
           case "border-image": return "fantasy-frame"
           case "background-overlay": return "fantasy-frame-alt"
           case "test": return "fantasy-frame-test"
-          case "img-overlay": return "relative bg-panel p-16 shadow-fantasy"
+          case "img-overlay": return "relative bg-transparent p-16"
           default: return "fantasy-frame"
         }
       }
@@ -39,19 +39,18 @@ const FantasyFrame = React.forwardRef<HTMLDivElement, FantasyFrameProps>(
           <img 
             src="/The-Destiny-Ledger-v1/assets/ornate-frame.png" 
             alt=""
-            className="absolute pointer-events-none z-30"
+            className="absolute pointer-events-none"
             style={{ 
-              top: '-40px',
-              left: '-40px', 
-              right: '-40px',
-              bottom: '-40px',
-              width: 'calc(100% + 80px)',
-              height: 'calc(100% + 80px)',
-              objectFit: 'fill'
+              top: '-60px',
+              left: '-60px', 
+              width: 'calc(100% + 120px)',
+              height: 'calc(100% + 120px)',
+              objectFit: 'contain',
+              zIndex: 2
             }}
           />
         )}
-        <div className="relative z-40">
+        <div className="relative z-10 bg-panel/95 backdrop-blur-sm rounded-lg shadow-lg">
           {title && (
             <div className="fantasy-header -mx-6 -mt-6 mb-6 px-6 py-3 rounded-t-xl">
               <h2 className="text-xl font-serif font-semibold tracking-wide">
