@@ -286,10 +286,20 @@ export function BuildSummary() {
     ) || backgroundSkills.some(bgSkill => 
       bgSkill.toLowerCase() === skill.name.toLowerCase()
     ) || false
-    // Check expertise from canonical build
-    const hasExpertise = canonicalBuild.profs.expertise.some(expertiseSkill => 
+    // Check expertise from canonical build AND legacy timeline (for backwards compatibility)
+    const hasCanonicalExpertise = canonicalBuild.profs.expertise.some(expertiseSkill => 
+      expertiseSkill.toLowerCase() === skill.name.toLowerCase()
+    )
+    const hasLegacyExpertise = currentBuild?.levelTimeline?.some(entry => 
+      entry.expertiseChoices?.some(expertiseSkill => 
+        expertiseSkill.toLowerCase() === skill.name.toLowerCase()
+      )
+    ) || false
+    const hasDowntimeExpertise = currentBuild?.downtimeTraining?.trainedSkillExpertise?.some(expertiseSkill =>
       expertiseSkill.toLowerCase() === skill.name.toLowerCase()
     ) || false
+    
+    const hasExpertise = hasCanonicalExpertise || hasLegacyExpertise || hasDowntimeExpertise
     
     let bonus = abilityMod
     if (isProficient) bonus += proficiencyBonus
