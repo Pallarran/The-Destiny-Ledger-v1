@@ -39,7 +39,7 @@ export const SpellSelection: React.FC<SpellSelectionProps> = ({
   newCantripsToLearn = 0,
   newSpellsToLearn = 0
 }) => {
-  const { currentBuild, getAllKnownSpells } = useCharacterBuilderStore()
+  const { currentBuild, getAllKnownSpells, getClassProgressionSpells } = useCharacterBuilderStore()
   
   // Helper function to calculate ability modifier
   const getAbilityModifier = (score: number) => Math.floor((score - 10) / 2)
@@ -64,6 +64,11 @@ export const SpellSelection: React.FC<SpellSelectionProps> = ({
   
   // Get all globally known spells to prevent duplicates
   const globalKnownSpells = getAllKnownSpells()
+  
+  // Get class progression spells (excludes racial spells) for limit calculations
+  const classProgressionSpells = getClassProgressionSpells()
+  // Note: racialSpells kept for future use if needed
+  // const racialSpells = getRacialSpells()
   
   // Filter spells by selected level and search query
   const filteredSpells = useMemo(() => {
@@ -130,12 +135,24 @@ export const SpellSelection: React.FC<SpellSelectionProps> = ({
   }
   
   const limits = getSpellLimits()
+  
+  // For limits, only count class progression spells, not racial spells
   const selectedCantrips = selectedSpells.filter(id => {
     const spell = availableSpells.find((s: Spell) => s.id === id)
     return spell?.level === 0
   })
   const selectedLeveledSpells = selectedSpells.filter(id => {
     const spell = availableSpells.find((s: Spell) => s.id === id)
+    return spell && spell.level > 0
+  })
+  
+  // Count class progression cantrips/spells separately (exclude racial spells from limits)
+  const classProgressionCantrips = classProgressionSpells.filter((spellId: string) => {
+    const spell = availableSpells.find((s: Spell) => s.id === spellId)
+    return spell?.level === 0
+  })
+  const classProgressionLeveledSpells = classProgressionSpells.filter((spellId: string) => {
+    const spell = availableSpells.find((s: Spell) => s.id === spellId)
     return spell && spell.level > 0
   })
   
@@ -149,11 +166,11 @@ export const SpellSelection: React.FC<SpellSelectionProps> = ({
     if (isSelected) {
       onSpellsChange(selectedSpells.filter(id => id !== spellId))
     } else {
-      // Check limits
-      if (isCantrip && selectedCantrips.length >= limits.cantrips) {
+      // Check limits (only count class progression spells, not racial spells)
+      if (isCantrip && classProgressionCantrips.length + selectedCantrips.length >= limits.cantrips) {
         return // Can't add more cantrips
       }
-      if (!isCantrip && selectedLeveledSpells.length >= limits.spells) {
+      if (!isCantrip && classProgressionLeveledSpells.length + selectedLeveledSpells.length >= limits.spells) {
         return // Can't add more spells
       }
       
@@ -191,10 +208,10 @@ export const SpellSelection: React.FC<SpellSelectionProps> = ({
           {newCantripsToLearn === 0 && newSpellsToLearn === 0 && (
             <>
               <span className="text-gray-600">
-                Cantrips: {selectedCantrips.length}/{limits.cantrips}
+                Cantrips: {classProgressionCantrips.length + selectedCantrips.length}/{limits.cantrips}
               </span>
               <span className="text-gray-600">
-                Spells: {selectedLeveledSpells.length}/{limits.spells}
+                Spells: {classProgressionLeveledSpells.length + selectedLeveledSpells.length}/{limits.spells}
               </span>
             </>
           )}

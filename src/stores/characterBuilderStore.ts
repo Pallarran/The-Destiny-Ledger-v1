@@ -107,6 +107,10 @@ interface CharacterBuilderStore extends CharacterBuilderState {
   getAllKnownSpells: () => string[]
   getAllKnownFeats: () => string[]
   getAllKnownSkills: () => string[]
+  
+  // Utility functions to separate racial vs class progression spells
+  getRacialSpells: () => string[]
+  getClassProgressionSpells: () => string[]
 }
 
 // Helper function to get features for a level entry
@@ -1460,6 +1464,51 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
       }
       
       return Array.from(allSpells)
+    },
+    
+    // Get only racial spells (separate from class progression)
+    getRacialSpells: () => {
+      const state = get()
+      const build = state.currentBuild
+      if (!build) return []
+      
+      const racialSpells = new Set<string>()
+      
+      // High Elf wizard cantrip
+      if (build.race === 'elf' && build.subrace === 'high_elf' && build.highElfCantrip) {
+        racialSpells.add(build.highElfCantrip)
+      }
+      
+      // Fixed racial spells (these are automatic, not selected, but still "known")
+      if (build.race === 'tiefling') {
+        racialSpells.add('thaumaturgy')
+      }
+      if (build.race === 'elf' && build.subrace === 'drow') {
+        racialSpells.add('dancing_lights')
+      }
+      if (build.race === 'gnome' && build.subrace === 'forest_gnome') {
+        racialSpells.add('minor_illusion')
+      }
+      
+      return Array.from(racialSpells)
+    },
+    
+    // Get only class progression spells (separate from racial spells)
+    getClassProgressionSpells: () => {
+      const state = get()
+      const build = state.currentBuild
+      if (!build) return []
+      
+      const classSpells = new Set<string>()
+      
+      // Spells from level progression (all classes)
+      build.enhancedLevelTimeline?.forEach(entry => {
+        if (entry.spellChoices) {
+          entry.spellChoices.forEach(spell => classSpells.add(spell))
+        }
+      })
+      
+      return Array.from(classSpells)
     },
     
     getAllKnownFeats: () => {
