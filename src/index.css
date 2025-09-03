@@ -232,6 +232,99 @@ h1, h2 {
   overflow: hidden;
 }
 
+/* Modular Frame System */
+.modular-frame {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* Corner pieces */
+.frame-corner {
+  position: absolute;
+  background-repeat: no-repeat;
+  background-size: contain;
+}
+
+.frame-corner.top-left {
+  top: 0;
+  left: 0;
+  width: 60px;
+  height: 60px;
+  background-image: url('/The-Destiny-Ledger-v1/assets/frame_top_left.png');
+}
+
+.frame-corner.top-right {
+  top: 0;
+  right: 0;
+  width: 60px;
+  height: 60px;
+  background-image: url('/The-Destiny-Ledger-v1/assets/frame_top_right.png');
+}
+
+.frame-corner.bottom-left {
+  bottom: 0;
+  left: 0;
+  width: 60px;
+  height: 60px;
+  background-image: url('/The-Destiny-Ledger-v1/assets/frame_bottom_left.png');
+}
+
+.frame-corner.bottom-right {
+  bottom: 0;
+  right: 0;
+  width: 60px;
+  height: 60px;
+  background-image: url('/The-Destiny-Ledger-v1/assets/frame_bottom_right.png');
+}
+
+/* Side pieces */
+.frame-side {
+  position: absolute;
+  background-repeat: repeat;
+}
+
+.frame-side.top {
+  top: 0;
+  left: 60px;
+  right: 60px;
+  height: 30px;
+  background-image: url('/The-Destiny-Ledger-v1/assets/frame_top.png');
+  background-size: auto 100%;
+  background-repeat: repeat-x;
+}
+
+.frame-side.bottom {
+  bottom: 0;
+  left: 60px;
+  right: 60px;
+  height: 30px;
+  background-image: url('/The-Destiny-Ledger-v1/assets/frame_bottom.png');
+  background-size: auto 100%;
+  background-repeat: repeat-x;
+}
+
+.frame-side.left {
+  top: 60px;
+  bottom: 60px;
+  left: 0;
+  width: 30px;
+  background-image: url('/The-Destiny-Ledger-v1/assets/frame_left.png');
+  background-size: 100% auto;
+  background-repeat: repeat-y;
+}
+
+.frame-side.right {
+  top: 60px;
+  bottom: 60px;
+  right: 0;
+  width: 30px;
+  background-image: url('/The-Destiny-Ledger-v1/assets/frame_right.png');
+  background-size: 100% auto;
+  background-repeat: repeat-y;
+}
+
 /* Header with ornate styling */
 .fantasy-header {
   background: linear-gradient(135deg, var(--ink) 0%, #2A3441 100%);

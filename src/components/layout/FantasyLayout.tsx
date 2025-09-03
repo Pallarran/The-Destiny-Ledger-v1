@@ -25,21 +25,23 @@ export function FantasyLayout({ children }: FantasyLayoutProps) {
 
   return (
     <div className="relative min-h-screen bg-bg">
-      {/* Frame scaled down to appear thinner (zoomed out effect) */}
-      <div className="fixed inset-0 pointer-events-none z-40 flex items-center justify-center">
-        <img 
-          src="/The-Destiny-Ledger-v1/assets/ornate-frame.png" 
-          alt=""
-          className="w-full h-full"
-          style={{ 
-            objectFit: 'fill',
-            transform: 'scale(0.8)',  // Zoom out effect to make frame appear thinner
-          }}
-        />
+      {/* Modular frame system using separate corner and side pieces */}
+      <div className="modular-frame">
+        {/* Corner pieces */}
+        <div className="frame-corner top-left"></div>
+        <div className="frame-corner top-right"></div>
+        <div className="frame-corner bottom-left"></div>
+        <div className="frame-corner bottom-right"></div>
+        
+        {/* Side pieces */}
+        <div className="frame-side top"></div>
+        <div className="frame-side bottom"></div>
+        <div className="frame-side left"></div>
+        <div className="frame-side right"></div>
       </div>
 
       {/* Main content area with smaller margins for thinner frame border */}
-      <div className="relative min-h-screen parchment-bg" style={{ margin: '30px 40px 30px 40px' }}>
+      <div className="relative min-h-screen parchment-bg" style={{ margin: '30px' }}>
 
         {/* Content inside frame - no top padding, title bar at frame edge */}
         <div className="relative h-full flex flex-col" style={{ 
