@@ -610,9 +610,13 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
     if (gainsSpells) {
       const currentSpells = entry.spellChoices || []
       
-      // Get all spells known from previous levels
+      // Get all spells known from previous levels (consider multiclassing with same spell list)
       let previousSpells = currentBuild?.enhancedLevelTimeline
-        ?.filter((e: any) => e.level < entry.level && e.classId === entry.classId)
+        ?.filter((e: any) => e.level < entry.level && (
+          e.classId === entry.classId || // Same class
+          (entry.classId === 'wizard' && e.classId === 'fighter' && e.subclassId === 'eldritch_knight') || // EK spells count for Wizard
+          (e.classId === 'wizard' && entry.classId === 'fighter' && entry.subclassId === 'eldritch_knight') // Wizard spells count for EK
+        ))
         ?.flatMap((e: any) => e.spellChoices || []) || []
       
       // Add racial spells to previously known spells
@@ -682,9 +686,13 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
     if (gainsSpells) {
       const currentSpells = entry.spellChoices || []
       
-      // Get all spells known from previous levels of the same class
+      // Get all spells known from previous levels (consider multiclassing with same spell list)
       let previousSpells = currentBuild?.enhancedLevelTimeline
-        ?.filter((e: any) => e.level < entry.level && e.classId === entry.classId && e.subclassId === subclassId)
+        ?.filter((e: any) => e.level < entry.level && (
+          (e.classId === entry.classId && e.subclassId === subclassId) || // Same subclass
+          (subclassId === 'eldritch_knight' && e.classId === 'wizard') || // Wizard spells count for EK
+          (subclassId === 'arcane_trickster' && e.classId === 'wizard') // Wizard spells count for AT (they also use wizard list)
+        ))
         ?.flatMap((e: any) => e.spellChoices || []) || []
       
       // Add racial spells to previously known spells for third casters
