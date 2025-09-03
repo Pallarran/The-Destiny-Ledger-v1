@@ -3,13 +3,14 @@ import { Button } from '../ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card'
 import { Badge } from '../ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select'
+import { ClassIcon } from '../ui/class-icon'
 import { useCharacterBuilderStore } from '../../stores/characterBuilderStore'
 import { classes } from '../../rules/srd/classes'
 import { feats } from '../../rules/srd/feats'
 import { subclasses } from '../../rules/srd/subclasses'
 import { getClass } from '../../rules/loaders'
 import { getProficiencyBonus } from '../../rules/srd/skills'
-import { Plus, Sword, BookOpen, Shield, Star, ChevronRight, AlertTriangle, CheckCircle, Clock, Heart, TrendingUp, Sparkles, Trash2, Crown, Target, TreePine } from 'lucide-react'
+import { Plus, Sword, ChevronRight, AlertTriangle, CheckCircle, Clock, Heart, TrendingUp, Sparkles, Trash2, Crown, Target, TreePine, Star } from 'lucide-react'
 import type { BuilderLevelEntry } from '../../types/character'
 import { ExpertiseSelection } from './ExpertiseSelection'
 import { ManeuverSelection } from './ManeuverSelection'
@@ -28,12 +29,7 @@ import { pactBoons } from '../../rules/srd/pactBoons'
 import { favoredEnemies, naturalExplorerTerrains, getRangerFeaturesAtLevel } from '../../rules/srd/rangerFeatures'
 import { spellsKnownProgression } from '../../rules/srd/spells'
 
-const CLASS_ICONS = {
-  fighter: Sword,
-  wizard: BookOpen,
-  rogue: Shield,
-  cleric: Star,
-} as const
+// Use ClassIcon component instead of Lucide icons
 
 // Helper function to calculate hit points gained at level
 function calculateHitPointsGained(classData: any, isFirstLevel: boolean): number {
@@ -198,7 +194,7 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
   canRemove?: boolean
 }) {
   const [expandedSection, setExpandedSection] = useState<string | null>(null)
-  const Icon = classData ? CLASS_ICONS[classData.id as keyof typeof CLASS_ICONS] || Sword : Clock
+  // Use ClassIcon component for class representation
 
   // Get class features for this level
   const classFeatures = classData?.features?.[classLevel] || []
@@ -760,7 +756,11 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
               {entry.level}
             </div>
             <div className="flex items-center gap-2">
-              <Icon className="w-5 h-5" />
+              {classData ? (
+                <ClassIcon className={classData.id} size="md" fallback={<Clock className="w-5 h-5" />} />
+              ) : (
+                <Clock className="w-5 h-5" />
+              )}
               <span className="font-semibold text-base">
                 {classData?.name || entry.classId} {classLevel}
               </span>
@@ -1617,11 +1617,10 @@ export function EnhancedLevelTimeline() {
                 </SelectTrigger>
                 <SelectContent>
                   {availableClasses.map(cls => {
-                    const Icon = CLASS_ICONS[cls.id as keyof typeof CLASS_ICONS] || Sword
                     return (
                       <SelectItem key={cls.id} value={cls.id}>
                         <div className="flex items-center gap-2">
-                          <Icon className="w-4 h-4" />
+                          <ClassIcon className={cls.id} size="sm" fallback={<Sword className="w-4 h-4" />} />
                           <span>{cls.name}</span>
                         </div>
                       </SelectItem>

@@ -3,6 +3,7 @@ import { Panel } from '../components/ui/panel'
 import { ChartFrame } from '../components/ui/chart-frame'
 import { Button } from '../components/ui/button'
 import { Switch } from '../components/ui/switch'
+import { ClassIcon, getPrimaryClass } from '../components/ui/class-icon'
 import { Badge } from '../components/ui/badge'
 import { useVaultStore } from '../stores/vaultStore'
 import { buildToCombatState, getWeaponConfig } from '../engine/simulator'
@@ -258,6 +259,11 @@ export function Compare() {
                     className="w-3 h-3 rounded-full" 
                     style={{ backgroundColor: build.color }}
                   />
+                  <ClassIcon 
+                    className={getPrimaryClass(build) || 'fighter'} 
+                    size="sm" 
+                    fallback={null}
+                  />
                   <span className="text-sm font-medium">{build.name}</span>
                   <button
                     onClick={() => setSelectedBuildIds(prev => prev.filter(id => id !== build.id))}
@@ -430,6 +436,11 @@ export function Compare() {
                               <div 
                                 className="w-3 h-3 rounded-full" 
                                 style={{ backgroundColor: build.color }}
+                              />
+                              <ClassIcon 
+                                className={getPrimaryClass(build) || 'fighter'} 
+                                size="sm" 
+                                fallback={null}
                               />
                               <span className="font-medium">{build.name}</span>
                             </div>

@@ -3,6 +3,7 @@ import { Panel } from '../components/ui/panel'
 import { Button } from '../components/ui/button'
 import { Card, CardContent } from '../components/ui/card'
 import { Link, useNavigate } from 'react-router-dom'
+import { ClassIcon, getPrimaryClass } from '../components/ui/class-icon'
 import { useVaultStore, getFilteredBuilds } from '../stores/vaultStore'
 import { useCharacterBuilderStore } from '../stores/characterBuilderStore'
 import { formatDistanceToNow } from 'date-fns'
@@ -244,7 +245,11 @@ export function BuildVault() {
               <CardContent className="p-0">
                 <div className="flex justify-between items-start mb-3">
                   <div className="flex items-center gap-2">
-                    <User className="w-5 h-5 text-accent" />
+                    <ClassIcon 
+                      className={getPrimaryClass(build) || 'fighter'} 
+                      size="md" 
+                      fallback={<User className="w-5 h-5 text-accent" />}
+                    />
                     <span className="text-sm text-muted">Level {build?.currentLevel || 1}</span>
                   </div>
                   <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">

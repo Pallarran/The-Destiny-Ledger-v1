@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { Panel, PanelHeader } from '../components/ui/panel'
 import { ChartFrame } from '../components/ui/chart-frame'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs'
+import { ClassIcon, getPrimaryClass } from '../components/ui/class-icon'
 import CombatRoundOptimizer from '../components/optimizer/CombatRoundOptimizer'
 import { BuildFeaturesPanel } from '../components/dpr/BuildFeaturesPanel'
 import { ActiveEffectsDisplay } from '../components/dpr/ActiveEffectsDisplay'
@@ -302,6 +303,11 @@ export function DprLab() {
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center gap-3">
+                      <ClassIcon 
+                        className={getPrimaryClass(selectedBuild) || 'fighter'} 
+                        size="md" 
+                        fallback={null}
+                      />
                       <h3 className="font-semibold text-lg text-foreground">{selectedBuild.name}</h3>
                       <button
                         onClick={() => {
