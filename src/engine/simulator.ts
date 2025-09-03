@@ -180,7 +180,9 @@ export function buildToCombatState(build: BuildConfiguration, level?: number): C
 // Convert weapon ID to weapon config
 export function getWeaponConfig(weaponId: string, enhancement: number = 0, combatState?: CombatState): WeaponConfig | null {
   const weapon = weapons[weaponId]
-  if (!weapon) return null
+  if (!weapon || !weapon.damage || weapon.damage.length === 0) return null
+  
+  const primaryDamage = weapon.damage[0]
   
   // Check if weapon has Great Weapon Fighting style applicable
   const isHeavyTwoHanded = weapon.properties.includes('heavy') && weapon.properties.includes('two-handed')
@@ -188,13 +190,13 @@ export function getWeaponConfig(weaponId: string, enhancement: number = 0, comba
   
   return {
     baseDamage: {
-      count: weapon.damage[0].count,
-      die: weapon.damage[0].die,
+      count: primaryDamage.count,
+      die: primaryDamage.die,
       rerollOnes: hasGWF && isHeavyTwoHanded,
       rerollTwos: hasGWF && isHeavyTwoHanded
     },
     properties: weapon.properties as any[],
-    damageType: weapon.damage[0].type as any,
+    damageType: primaryDamage.type as any,
     enhancement
   }
 }

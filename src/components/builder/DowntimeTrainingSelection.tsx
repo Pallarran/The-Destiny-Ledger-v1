@@ -589,7 +589,7 @@ function TrainingSessionEditor({ session, onSave, onCancel }: TrainingSessionEdi
                                 <div>
                                   <span className="text-sm font-medium">{weapon.name}</span>
                                   <span className="text-xs text-muted ml-2">
-                                    ({weapon.category}, {weapon.damage[0].count}d{weapon.damage[0].die} {weapon.damage[0].type})
+                                    ({weapon.category}, {weapon.damage?.[0] ? `${weapon.damage[0].count}d${weapon.damage[0].die} ${weapon.damage[0].type}` : 'Unknown damage'})
                                   </span>
                                 </div>
                                 <Button

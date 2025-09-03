@@ -23,7 +23,7 @@ import { SpellSelection } from './SpellSelection'
 import { ThirdCasterSpellSelection } from './ThirdCasterSpellSelection'
 import { WizardSpellPreparation } from './WizardSpellPreparation'
 import { PreparedCasterSpellPreparation } from './PreparedCasterSpellPreparation'
-import { MulticlassSpellSummary } from './MulticlassSpellSummary'
+import { MulticlassSpellInfo } from './MulticlassSpellSummary'
 import { maneuvers, getManeuverProgression } from '../../rules/srd/maneuvers'
 import { metamagicOptions, getMetamagicProgression } from '../../rules/srd/metamagic'
 import { eldritchInvocations, getInvocationProgression } from '../../rules/srd/eldritchInvocations'
@@ -390,7 +390,8 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
         name: isMulticlass ? 'New Multiclass Spell Slots' : 'New Spell Slots',
         description: `Gain ${newSlots.join(', ')} spell slots`,
         icon: Sparkles,
-        isBonus: true
+        isBonus: true,
+        showMulticlassInfo: isMulticlass
       })
     }
     
@@ -399,7 +400,8 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
         name: isMulticlass ? 'Improved Multiclass Spell Slots' : 'Improved Spell Slots', 
         description: `Increase to ${improvedSlots.join(', ')} spell slots`,
         icon: Sparkles,
-        isBonus: true
+        isBonus: true,
+        showMulticlassInfo: isMulticlass
       })
     }
   }
@@ -1112,12 +1114,7 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
             </div>
           </div>
 
-          {/* Multiclass Spell Summary - show on highest level if multiclass casters exist */}
-          {entry.level === Math.max(...(currentBuild.enhancedLevelTimeline?.map((e: any) => e.level) || [entry.level])) && (
-            <div className="mb-4">
-              <MulticlassSpellSummary currentLevel={entry.level} />
-            </div>
-          )}
+          {/* Multiclass Spell Summary - removed, now shown as info bubble next to spell slot benefits */}
           
           {/* Feature Sections */}
           <div className="space-y-3">
@@ -1192,6 +1189,9 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
                               <IconComponent className={`w-3 h-3 ${benefit.isBonus ? 'text-gold' : 'text-red-500'}`} />
                               <span className="font-medium">{benefit.name}:</span>
                               <span className="text-muted">{benefit.description}</span>
+                              {(benefit as any).showMulticlassInfo && (
+                                <MulticlassSpellInfo currentLevel={entry.level} />
+                              )}
                             </div>
                           )
                         })}

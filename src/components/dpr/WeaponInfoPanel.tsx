@@ -16,6 +16,10 @@ interface WeaponInfo {
   category: 'melee' | 'ranged'
   abilityUsed: 'STR' | 'DEX'
   abilityModifier: number
+  damageRoll: {
+    count: number
+    die: number
+  }
 }
 
 function getWeaponInfo(build: BuildConfiguration): WeaponInfo | null {
@@ -23,7 +27,7 @@ function getWeaponInfo(build: BuildConfiguration): WeaponInfo | null {
   if (!weaponId) return null
 
   const weapon = weapons[weaponId]
-  if (!weapon) return null
+  if (!weapon || !weapon.damage || weapon.damage.length === 0) return null
 
   // Calculate ability modifier used
   const strMod = Math.floor((build.abilityScores.STR - 10) / 2)
@@ -44,7 +48,7 @@ function getWeaponInfo(build: BuildConfiguration): WeaponInfo | null {
     abilityModifier = dexMod
   }
 
-  // Format damage string
+  // Format damage string - now safe after validation above
   const damageRoll = weapon.damage[0]
   const damageString = `${damageRoll.count}d${damageRoll.die}${abilityModifier >= 0 ? '+' : ''}${abilityModifier}`
 
@@ -55,7 +59,11 @@ function getWeaponInfo(build: BuildConfiguration): WeaponInfo | null {
     properties: weapon.properties,
     category: weapon.category,
     abilityUsed,
-    abilityModifier
+    abilityModifier,
+    damageRoll: {
+      count: damageRoll.count,
+      die: damageRoll.die
+    }
   }
 }
 
@@ -166,7 +174,7 @@ export function WeaponInfoPanel({ build }: WeaponInfoPanelProps) {
           <div>
             <div className="text-muted">Damage Die</div>
             <div className="font-medium">
-              {weapons[weaponInfo.id].damage[0].count}d{weapons[weaponInfo.id].damage[0].die}
+              {weaponInfo.damageRoll.count}d{weaponInfo.damageRoll.die}
             </div>
           </div>
         </div>
