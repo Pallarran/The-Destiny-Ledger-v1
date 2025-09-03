@@ -1052,6 +1052,47 @@ export const level1Spells: Record<string, Spell> = {
     description: 'You create the image of an object, a creature, or some other visible phenomenon that is no larger than a 15-foot cube. The image appears at a spot within range and lasts for the duration. The image is purely visual; it isn\'t accompanied by sound, smell, or other sensory effects. You can use your action to cause the image to move to any spot within range.',
     classes: ['bard', 'sorcerer', 'wizard'],
     tags: ['illusion', 'concentration']
+  },
+  // Popular spells from expansions beyond SRD
+  absorb_elements: {
+    id: 'absorb_elements',
+    name: 'Absorb Elements',
+    level: 1,
+    school: 'Abjuration',
+    castingTime: '1 reaction',
+    range: 'Self',
+    components: 'S',
+    duration: '1 round',
+    description: 'The spell captures some of the incoming energy, lessening its effect on you and storing it for your next melee attack. You have resistance to the triggering damage type until the start of your next turn. Also, the first time you hit with a melee attack on your next turn, the target takes an extra 1d6 damage of the triggering type, and the spell ends.',
+    atHigherLevels: 'When you cast this spell using a spell slot of 2nd level or higher, the extra damage increases by 1d6 for each slot level above 1st.',
+    classes: ['druid', 'ranger', 'sorcerer', 'wizard'],
+    tags: ['defense', 'reaction', 'resistance', 'damage', 'abjuration', 'self']
+  },
+  silvery_barbs: {
+    id: 'silvery_barbs',
+    name: 'Silvery Barbs',
+    level: 1,
+    school: 'Enchantment',
+    castingTime: '1 reaction',
+    range: '60 feet',
+    components: 'V',
+    duration: 'Instantaneous',
+    description: 'You magically distract the triggering creature and turn its momentary uncertainty into encouragement for another creature. The triggering creature must reroll the d20 and use the lower roll. You can then choose a different creature you can see within range (you can choose yourself). The chosen creature has advantage on the next attack roll, ability check, or saving throw it makes within 1 minute.',
+    classes: ['bard', 'sorcerer', 'wizard'],
+    tags: ['control', 'reaction', 'reroll', 'enchantment', 'advantage']
+  },
+  gift_of_alacrity: {
+    id: 'gift_of_alacrity',
+    name: 'Gift of Alacrity',
+    level: 1,
+    school: 'Divination',
+    castingTime: '1 minute',
+    range: 'Touch',
+    components: 'V, S',
+    duration: '8 hours',
+    description: 'You touch a willing creature. For the duration, the target can add 1d8 to its initiative rolls.',
+    classes: ['wizard'],
+    tags: ['buff', 'initiative', 'divination', 'touch']
   }
 }
 
