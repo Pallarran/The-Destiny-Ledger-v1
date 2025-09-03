@@ -733,11 +733,9 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
     if (selectedArchetype) {
       // Find the subclass data
       const subclass = Object.values(subclasses).find((sub: any) => sub.id === selectedArchetype)
-      console.log('Archetype lookup:', { selectedArchetype, subclass: subclass?.name, classLevel })
       if (subclass && subclass.features) {
         // Get features for this class level from the subclass (features is an array, not keyed by level)
         const subclassFeatures = subclass.features.filter((f: any) => f.level === classLevel)
-        console.log('Subclass features for level', classLevel, ':', subclassFeatures)
         if (subclassFeatures && subclassFeatures.length > 0) {
           specificArchetypeFeatures.push(...subclassFeatures.map((f: any) => ({ 
             name: f.name, 
@@ -746,7 +744,6 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
         }
       }
     } else {
-      console.log('No archetype selected for entry:', entry)
     }
     
     sections.push({
@@ -827,6 +824,7 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
       
       const newCantripsToLearn = Math.max(0, spellProgression.cantripsKnown - previousClassCantrips.length)
       const newSpellsToLearn = Math.max(0, spellProgression.spellsKnown - previousLeveledSpells.length)
+      
       
       // Add racial spells back to previousSpells for display purposes in spell selection
       previousSpells = [...previousSpells, ...racialSpells]
@@ -998,6 +996,7 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
   const preparedCasterClasses = ['cleric', 'druid', 'paladin']
   const preparedCasterLevelsUpToHere = currentBuild?.enhancedLevelTimeline
     ?.filter((e: any) => e.level <= entry.level && preparedCasterClasses.includes(e.classId)) || []
+  
   
   if (preparedCasterLevelsUpToHere.length > 0) {
     // Group by class (in case of multiclass between prepared casters)

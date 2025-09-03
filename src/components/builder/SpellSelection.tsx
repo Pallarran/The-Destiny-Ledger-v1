@@ -39,7 +39,7 @@ export const SpellSelection: React.FC<SpellSelectionProps> = ({
   newCantripsToLearn = 0,
   newSpellsToLearn = 0
 }) => {
-  const { getAllKnownSpells, getClassProgressionSpells } = useCharacterBuilderStore()
+  const { getAllKnownSpells, getClassProgressionSpells, getRacialSpells } = useCharacterBuilderStore()
   
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedLevel, setSelectedLevel] = useState<number | 'cantrip'>(1)
@@ -47,6 +47,9 @@ export const SpellSelection: React.FC<SpellSelectionProps> = ({
   
   const classData = classes[classId]
   const isPreparedCaster = ['cleric', 'druid', 'paladin'].includes(classId.toLowerCase())
+  
+  // Get racial spells to check for racial knowledge
+  const racialSpells = getRacialSpells()
   
   // Get all available spells for this class
   const availableSpells = useMemo(() => {
@@ -65,8 +68,6 @@ export const SpellSelection: React.FC<SpellSelectionProps> = ({
   
   // Get class progression spells (excludes racial spells) for limit calculations
   const classProgressionSpells = getClassProgressionSpells()
-  // Note: racialSpells kept for future use if needed
-  // const racialSpells = getRacialSpells()
   
   // Filter spells by selected level and search query
   const filteredSpells = useMemo(() => {
@@ -142,10 +143,6 @@ export const SpellSelection: React.FC<SpellSelectionProps> = ({
     const spell = availableSpells.find((s: Spell) => s.id === spellId)
     return spell?.level === 0
   })
-  const classProgressionLeveledSpells = classProgressionSpells.filter((spellId: string) => {
-    const spell = availableSpells.find((s: Spell) => s.id === spellId)
-    return spell && spell.level > 0
-  })
   
   
   const toggleSpell = (spellId: string) => {
@@ -158,11 +155,11 @@ export const SpellSelection: React.FC<SpellSelectionProps> = ({
     if (isSelected) {
       onSpellsChange(selectedSpells.filter(id => id !== spellId))
     } else {
-      // Check limits (only count class progression spells, not racial spells)
-      if (isCantrip && classProgressionCantrips.length + selectedCantrips.length >= limits.cantrips) {
+      // Check limits - the limits already account for previous levels, so only check current selections
+      if (isCantrip && selectedCantrips.length >= limits.cantrips) {
         return // Can't add more cantrips
       }
-      if (!isCantrip && classProgressionLeveledSpells.length + selectedLeveledSpells.length >= limits.spells) {
+      if (!isCantrip && selectedLeveledSpells.length >= limits.spells) {
         return // Can't add more spells
       }
       
@@ -204,14 +201,14 @@ export const SpellSelection: React.FC<SpellSelectionProps> = ({
           {newCantripsToLearn === 0 && newSpellsToLearn === 0 && (
             <>
               <span className="text-gray-600">
-                Cantrips: {classProgressionCantrips.length + selectedCantrips.length}/{limits.cantrips}
+                Cantrips: {selectedCantrips.length}/{limits.cantrips}
               </span>
               <span className="text-gray-600">
                 {classId === 'wizard' 
-                  ? `Spells in Spellbook: ${classProgressionLeveledSpells.length + selectedLeveledSpells.length}/${limits.spells}`
+                  ? `Spells in Spellbook: ${selectedLeveledSpells.length}/${limits.spells}`
                   : isPreparedCaster
-                    ? `Cantrip Selections: ${classProgressionLeveledSpells.length + selectedLeveledSpells.length}/${limits.spells}`
-                    : `Spells: ${classProgressionLeveledSpells.length + selectedLeveledSpells.length}/${limits.spells}`
+                    ? `Cantrip Selections: ${selectedLeveledSpells.length}/${limits.spells}`
+                    : `Spells: ${selectedLeveledSpells.length}/${limits.spells}`
                 }
               </span>
             </>
@@ -278,11 +275,12 @@ export const SpellSelection: React.FC<SpellSelectionProps> = ({
           filteredSpells.map((spell) => {
             const isSelected = selectedSpells.includes(spell.id)
             const isAlreadyKnown = globalKnownSpells.includes(spell.id) && !isSelected
+            const isRacialSpell = racialSpells.includes(spell.id)
             const isExpanded = expandedSpell === spell.id
             const schoolInfo = SPELL_SCHOOLS[spell.school]
             const isCantrip = spell.level === 0
-            const canSelect = isAlreadyKnown 
-              ? false // Already known spells can't be toggled
+            const canSelect = (isAlreadyKnown || isRacialSpell) 
+              ? false // Already known or racial spells can't be toggled
               : isCantrip 
                 ? selectedCantrips.length < limits.cantrips || isSelected
                 : selectedLeveledSpells.length < limits.spells || isSelected
@@ -295,6 +293,8 @@ export const SpellSelection: React.FC<SpellSelectionProps> = ({
                     ? 'border-purple-500 bg-purple-50'
                     : isAlreadyKnown
                     ? 'border-green-300 bg-green-50'
+                    : isRacialSpell
+                    ? 'border-blue-300 bg-blue-50'
                     : canSelect
                     ? 'border-gray-200 hover:border-gray-300'
                     : 'border-gray-200 opacity-50'
@@ -310,9 +310,11 @@ export const SpellSelection: React.FC<SpellSelectionProps> = ({
                         ? 'bg-purple-600 border-purple-600'
                         : isAlreadyKnown
                         ? 'bg-green-600 border-green-600'
+                        : isRacialSpell
+                        ? 'bg-blue-600 border-blue-600'
                         : 'border-gray-300'
                     }`}>
-                      {(isSelected || isAlreadyKnown) && <Check className="w-3 h-3 text-white" />}
+                      {(isSelected || isAlreadyKnown || isRacialSpell) && <Check className="w-3 h-3 text-white" />}
                     </div>
                     
                     <div className="flex-1">
@@ -334,6 +336,11 @@ export const SpellSelection: React.FC<SpellSelectionProps> = ({
                         {isAlreadyKnown && (
                           <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">
                             Known
+                          </span>
+                        )}
+                        {isRacialSpell && (
+                          <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
+                            Known (Racial)
                           </span>
                         )}
                       </div>
