@@ -55,7 +55,7 @@ export function Landing() {
   ]
 
   return (
-    <div className="w-full h-full flex flex-col justify-center overflow-hidden">
+    <div className="w-full h-screen flex flex-col justify-center items-center overflow-hidden">
       {/* Compact centered layout */}
       <div className="text-center max-w-7xl mx-auto px-4">
         {/* Logo - smaller for single frame */}
