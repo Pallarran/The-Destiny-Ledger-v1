@@ -27,15 +27,21 @@ export function FantasyLayout({ children }: FantasyLayoutProps) {
     <div className="relative min-h-screen bg-bg">
       {/* Main framed area - moved to screen edges */}
       <div className="relative min-h-screen parchment-bg" style={{ margin: '4px 6px 6px 6px' }}>
-        {/* Ornate frame around entire content area - even thinner */}
-        <div className="absolute inset-0 pointer-events-none z-40 flex items-center justify-center">
+        {/* Ornate frame around entire content area - thinner but positioned at edges */}
+        <div className="absolute pointer-events-none z-40" 
+             style={{
+               top: '-15%',
+               left: '-15%', 
+               right: '-15%',
+               bottom: '-15%'
+             }}>
           <img 
             src="/The-Destiny-Ledger-v1/assets/ornate-frame.png" 
             alt=""
             className="w-full h-full"
             style={{ 
               objectFit: 'fill',
-              transform: 'scale(0.75)',  // Make frame even thinner
+              transform: 'scale(0.75)',  // Make frame thinner
             }}
           />
         </div>
