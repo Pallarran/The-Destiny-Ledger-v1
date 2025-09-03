@@ -25,8 +25,8 @@ export function FantasyLayout({ children }: FantasyLayoutProps) {
 
   return (
     <div className="relative min-h-screen bg-bg">
-      {/* Main framed area - smaller margins and closer to edges */}
-      <div className="relative min-h-screen parchment-bg" style={{ margin: '12px 20px 20px 20px' }}>
+      {/* Main framed area - even smaller margins, very close to edges */}
+      <div className="relative min-h-screen parchment-bg" style={{ margin: '8px 12px 12px 12px' }}>
         {/* Ornate frame around entire content area */}
         <div className="absolute inset-0 pointer-events-none z-40">
           <img 
@@ -39,9 +39,9 @@ export function FantasyLayout({ children }: FantasyLayoutProps) {
           />
         </div>
 
-        {/* Content inside frame - reduced padding */}
+        {/* Content inside frame - much thinner padding */}
         <div className="relative h-full flex flex-col" style={{ 
-          padding: '40px 50px',  // Reduced padding inside the frame
+          padding: '30px 35px',  // Much thinner frame appearance
         }}>
           {/* Title Bar - Inside frame at top */}
           <FantasyHeader currentPage={currentPage} isLandingPage={isLandingPage} />
