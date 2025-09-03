@@ -44,15 +44,15 @@ export function FantasyLayout({ children }: FantasyLayoutProps) {
       {/* Main content area with smaller margins for thinner frame border */}
       <div className="relative min-h-screen parchment-bg" style={{ margin: '30px' }}>
 
-        {/* Content inside frame - add top padding for fixed header */}
+        {/* Content inside frame - no top padding, title bar at frame edge */}
         <div className="relative h-full flex flex-col" style={{ 
-          padding: '60px 20px 20px 20px',  // Top padding for fixed header
+          padding: '0px 20px 20px 20px',  // No top padding, title bar touches frame
         }}>
-          {/* Title Bar - Fixed at top */}
+          {/* Title Bar - Sticky at top */}
           <FantasyHeader currentPage={currentPage} isLandingPage={isLandingPage} />
 
-          {/* Content area */}
-          <div className="flex flex-1" style={{ padding: '20px 0' }}>
+          {/* Content area with spacing from title bar */}
+          <div className="flex flex-1 mt-4" style={{ padding: '20px 0' }}>
             {/* Sidebar - only show on non-landing pages */}
             {!isLandingPage && <FantasySidebar />}
             
@@ -67,7 +67,7 @@ export function FantasyLayout({ children }: FantasyLayoutProps) {
       </div>
       
       {/* Legal & Licensing button in bottom left corner */}
-      <div className="fixed bottom-4 left-4" style={{ zIndex: 10001 }}>
+      <div className="fixed bottom-2 left-2" style={{ zIndex: 10001 }}>
         <LegalModal />
       </div>
     </div>
