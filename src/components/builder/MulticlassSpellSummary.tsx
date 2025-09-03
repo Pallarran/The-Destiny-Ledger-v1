@@ -154,7 +154,7 @@ export const MulticlassSpellInfo: React.FC<MulticlassSpellSummaryProps> = ({ cur
                       <span>
                         {leveledSpells.length} spell{leveledSpells.length === 1 ? '' : 's'}
                         {classId === 'wizard' ? ' in spellbook' : 
-                         ['cleric', 'druid', 'paladin'].includes(classId) ? ' (can prepare any from class list)' : 
+                         ['artificer', 'cleric', 'druid', 'paladin'].includes(classId) ? ' (can prepare any from class list)' : 
                          ' known'}
                       </span>
                     )}
@@ -298,7 +298,7 @@ export const MulticlassSpellSummary: React.FC<MulticlassSpellSummaryProps> = ({ 
                   <span>
                     {leveledSpells.length} spell{leveledSpells.length === 1 ? '' : 's'}
                     {classId === 'wizard' ? ' in spellbook' : 
-                     ['cleric', 'druid', 'paladin'].includes(classId) ? ' (can prepare any from class list)' : 
+                     ['artificer', 'cleric', 'druid', 'paladin'].includes(classId) ? ' (can prepare any from class list)' : 
                      ' known'}
                   </span>
                 )}

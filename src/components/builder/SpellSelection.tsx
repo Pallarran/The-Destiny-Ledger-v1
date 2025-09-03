@@ -46,7 +46,7 @@ export const SpellSelection: React.FC<SpellSelectionProps> = ({
   const [expandedSpell, setExpandedSpell] = useState<string | null>(null)
   
   const classData = classes[classId]
-  const isPreparedCaster = ['cleric', 'druid', 'paladin'].includes(classId.toLowerCase())
+  const isPreparedCaster = ['artificer', 'cleric', 'druid', 'paladin'].includes(classId.toLowerCase())
   
   // Get racial spells to check for racial knowledge
   const racialSpells = getRacialSpells()

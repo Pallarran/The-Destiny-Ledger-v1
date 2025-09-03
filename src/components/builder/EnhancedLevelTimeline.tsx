@@ -846,8 +846,8 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
           cantripsKnown: spellProgression.cantripsKnown
         })
       } else {
-        // For prepared casters (cleric, druid, paladin) and known casters (bard, sorcerer)
-        const isPreparedCaster = ['cleric', 'druid', 'paladin'].includes(entry.classId)
+        // For prepared casters (artificer, cleric, druid, paladin) and known casters (bard, sorcerer)
+        const isPreparedCaster = ['artificer', 'cleric', 'druid', 'paladin'].includes(entry.classId)
         sections.push({
           id: 'spell_selection',
           title: isPreparedCaster ? `Select Cantrips` : `Spell Selection`,
@@ -974,14 +974,12 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
         return !spellId.includes('cantrip') && !commonCantrips.includes(spellId)
       }) || []
 
-    // For multiclass, only show preparation on the highest level reached so far
-    const isHighestLevel = entry.level === Math.max(...(currentBuild?.enhancedLevelTimeline?.map((e: any) => e.level) || [entry.level]))
     const totalWizardLevels = wizardLevelsUpToHere.length
 
     // Get currently prepared spells (stored on the latest entry)
     const preparedSpells = entry.preparedSpells || []
     
-    if (spellbookSpells.length > 0 && (isHighestLevel || entry.classId === 'wizard')) {
+    if (spellbookSpells.length > 0 && entry.classId === 'wizard') {
       sections.push({
         id: 'wizard_preparation',
         title: `Prepare Wizard Spells`,
@@ -994,8 +992,8 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
     }
   }
 
-  // 4c. Prepared Caster Spell Preparation (cleric, druid, paladin) - separate from cantrip selection
-  const preparedCasterClasses = ['cleric', 'druid', 'paladin']
+  // 4c. Prepared Caster Spell Preparation (artificer, cleric, druid, paladin) - separate from cantrip selection
+  const preparedCasterClasses = ['artificer', 'cleric', 'druid', 'paladin']
   const preparedCasterLevelsUpToHere = currentBuild?.enhancedLevelTimeline
     ?.filter((e: any) => e.level <= entry.level && preparedCasterClasses.includes(e.classId)) || []
   
@@ -1012,13 +1010,12 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
 
     // For each prepared caster class, show spell preparation
     Object.entries(preparedCastersByClass).forEach(([classId, levels]) => {
-      const isHighestLevel = entry.level === Math.max(...(currentBuild?.enhancedLevelTimeline?.map((e: any) => e.level) || [entry.level]))
       const totalClassLevels = levels.length
       
       // Get currently prepared spells (stored on the latest entry)
       const preparedSpells = entry.preparedSpells || []
       
-      if (totalClassLevels > 0 && (isHighestLevel || entry.classId === classId)) {
+      if (totalClassLevels > 0 && entry.classId === classId) {
         sections.push({
           id: `${classId}_preparation`,
           title: `Prepare ${classId.charAt(0).toUpperCase() + classId.slice(1)} Spells`,
