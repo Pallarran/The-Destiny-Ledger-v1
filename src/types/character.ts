@@ -38,6 +38,7 @@ export interface BuilderLevelEntry extends LevelEntry {
   hitPointRoll?: number
   fightingStyle?: string
   archetype?: string
+  preparedSpells?: string[] // For wizard daily spell preparation (separate from spellbook)
 }
 
 // Extended build configuration for Phase 3

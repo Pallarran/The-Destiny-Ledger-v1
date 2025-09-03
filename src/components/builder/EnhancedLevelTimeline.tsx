@@ -21,6 +21,8 @@ import { PactBoonSelection } from './PactBoonSelection'
 import { RangerFeatureSelection } from './RangerFeatureSelection'
 import { SpellSelection } from './SpellSelection'
 import { ThirdCasterSpellSelection } from './ThirdCasterSpellSelection'
+import { WizardSpellPreparation } from './WizardSpellPreparation'
+import { MulticlassSpellSummary } from './MulticlassSpellSummary'
 import { maneuvers, getManeuverProgression } from '../../rules/srd/maneuvers'
 import { metamagicOptions, getMetamagicProgression } from '../../rules/srd/metamagic'
 import { eldritchInvocations, getInvocationProgression } from '../../rules/srd/eldritchInvocations'
@@ -140,28 +142,139 @@ const WARLOCK_PACT_SLOTS = {
   20: [0, 0, 0, 0, 4]  // 4 slots, level 5
 } as const
 
-// Helper function to get spell progression for a class
-function getSpellProgression(classId: string, classLevel: number, subclass?: string) {
+// Multiclass spell slot table (D&D 5e rules)
+const MULTICLASS_SPELL_SLOTS = {
+  1: [2, 0, 0, 0, 0, 0, 0, 0, 0],
+  2: [3, 0, 0, 0, 0, 0, 0, 0, 0],
+  3: [4, 2, 0, 0, 0, 0, 0, 0, 0],
+  4: [4, 3, 0, 0, 0, 0, 0, 0, 0],
+  5: [4, 3, 2, 0, 0, 0, 0, 0, 0],
+  6: [4, 3, 3, 0, 0, 0, 0, 0, 0],
+  7: [4, 3, 3, 1, 0, 0, 0, 0, 0],
+  8: [4, 3, 3, 2, 0, 0, 0, 0, 0],
+  9: [4, 3, 3, 3, 1, 0, 0, 0, 0],
+  10: [4, 3, 3, 3, 2, 0, 0, 0, 0],
+  11: [4, 3, 3, 3, 2, 1, 0, 0, 0],
+  12: [4, 3, 3, 3, 2, 1, 0, 0, 0],
+  13: [4, 3, 3, 3, 2, 1, 1, 0, 0],
+  14: [4, 3, 3, 3, 2, 1, 1, 0, 0],
+  15: [4, 3, 3, 3, 2, 1, 1, 1, 0],
+  16: [4, 3, 3, 3, 2, 1, 1, 1, 0],
+  17: [4, 3, 3, 3, 2, 1, 1, 1, 1],
+  18: [4, 3, 3, 3, 3, 1, 1, 1, 1],
+  19: [4, 3, 3, 3, 3, 2, 1, 1, 1],
+  20: [4, 3, 3, 3, 3, 2, 2, 1, 1]
+} as const
+
+// Calculate multiclass caster level based on D&D 5e rules
+function calculateMulticlassCasterLevel(timeline: BuilderLevelEntry[]): number {
+  let casterLevel = 0
+  
+  const classLevels: Record<string, number> = {}
+  const subclassLevels: Record<string, number> = {}
+  
+  // Count levels per class/subclass
+  timeline.forEach(entry => {
+    classLevels[entry.classId] = (classLevels[entry.classId] || 0) + 1
+    if (entry.subclassId) {
+      const key = `${entry.classId}_${entry.subclassId}`
+      subclassLevels[key] = (subclassLevels[key] || 0) + 1
+    }
+  })
+  
+  // Full casters: add full levels
+  const fullCasters = ['wizard', 'cleric', 'bard', 'sorcerer', 'druid']
+  fullCasters.forEach(classId => {
+    if (classLevels[classId]) {
+      casterLevel += classLevels[classId]
+    }
+  })
+  
+  // Half casters: add half levels (rounded down)
+  const halfCasters = ['paladin', 'ranger', 'artificer']
+  halfCasters.forEach(classId => {
+    if (classLevels[classId]) {
+      casterLevel += Math.floor(classLevels[classId] / 2)
+    }
+  })
+  
+  // Third casters: add 1/3 levels (rounded down)
+  const thirdCasterSubclasses = ['fighter_eldritch_knight', 'rogue_arcane_trickster']
+  thirdCasterSubclasses.forEach(key => {
+    if (subclassLevels[key]) {
+      casterLevel += Math.floor(subclassLevels[key] / 3)
+    }
+  })
+  
+  return casterLevel
+}
+
+// Check if this is a multiclass build with multiple caster classes
+function isMulticlassBuild(timeline: BuilderLevelEntry[], upToLevel: number): boolean {
+  const relevantTimeline = timeline.filter(entry => entry.level <= upToLevel)
+  const casterClasses = new Set<string>()
+  
+  relevantTimeline.forEach(entry => {
+    // Full casters
+    if (['wizard', 'cleric', 'bard', 'sorcerer', 'druid'].includes(entry.classId)) {
+      casterClasses.add(entry.classId)
+    }
+    // Half casters
+    else if (['paladin', 'ranger', 'artificer'].includes(entry.classId)) {
+      casterClasses.add(entry.classId)
+    }
+    // Third casters
+    else if ((entry.classId === 'fighter' && entry.subclassId === 'eldritch_knight') ||
+             (entry.classId === 'rogue' && entry.subclassId === 'arcane_trickster')) {
+      casterClasses.add(`${entry.classId}_${entry.subclassId}`)
+    }
+    // Note: Warlock uses Pact Magic which is separate, but can still be multiclassed
+    else if (entry.classId === 'warlock') {
+      casterClasses.add(entry.classId)
+    }
+  })
+  
+  return casterClasses.size > 1
+}
+
+// Get multiclass spell slots for a given total character level
+function getMulticlassSpellSlots(timeline: BuilderLevelEntry[], upToLevel: number): number[] | null {
+  const relevantTimeline = timeline.filter(entry => entry.level <= upToLevel)
+  const casterLevel = calculateMulticlassCasterLevel(relevantTimeline)
+  
+  if (casterLevel === 0) return null
+  
+  const slots = MULTICLASS_SPELL_SLOTS[Math.min(casterLevel, 20) as keyof typeof MULTICLASS_SPELL_SLOTS]
+  return slots ? [...slots] : null // Convert readonly array to mutable array
+}
+
+// Helper function to get spell progression for a class (single class or individual class in multiclass)
+function getSpellProgression(classId: string, classLevel: number, subclass?: string): number[] | null {
   const fullCasters = ['wizard', 'cleric', 'bard', 'sorcerer', 'druid']
   const halfCasters = ['paladin', 'ranger', 'artificer']
   
   // Handle subclass third casters
   if (classId === 'fighter' && subclass === 'eldritch_knight') {
-    return THIRD_CASTER_SLOTS[classLevel as keyof typeof THIRD_CASTER_SLOTS] || null
+    const slots = THIRD_CASTER_SLOTS[classLevel as keyof typeof THIRD_CASTER_SLOTS]
+    return slots ? [...slots] : null
   }
   if (classId === 'rogue' && subclass === 'arcane_trickster') {
-    return THIRD_CASTER_SLOTS[classLevel as keyof typeof THIRD_CASTER_SLOTS] || null
+    const slots = THIRD_CASTER_SLOTS[classLevel as keyof typeof THIRD_CASTER_SLOTS]
+    return slots ? [...slots] : null
   }
   
-  // Handle Warlock pact magic
+  // Handle Warlock pact magic (separate from multiclass slots)
   if (classId === 'warlock') {
-    return WARLOCK_PACT_SLOTS[classLevel as keyof typeof WARLOCK_PACT_SLOTS] || null
+    const slots = WARLOCK_PACT_SLOTS[classLevel as keyof typeof WARLOCK_PACT_SLOTS]
+    return slots ? [...slots] : null
   }
   
   if (fullCasters.includes(classId)) {
-    return FULL_CASTER_SLOTS[classLevel as keyof typeof FULL_CASTER_SLOTS] || null
+    const slots = FULL_CASTER_SLOTS[classLevel as keyof typeof FULL_CASTER_SLOTS]
+    return slots ? [...slots] : null
   } else if (halfCasters.includes(classId)) {
-    return HALF_CASTER_SLOTS[classLevel as keyof typeof HALF_CASTER_SLOTS] || null
+    const slots = HALF_CASTER_SLOTS[classLevel as keyof typeof HALF_CASTER_SLOTS]
+    return slots ? [...slots] : null
   }
   
   return null
@@ -206,9 +319,32 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
   const isFirstClassLevel = classLevel === 1
   const levelBenefits = getLevelBenefits(entry.level, classData, isFirstClassLevel)
   
-  // Check for spell progression
-  const spellSlots = getSpellProgression(entry.classId, classLevel, entry.subclassId)
-  const prevSpellSlots = classLevel > 1 ? getSpellProgression(entry.classId, classLevel - 1, entry.subclassId) : null
+  // Check for spell progression - use multiclass if multiple caster classes exist
+  const timeline = currentBuild?.enhancedLevelTimeline || []
+  const isMulticlass = isMulticlassBuild(timeline, entry.level)
+  
+  let spellSlots: number[] | null = null
+  let prevSpellSlots: number[] | null = null
+  let pactMagicSlots: number[] | null = null
+  let prevPactMagicSlots: number[] | null = null
+  
+  // Handle Warlock pact magic (always separate)
+  if (entry.classId === 'warlock') {
+    pactMagicSlots = getSpellProgression(entry.classId, classLevel, entry.subclassId)
+    prevPactMagicSlots = classLevel > 1 ? getSpellProgression(entry.classId, classLevel - 1, entry.subclassId) : null
+  }
+  
+  if (isMulticlass) {
+    // Use multiclass spell slot calculation (excludes warlock)
+    spellSlots = getMulticlassSpellSlots(timeline, entry.level)
+    prevSpellSlots = entry.level > 1 ? getMulticlassSpellSlots(timeline, entry.level - 1) : null
+  } else {
+    // Use single class spell slot calculation (unless it's warlock, handled above)
+    if (entry.classId !== 'warlock') {
+      spellSlots = getSpellProgression(entry.classId, classLevel, entry.subclassId)
+      prevSpellSlots = classLevel > 1 ? getSpellProgression(entry.classId, classLevel - 1, entry.subclassId) : null
+    }
+  }
   
   // Create comprehensive feature/choice list
   const sections = []
@@ -234,7 +370,7 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
     })
   }
   
-  // Spell Progression
+  // Regular Spell Progression
   if (spellSlots) {
     const newSlots: string[] = []
     const improvedSlots: string[] = []
@@ -250,7 +386,7 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
     
     if (newSlots.length > 0) {
       benefits.push({
-        name: 'New Spell Slots',
+        name: isMulticlass ? 'New Multiclass Spell Slots' : 'New Spell Slots',
         description: `Gain ${newSlots.join(', ')} spell slots`,
         icon: Sparkles,
         isBonus: true
@@ -259,8 +395,41 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
     
     if (improvedSlots.length > 0) {
       benefits.push({
-        name: 'Improved Spell Slots', 
+        name: isMulticlass ? 'Improved Multiclass Spell Slots' : 'Improved Spell Slots', 
         description: `Increase to ${improvedSlots.join(', ')} spell slots`,
+        icon: Sparkles,
+        isBonus: true
+      })
+    }
+  }
+  
+  // Pact Magic Progression (separate from regular spell slots)
+  if (pactMagicSlots) {
+    const newPactSlots: string[] = []
+    const improvedPactSlots: string[] = []
+    
+    pactMagicSlots.forEach((slots, level) => {
+      const prevSlots = prevPactMagicSlots?.[level] || 0
+      if (slots > 0 && prevSlots === 0) {
+        newPactSlots.push(`${slots} level ${level + 1}`)
+      } else if (slots > prevSlots) {
+        improvedPactSlots.push(`${slots} level ${level + 1} (+${slots - prevSlots})`)
+      }
+    })
+    
+    if (newPactSlots.length > 0) {
+      benefits.push({
+        name: 'New Pact Magic Slots',
+        description: `Gain ${newPactSlots.join(', ')} pact magic slots`,
+        icon: Sparkles,
+        isBonus: true
+      })
+    }
+    
+    if (improvedPactSlots.length > 0) {
+      benefits.push({
+        name: 'Improved Pact Magic Slots',
+        description: `Increase to ${improvedPactSlots.join(', ')} pact magic slots`,
         icon: Sparkles,
         isBonus: true
       })
@@ -281,10 +450,21 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
   if (spellSlots && spellSlots.some(slots => slots > 0)) {
     sections.push({
       id: 'spell_slots',
-      title: 'Spell Slots',
+      title: isMulticlass ? 'Multiclass Spell Slots' : 'Spell Slots',
       type: 'spell_slots',
       isComplete: true,
       spellSlots: spellSlots
+    })
+  }
+  
+  // 0.6. Pact Magic Slots Summary (for warlocks)
+  if (pactMagicSlots && pactMagicSlots.some(slots => slots > 0)) {
+    sections.push({
+      id: 'pact_magic_slots',
+      title: 'Pact Magic Slots',
+      type: 'pact_magic_slots',
+      isComplete: true,
+      spellSlots: pactMagicSlots
     })
   }
   
@@ -644,18 +824,36 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
       const newCantripsToLearn = Math.max(0, spellProgression.cantripsKnown - previousCantrips.length)
       const newSpellsToLearn = Math.max(0, spellProgression.spellsKnown - previousLeveledSpells.length)
       
-      sections.push({
-        id: 'spell_selection',
-        title: `Spell Selection`,
-        type: 'spell_selection',
-        isComplete: currentSpells.length >= (newCantripsToLearn + newSpellsToLearn),
-        selectedSpells: currentSpells,
-        previousSpells: previousSpells, // Pass previously known spells
-        newCantripsToLearn: newCantripsToLearn,
-        newSpellsToLearn: newSpellsToLearn,
-        spellsKnown: spellProgression.spellsKnown,
-        cantripsKnown: spellProgression.cantripsKnown
-      })
+      // Different handling for wizard vs other casters
+      if (entry.classId === 'wizard') {
+        sections.push({
+          id: 'wizard_spellbook',
+          title: `Add Spells to Spellbook`,
+          type: 'wizard_spellbook',
+          isComplete: currentSpells.length >= (newCantripsToLearn + newSpellsToLearn),
+          selectedSpells: currentSpells,
+          previousSpells: previousSpells,
+          newCantripsToLearn: newCantripsToLearn,
+          newSpellsToLearn: newSpellsToLearn,
+          spellsKnown: spellProgression.spellsKnown,
+          cantripsKnown: spellProgression.cantripsKnown
+        })
+      } else {
+        // For prepared casters (cleric, druid, paladin) and known casters (bard, sorcerer)
+        const isPreparedCaster = ['cleric', 'druid', 'paladin'].includes(entry.classId)
+        sections.push({
+          id: 'spell_selection',
+          title: isPreparedCaster ? `Select Cantrips` : `Spell Selection`,
+          type: 'spell_selection',
+          isComplete: currentSpells.length >= (newCantripsToLearn + newSpellsToLearn),
+          selectedSpells: currentSpells,
+          previousSpells: previousSpells,
+          newCantripsToLearn: newCantripsToLearn,
+          newSpellsToLearn: newSpellsToLearn,
+          spellsKnown: spellProgression.spellsKnown,
+          cantripsKnown: spellProgression.cantripsKnown
+        })
+      }
     }
   }
   
@@ -755,6 +953,40 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
     })
   }
 
+  // 4b. Wizard Spell Preparation (separate from spellbook) - for any wizard in multiclass
+  const wizardLevelsUpToHere = currentBuild?.enhancedLevelTimeline
+    ?.filter((e: any) => e.level <= entry.level && e.classId === 'wizard') || []
+  
+  if (wizardLevelsUpToHere.length > 0) {
+    // Get all spells in spellbook from all wizard levels up to this point
+    const spellbookSpells = wizardLevelsUpToHere
+      ?.flatMap((e: any) => e.spellChoices || [])
+      ?.filter((spellId: string) => {
+        // Filter out cantrips as they can't be prepared
+        const commonCantrips = ['fire_bolt', 'ray_of_frost', 'mage_hand', 'minor_illusion', 'prestidigitation']
+        return !spellId.includes('cantrip') && !commonCantrips.includes(spellId)
+      }) || []
+
+    // For multiclass, only show preparation on the highest level reached so far
+    const isHighestLevel = entry.level === Math.max(...(currentBuild?.enhancedLevelTimeline?.map(e => e.level) || [entry.level]))
+    const totalWizardLevels = wizardLevelsUpToHere.length
+
+    // Get currently prepared spells (stored on the latest entry)
+    const preparedSpells = entry.preparedSpells || []
+    
+    if (spellbookSpells.length > 0 && (isHighestLevel || entry.classId === 'wizard')) {
+      sections.push({
+        id: 'wizard_preparation',
+        title: `Prepare Wizard Spells`,
+        type: 'wizard_preparation',
+        isComplete: true, // Always optional - wizard can change these daily
+        spellbookSpells: spellbookSpells,
+        preparedSpells: preparedSpells,
+        wizardLevel: totalWizardLevels // Total wizard levels, not class level
+      })
+    }
+  }
+
   // 5. Skills (Level 1 only)
   if (entry.level === 1 && classLevel === 1) {
     const classSkills = classData?.skillChoices || []
@@ -837,6 +1069,13 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
             </div>
           </div>
 
+          {/* Multiclass Spell Summary - show on highest level if multiclass casters exist */}
+          {entry.level === Math.max(...(currentBuild.enhancedLevelTimeline?.map(e => e.level) || [entry.level])) && (
+            <div className="mb-4">
+              <MulticlassSpellSummary currentLevel={entry.level} />
+            </div>
+          )}
+          
           {/* Feature Sections */}
           <div className="space-y-3">
             {sections.map((section) => (
@@ -918,7 +1157,7 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
                   )}
                   
                   {/* Spell Slots display */}
-                  {section.type === 'spell_slots' && section.spellSlots && (
+                  {(section.type === 'spell_slots' || section.type === 'pact_magic_slots') && section.spellSlots && (
                     <div className="mt-2 pt-2 border-t border-current/20">
                       <div className="grid grid-cols-10 gap-1 text-xs min-w-0">
                         <div className="font-medium text-center">L1</div>
@@ -930,7 +1169,7 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
                         <div className="font-medium text-center">L7</div>
                         <div className="font-medium text-center">L8</div>
                         <div className="font-medium text-center">L9</div>
-                        <div className="font-medium text-center">Slots</div>
+                        <div className="font-medium text-center">{section.type === 'pact_magic_slots' ? 'Pact' : 'Slots'}</div>
                         {section.spellSlots.map((slots: number, idx: number) => (
                           <div key={idx} className={`text-center ${slots > 0 ? 'text-accent font-medium' : 'text-muted'}`}>
                             {slots || '-'}
@@ -1325,6 +1564,40 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
               newCantripsToLearn={section.newCantripsToLearn}
               newSpellsToLearn={section.newSpellsToLearn}
               subclassId={entry.subclassId}
+            />
+          </div>
+        )
+
+      case 'wizard_spellbook':
+        return (
+          <div className="p-3 bg-panel/5">
+            <SpellSelection
+              classId={entry.classId}
+              level={classLevel}
+              selectedSpells={section.selectedSpells || []}
+              onSpellsChange={(spells) => {
+                updateLevel(entry.level, { spellChoices: spells })
+              }}
+              spellsKnown={section.spellsKnown}
+              cantripsKnown={section.cantripsKnown}
+              previousSpells={section.previousSpells}
+              newCantripsToLearn={section.newCantripsToLearn}
+              newSpellsToLearn={section.newSpellsToLearn}
+              subclassId={entry.subclassId}
+            />
+          </div>
+        )
+
+      case 'wizard_preparation':
+        return (
+          <div className="p-3 bg-panel/5">
+            <WizardSpellPreparation
+              level={section.wizardLevel}
+              spellbookSpells={section.spellbookSpells || []}
+              preparedSpells={section.preparedSpells || []}
+              onPreparedSpellsChange={(spells) => {
+                updateLevel(entry.level, { preparedSpells: spells })
+              }}
             />
           </div>
         )

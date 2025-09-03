@@ -49,6 +49,7 @@ export const SpellSelection: React.FC<SpellSelectionProps> = ({
   
   const classData = classes[classId]
   const isPreparedCaster = ['cleric', 'druid', 'paladin'].includes(classId.toLowerCase())
+  const isWizard = classId.toLowerCase() === 'wizard'
   
   // Get all available spells for this class
   const availableSpells = useMemo(() => {
@@ -114,22 +115,15 @@ export const SpellSelection: React.FC<SpellSelectionProps> = ({
       spells: spellsKnown || 0
     }
     
-    // For prepared casters, they can prepare a number of spells
+    // For prepared casters (not wizard), they have cantrips known but no spell limit (they prepare from entire list)
     if (isPreparedCaster && !spellsKnown) {
-      // Get the actual spellcasting ability score and modifier
-      const abilityScores = currentBuild?.finalAbilityScores || currentBuild?.abilityScores || {}
-      let spellcastingMod = 0
-      
-      if (classId === 'cleric' || classId === 'druid' || classId === 'ranger') {
-        spellcastingMod = getAbilityModifier((abilityScores as any).WIS || 10)
-      } else if (classId === 'wizard' || classId === 'fighter' || classId === 'rogue') {
-        spellcastingMod = getAbilityModifier((abilityScores as any).INT || 10)
-      } else if (classId === 'bard' || classId === 'paladin' || classId === 'sorcerer' || classId === 'warlock') {
-        spellcastingMod = getAbilityModifier((abilityScores as any).CHA || 10)
-      }
-      
-      limits.spells = Math.max(1, spellcastingMod + level)
+      // Prepared casters don't have a limit on spells known, only on cantrips
+      // They prepare from their entire spell list each day
+      limits.spells = 999 // Effectively unlimited for selection purposes
     }
+    
+    // Wizards have spells in spellbook (from spellsKnown) but it's not about preparation here
+    // The spellsKnown for wizard represents spells in their spellbook
     
     return limits
   }
@@ -190,7 +184,11 @@ export const SpellSelection: React.FC<SpellSelectionProps> = ({
           <h3 className="font-semibold text-gray-900">
             {newCantripsToLearn > 0 || newSpellsToLearn > 0 
               ? `Learn New Spells (Level ${level})`
-              : isPreparedCaster ? 'Prepare Spells' : 'Known Spells'
+              : classId === 'wizard' 
+                ? 'Add to Spellbook'
+                : isPreparedCaster 
+                  ? 'Select Cantrips' 
+                  : 'Known Spells'
             }
           </h3>
         </div>
@@ -211,7 +209,12 @@ export const SpellSelection: React.FC<SpellSelectionProps> = ({
                 Cantrips: {classProgressionCantrips.length + selectedCantrips.length}/{limits.cantrips}
               </span>
               <span className="text-gray-600">
-                Spells: {classProgressionLeveledSpells.length + selectedLeveledSpells.length}/{limits.spells}
+                {classId === 'wizard' 
+                  ? `Spells in Spellbook: ${classProgressionLeveledSpells.length + selectedLeveledSpells.length}/${limits.spells}`
+                  : isPreparedCaster
+                    ? `Cantrip Selections: ${classProgressionLeveledSpells.length + selectedLeveledSpells.length}/${limits.spells}`
+                    : `Spells: ${classProgressionLeveledSpells.length + selectedLeveledSpells.length}/${limits.spells}`
+                }
               </span>
             </>
           )}
