@@ -39,9 +39,9 @@ export function FantasyLayout({ children }: FantasyLayoutProps) {
           />
         </div>
 
-        {/* Content inside frame - much thinner padding */}
+        {/* Content inside frame - minimal padding for thin frame */}
         <div className="relative h-full flex flex-col" style={{ 
-          padding: '30px 35px',  // Much thinner frame appearance
+          padding: '20px 25px',  // Very thin frame border
         }}>
           {/* Title Bar - Inside frame at top */}
           <FantasyHeader currentPage={currentPage} isLandingPage={isLandingPage} />
