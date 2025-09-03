@@ -1,7 +1,6 @@
 import { Link } from 'react-router-dom'
 import { Settings } from 'lucide-react'
 import { VersionWatermark } from '../ui/version-watermark'
-import { LegalModal } from '../ui/legal-modal'
 
 interface FantasyHeaderProps {
   currentPage: string
@@ -42,11 +41,10 @@ export function FantasyHeader({ currentPage, isLandingPage }: FantasyHeaderProps
 
         {/* Right: Version & Settings */}
         <div className="flex items-center gap-3">
-          <LegalModal />
           <VersionWatermark />
           <Link 
             to="/settings"
-            className="p-2 text-white hover:text-gold transition-colors rounded-lg hover:bg-slate-600/30"
+            className="p-2 text-gold hover:text-accent transition-colors rounded-lg hover:bg-slate-600/30"
           >
             <Settings className="w-5 h-5" />
           </Link>

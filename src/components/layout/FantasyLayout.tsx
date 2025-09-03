@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import { useLocation } from 'react-router-dom'
 import { FantasyHeader } from './FantasyHeader'
 import { FantasySidebar } from './FantasySidebar'
+import { LegalModal } from '../ui/legal-modal'
 
 interface FantasyLayoutProps {
   children: ReactNode
@@ -63,6 +64,11 @@ export function FantasyLayout({ children }: FantasyLayoutProps) {
             </main>
           </div>
         </div>
+      </div>
+      
+      {/* Legal & Licensing button in bottom left corner */}
+      <div className="fixed bottom-8 left-8" style={{ zIndex: 10001 }}>
+        <LegalModal />
       </div>
     </div>
   )

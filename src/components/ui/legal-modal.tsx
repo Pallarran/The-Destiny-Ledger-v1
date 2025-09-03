@@ -16,8 +16,12 @@ export function LegalModal() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className="gap-2">
-          <ScrollText className="h-4 w-4" />
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          className="gap-1.5 text-xs px-2 py-1 bg-ink/90 text-gold hover:bg-ink hover:text-accent border border-gold/20"
+        >
+          <ScrollText className="h-3.5 w-3.5" />
           Legal & Licensing
         </Button>
       </DialogTrigger>

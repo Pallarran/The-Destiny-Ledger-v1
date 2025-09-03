@@ -33,13 +33,13 @@ export function VersionWatermark({ className = '' }: VersionWatermarkProps) {
       onMouseEnter={() => setShowTooltip(true)}
       onMouseLeave={() => setShowTooltip(false)}
     >
-      <span className="text-xs text-muted font-mono hidden sm:inline">
+      <span className="text-xs text-white font-mono hidden sm:inline">
         v{version}
       </span>
-      <span className="text-xs text-muted/60 font-mono hidden md:inline">
+      <span className="text-xs text-white/60 font-mono hidden md:inline">
         ({gitHash})
       </span>
-      <Info className="w-3 h-3 text-muted/40 hover:text-muted/70 transition-colors cursor-help" />
+      <Info className="w-3 h-3 text-white/40 hover:text-white/70 transition-colors cursor-help" />
       
       {/* Tooltip */}
       {showTooltip && (
