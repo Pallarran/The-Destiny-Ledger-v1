@@ -799,20 +799,9 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
         ))
         ?.flatMap((e: any) => e.spellChoices || []) || []
       
-      // Add racial spells to previously known spells
-      const racialSpells: string[] = []
-      
-      // High Elf gets a wizard cantrip
-      if (currentBuild?.race === 'elf' && currentBuild?.subrace === 'high_elf' && currentBuild?.highElfCantrip) {
-        if (entry.classId === 'wizard') { // Only relevant for wizard spell selection
-          racialSpells.push(currentBuild.highElfCantrip)
-        }
-      }
-      
-      // Add other racial spells as needed (Tiefling, Drow, etc. have fixed spells, not choices)
-      // Fixed racial spells don't need to be excluded from selection since they're automatic
-      
-      previousSpells = [...previousSpells, ...racialSpells]
+      // Don't count racial spells against class progression - they're bonus spells
+      // High Elf cantrip, Tiefling spells, etc. are additional to class progression
+      // They should be excluded from selection but not count against limits
       
       // Calculate how many new spells can be learned this level
       const previousCantrips = previousSpells.filter((spellId: string) => {

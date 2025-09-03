@@ -72,8 +72,8 @@ export const SpellSelection: React.FC<SpellSelectionProps> = ({
   const filteredSpells = useMemo(() => {
     let spells = availableSpells
     
-    // Filter out spells already known from ANY source (class levels, racial, etc.)
-    spells = spells.filter((s: Spell) => !globalKnownSpells.includes(s.id))
+    // DON'T filter out known spells - show them as checked instead
+    // This allows users to see what they've already learned
     
     // Filter by level
     if (selectedLevel === 'cantrip') {
@@ -94,7 +94,7 @@ export const SpellSelection: React.FC<SpellSelectionProps> = ({
     }
     
     return spells.sort((a: Spell, b: Spell) => a.name.localeCompare(b.name))
-  }, [availableSpells, selectedLevel, searchQuery, globalKnownSpells])
+  }, [availableSpells, selectedLevel, searchQuery])
   
   // Calculate spell limits based on class and level
   const getSpellLimits = () => {
@@ -276,12 +276,15 @@ export const SpellSelection: React.FC<SpellSelectionProps> = ({
         ) : (
           filteredSpells.map((spell) => {
             const isSelected = selectedSpells.includes(spell.id)
+            const isAlreadyKnown = globalKnownSpells.includes(spell.id) && !isSelected
             const isExpanded = expandedSpell === spell.id
             const schoolInfo = SPELL_SCHOOLS[spell.school]
             const isCantrip = spell.level === 0
-            const canSelect = isCantrip 
-              ? selectedCantrips.length < limits.cantrips || isSelected
-              : selectedLeveledSpells.length < limits.spells || isSelected
+            const canSelect = isAlreadyKnown 
+              ? false // Already known spells can't be toggled
+              : isCantrip 
+                ? selectedCantrips.length < limits.cantrips || isSelected
+                : selectedLeveledSpells.length < limits.spells || isSelected
             
             return (
               <div
@@ -289,6 +292,8 @@ export const SpellSelection: React.FC<SpellSelectionProps> = ({
                 className={`border rounded-lg transition-all ${
                   isSelected
                     ? 'border-purple-500 bg-purple-50'
+                    : isAlreadyKnown
+                    ? 'border-green-300 bg-green-50'
                     : canSelect
                     ? 'border-gray-200 hover:border-gray-300'
                     : 'border-gray-200 opacity-50'
@@ -302,9 +307,11 @@ export const SpellSelection: React.FC<SpellSelectionProps> = ({
                     <div className={`mt-0.5 w-5 h-5 rounded border-2 flex items-center justify-center ${
                       isSelected
                         ? 'bg-purple-600 border-purple-600'
+                        : isAlreadyKnown
+                        ? 'bg-green-600 border-green-600'
                         : 'border-gray-300'
                     }`}>
-                      {isSelected && <Check className="w-3 h-3 text-white" />}
+                      {(isSelected || isAlreadyKnown) && <Check className="w-3 h-3 text-white" />}
                     </div>
                     
                     <div className="flex-1">
@@ -321,6 +328,11 @@ export const SpellSelection: React.FC<SpellSelectionProps> = ({
                         {spell.tags.includes('concentration') && (
                           <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-700">
                             Concentration
+                          </span>
+                        )}
+                        {isAlreadyKnown && (
+                          <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                            Known
                           </span>
                         )}
                       </div>
