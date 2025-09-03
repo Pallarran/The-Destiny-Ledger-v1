@@ -39,7 +39,7 @@ export const SpellSelection: React.FC<SpellSelectionProps> = ({
   newCantripsToLearn = 0,
   newSpellsToLearn = 0
 }) => {
-  const { getAllKnownSpells, getClassProgressionSpells, getRacialSpells } = useCharacterBuilderStore()
+  const { getAllKnownSpells, getRacialSpells } = useCharacterBuilderStore()
   
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedLevel, setSelectedLevel] = useState<number | 'cantrip'>(1)
@@ -66,8 +66,6 @@ export const SpellSelection: React.FC<SpellSelectionProps> = ({
   // Get all globally known spells to prevent duplicates
   const globalKnownSpells = getAllKnownSpells()
   
-  // Get class progression spells (excludes racial spells) for limit calculations
-  const classProgressionSpells = getClassProgressionSpells()
   
   // Filter spells by selected level and search query
   const filteredSpells = useMemo(() => {
@@ -138,11 +136,6 @@ export const SpellSelection: React.FC<SpellSelectionProps> = ({
     return spell && spell.level > 0
   })
   
-  // Count class progression cantrips/spells separately (exclude racial spells from limits)
-  const classProgressionCantrips = classProgressionSpells.filter((spellId: string) => {
-    const spell = availableSpells.find((s: Spell) => s.id === spellId)
-    return spell?.level === 0
-  })
   
   
   const toggleSpell = (spellId: string) => {
