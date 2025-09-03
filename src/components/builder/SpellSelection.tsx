@@ -39,17 +39,14 @@ export const SpellSelection: React.FC<SpellSelectionProps> = ({
   newCantripsToLearn = 0,
   newSpellsToLearn = 0
 }) => {
-  const { currentBuild, getAllKnownSpells, getClassProgressionSpells } = useCharacterBuilderStore()
+  const { getAllKnownSpells, getClassProgressionSpells } = useCharacterBuilderStore()
   
-  // Helper function to calculate ability modifier
-  const getAbilityModifier = (score: number) => Math.floor((score - 10) / 2)
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedLevel, setSelectedLevel] = useState<number | 'cantrip'>(1)
   const [expandedSpell, setExpandedSpell] = useState<string | null>(null)
   
   const classData = classes[classId]
   const isPreparedCaster = ['cleric', 'druid', 'paladin'].includes(classId.toLowerCase())
-  const isWizard = classId.toLowerCase() === 'wizard'
   
   // Get all available spells for this class
   const availableSpells = useMemo(() => {

@@ -968,7 +968,7 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
       }) || []
 
     // For multiclass, only show preparation on the highest level reached so far
-    const isHighestLevel = entry.level === Math.max(...(currentBuild?.enhancedLevelTimeline?.map(e => e.level) || [entry.level]))
+    const isHighestLevel = entry.level === Math.max(...(currentBuild?.enhancedLevelTimeline?.map((e: any) => e.level) || [entry.level]))
     const totalWizardLevels = wizardLevelsUpToHere.length
 
     // Get currently prepared spells (stored on the latest entry)
@@ -1070,7 +1070,7 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
           </div>
 
           {/* Multiclass Spell Summary - show on highest level if multiclass casters exist */}
-          {entry.level === Math.max(...(currentBuild.enhancedLevelTimeline?.map(e => e.level) || [entry.level])) && (
+          {entry.level === Math.max(...(currentBuild.enhancedLevelTimeline?.map((e: any) => e.level) || [entry.level])) && (
             <div className="mb-4">
               <MulticlassSpellSummary currentLevel={entry.level} />
             </div>

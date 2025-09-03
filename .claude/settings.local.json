@@ -37,7 +37,8 @@
       "Bash(python:*)",
       "Bash(git restore:*)",
       "Bash(del:*)",
-      "Bash(git checkout:*)"
+      "Bash(git checkout:*)",
+      "Bash(gh run list:*)"
     ],
     "deny": [],
     "ask": []
