@@ -9,7 +9,7 @@ interface FantasyHeaderProps {
 
 export function FantasyHeader({ currentPage, isLandingPage }: FantasyHeaderProps) {
   return (
-    <header className="relative shadow-lg border-b-2 border-gold/40 rounded-t-lg" 
+    <header className="fixed top-0 left-0 right-0 shadow-lg rounded-t-lg" 
             style={{ backgroundColor: '#2A3441', zIndex: 10000 }}>
       {/* Single Title Bar with everything */}
       <div className="flex items-center justify-between px-6 py-3">

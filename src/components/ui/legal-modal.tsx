@@ -19,7 +19,7 @@ export function LegalModal() {
         <Button 
           variant="ghost" 
           size="sm" 
-          className="gap-1.5 text-xs px-2 py-1 bg-ink/90 text-gold hover:bg-ink hover:text-accent border border-gold/20"
+          className="gap-1.5 text-xs px-2 py-1 bg-ink/90 text-gold hover:bg-ink hover:text-accent"
         >
           <ScrollText className="h-3.5 w-3.5" />
           Legal & Licensing
