@@ -27,21 +27,22 @@ export function FantasyLayout({ children }: FantasyLayoutProps) {
     <div className="relative min-h-screen bg-bg">
       {/* Main framed area - even smaller margins, very close to edges */}
       <div className="relative min-h-screen parchment-bg" style={{ margin: '8px 12px 12px 12px' }}>
-        {/* Ornate frame around entire content area */}
-        <div className="absolute inset-0 pointer-events-none z-40">
+        {/* Ornate frame around entire content area - scaled down to appear thinner */}
+        <div className="absolute inset-0 pointer-events-none z-40 flex items-center justify-center">
           <img 
             src="/The-Destiny-Ledger-v1/assets/ornate-frame.png" 
             alt=""
             className="w-full h-full"
             style={{ 
               objectFit: 'fill',
+              transform: 'scale(0.85)',  // Make frame appear thinner
             }}
           />
         </div>
 
-        {/* Content inside frame - minimal padding for thin frame */}
+        {/* Content inside frame */}
         <div className="relative h-full flex flex-col" style={{ 
-          padding: '20px 25px',  // Very thin frame border
+          padding: '40px 50px',  // Normal padding, frame thickness controlled by scaling
         }}>
           {/* Title Bar - Inside frame at top */}
           <FantasyHeader currentPage={currentPage} isLandingPage={isLandingPage} />
