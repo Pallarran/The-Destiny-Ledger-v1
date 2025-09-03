@@ -25,7 +25,7 @@ export function FantasyLayout({ children }: FantasyLayoutProps) {
 
   return (
     <div className="relative min-h-screen bg-bg">
-      {/* Zoomed out frame positioned at viewport edges */}
+      {/* Frame positioned to fill entire viewport */}
       <div className="fixed inset-0 pointer-events-none z-40">
         <img 
           src="/The-Destiny-Ledger-v1/assets/ornate-frame.png" 
@@ -33,17 +33,17 @@ export function FantasyLayout({ children }: FantasyLayoutProps) {
           className="w-full h-full"
           style={{ 
             objectFit: 'fill',
-            transform: 'scale(0.6)',  // Zoom out more to make frame thinner
+            // No scaling - frame fills viewport completely with thin border
           }}
         />
       </div>
 
-      {/* Main content area */}
-      <div className="relative min-h-screen parchment-bg" style={{ margin: '4px 6px 6px 6px' }}>
+      {/* Main content area with large margins to make frame appear thin */}
+      <div className="relative min-h-screen parchment-bg" style={{ margin: '60px 80px 60px 80px' }}>
 
         {/* Content inside frame */}
         <div className="relative h-full flex flex-col" style={{ 
-          padding: '50px 70px',  // Increased padding to center content better within scaled frame
+          padding: '40px 50px',  // Content padding within the parchment area
         }}>
           {/* Title Bar - Inside frame at top */}
           <FantasyHeader currentPage={currentPage} isLandingPage={isLandingPage} />
