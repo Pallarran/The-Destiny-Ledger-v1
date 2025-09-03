@@ -18,7 +18,7 @@ export function FantasyHeader({ currentPage, isLandingPage }: FantasyHeaderProps
           <img 
             src={`${import.meta.env.BASE_URL}destiny-ledger-main-logo.png`} 
             alt="The Destiny Ledger" 
-            className="w-12 h-12 drop-shadow-lg" 
+            className="w-14 h-14 drop-shadow-lg" 
           />
           <div>
             <h1 className="text-lg font-serif font-bold text-accent tracking-wider drop-shadow-sm">

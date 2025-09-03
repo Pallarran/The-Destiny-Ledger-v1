@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import { FantasyFrame, FantasyPanel } from '../components/ui/fantasy-frame'
+import { Panel } from '../components/ui/panel'
 import { ChartFrame } from '../components/ui/chart-frame'
 import { Button } from '../components/ui/button'
 import { Switch } from '../components/ui/switch'
@@ -198,7 +198,7 @@ export function Compare() {
   if (selectedBuilds.length === 0) {
     return (
       <div className="space-y-6">
-        <FantasyFrame title="COMPARE BUILDS" variant="ornate">
+        <Panel>
           
           <div className="text-center py-12">
             <h3 className="text-xl font-semibold text-foreground mb-2">Select Builds to Compare</h3>
@@ -239,14 +239,14 @@ export function Compare() {
               </div>
             )}
           </div>
-        </FantasyFrame>
+        </Panel>
       </div>
     )
   }
 
   return (
     <div className="space-y-6">
-      <FantasyFrame title="COMPARE BUILDS" variant="default" frameStyle="img-overlay">
+      <Panel>
         
         {/* Enhanced Build Selection Header with Controls */}
         <div className="sticky top-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-10 -mx-6 px-6 py-4 border-b border-border">
@@ -418,7 +418,7 @@ export function Compare() {
         {/* Enhanced Comparison Table */}
         {selectedBuilds.length >= 2 && (
           <div className="mt-6">
-            <FantasyPanel title="Side-by-Side Comparison" className="sticky top-20 z-10">
+            <div className="sticky top-20 z-10">
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead>
@@ -525,10 +525,10 @@ export function Compare() {
                     <p className="text-xs mt-1">Try disabling "Differences only" to see all metrics</p>
                   </div>
                 )}
-            </FantasyPanel>
+            </div>
           </div>
         )}
-      </FantasyFrame>
+      </Panel>
     </div>
   )
 }

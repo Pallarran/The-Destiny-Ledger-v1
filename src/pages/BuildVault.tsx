@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { Panel, PanelHeader } from '../components/ui/panel'
+import { Panel } from '../components/ui/panel'
 import { Button } from '../components/ui/button'
 import { Card, CardContent } from '../components/ui/card'
 import { Link, useNavigate } from 'react-router-dom'
@@ -30,7 +30,6 @@ export function BuildVault() {
     return (
       <div className="space-y-6">
         <Panel>
-          <PanelHeader title="Build Vault" />
           <div className="text-center py-12">
             <p className="text-muted">Loading vault...</p>
           </div>
@@ -188,8 +187,6 @@ export function BuildVault() {
   return (
     <div className="space-y-6">
       <Panel>
-        <PanelHeader title="Build Vault" />
-        
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center gap-4">
             <div className="relative">

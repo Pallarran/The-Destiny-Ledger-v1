@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { Panel, PanelHeader } from '../components/ui/panel'
+import { Panel } from '../components/ui/panel'
 import { Button } from '../components/ui/button'
 import { Slider } from '../components/ui/slider'
 import { Switch } from '../components/ui/switch'
@@ -202,8 +202,6 @@ export function Settings() {
   return (
     <div className="space-y-6">
       <Panel>
-        <PanelHeader title="SETTINGS" />
-        
         {/* Save Notification */}
         {saveNotification && (
           <div className="fixed top-4 right-4 bg-green-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 z-50 animate-pulse">

@@ -11,18 +11,18 @@ import {
 export function Landing() {
   const features = [
     {
-      icon: User,
-      title: "Character Builder",
-      description: "Create optimized D&D 5e characters with multiclass progression and equipment.",
-      link: "/builder",
-      color: "text-accent"
-    },
-    {
       icon: Archive,
       title: "Vault",
       description: "Store and manage character builds with search and export tools.",
       link: "/vault", 
       color: "text-blue-500"
+    },
+    {
+      icon: User,
+      title: "Character Builder",
+      description: "Create optimized D&D 5e characters with multiclass progression and equipment.",
+      link: "/builder",
+      color: "text-accent"
     },
     {
       icon: Calculator,
@@ -87,10 +87,10 @@ export function Landing() {
               <Link 
                 key={index}
                 to={feature.link} 
-                className="block bg-ink/5 rounded-xl p-4 hover:shadow-xl transition-all duration-300 hover:bg-ink/10 group border border-ink/10 hover:border-gold/50">
+                className="block bg-panel rounded-xl p-4 hover:shadow-xl transition-all duration-300 group border-2 border-gold hover:border-accent">
                 <div className="text-center">
                   <div className="flex flex-col items-center">
-                    <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-gold/20 to-gold/5 rounded-xl flex items-center justify-center group-hover:from-gold/30 group-hover:to-gold/10 transition-all mb-3 border border-gold/20">
+                    <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-gold/20 to-gold/5 rounded-xl flex items-center justify-center group-hover:from-gold/30 group-hover:to-gold/10 transition-all mb-3">
                       <IconComponent className={`w-6 h-6 ${feature.color} transition-colors drop-shadow-sm`} />
                     </div>
                     <h3 className="text-sm font-serif font-bold text-ink group-hover:text-gold transition-colors mb-2 tracking-wide leading-tight">
