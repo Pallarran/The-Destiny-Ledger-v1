@@ -102,9 +102,8 @@ export function Landing() {
                   </div>
                 </div>
               </Link>
-              )
-            })}
-          </div>
+            )
+          })}
         </div>
       </div>
     </div>
