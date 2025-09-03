@@ -1571,7 +1571,7 @@ export function EnhancedLevelTimeline() {
   
   const levels = [...(currentBuild.enhancedLevelTimeline || [])].sort((a, b) => a.level - b.level)
   const nextLevel = levels.length > 0 ? Math.max(...levels.map(l => l.level)) + 1 : 1
-  const availableClasses = Object.values(classes)
+  const availableClasses = Object.values(classes).sort((a, b) => a.name.localeCompare(b.name))
   
 
   const handleAddLevel = () => {

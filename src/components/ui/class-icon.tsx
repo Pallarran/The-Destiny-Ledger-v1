@@ -56,14 +56,16 @@ export function ClassIcon({ className, size = 'md', alt, fallback }: ClassIconPr
 
 // Helper function to get primary class from build configuration
 export function getPrimaryClass(build: any): string | null {
-  if (!build?.levels || build.levels.length === 0) {
+  // Check for levelTimeline (vault builds) or levels (other builds)
+  const timeline = build?.levelTimeline || build?.levels
+  if (!timeline || timeline.length === 0) {
     return null
   }
   
   // Count levels per class
   const classLevels: Record<string, number> = {}
   
-  for (const level of build.levels) {
+  for (const level of timeline) {
     const classId = level.classId
     classLevels[classId] = (classLevels[classId] || 0) + 1
   }
