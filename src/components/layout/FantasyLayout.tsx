@@ -25,15 +25,15 @@ export function FantasyLayout({ children }: FantasyLayoutProps) {
 
   return (
     <div className="relative min-h-screen bg-bg">
-      {/* Frame positioned to fill entire viewport */}
-      <div className="fixed inset-0 pointer-events-none z-40">
+      {/* Frame scaled down to appear thinner (zoomed out effect) */}
+      <div className="fixed inset-0 pointer-events-none z-40 flex items-center justify-center">
         <img 
           src="/The-Destiny-Ledger-v1/assets/ornate-frame.png" 
           alt=""
           className="w-full h-full"
           style={{ 
             objectFit: 'fill',
-            // No scaling - frame fills viewport completely with thin border
+            transform: 'scale(0.8)',  // Zoom out effect to make frame appear thinner
           }}
         />
       </div>
