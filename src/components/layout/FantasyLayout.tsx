@@ -42,7 +42,7 @@ export function FantasyLayout({ children }: FantasyLayoutProps) {
 
         {/* Content inside frame */}
         <div className="relative h-full flex flex-col" style={{ 
-          padding: '40px 50px',  // Normal padding, frame thickness controlled by scaling
+          padding: '50px 70px',  // Increased padding to center content better within scaled frame
         }}>
           {/* Title Bar - Inside frame at top */}
           <FantasyHeader currentPage={currentPage} isLandingPage={isLandingPage} />
