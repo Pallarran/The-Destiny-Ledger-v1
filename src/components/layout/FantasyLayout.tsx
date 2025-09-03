@@ -24,35 +24,34 @@ export function FantasyLayout({ children }: FantasyLayoutProps) {
   const isLandingPage = location.pathname === '/'
 
   return (
-    <div className="relative min-h-screen parchment-bg overflow-hidden">
-      {/* Full-screen ornate frame */}
-      <div className="fixed inset-0 pointer-events-none z-50">
-        <img 
-          src="/The-Destiny-Ledger-v1/assets/ornate-frame.png" 
-          alt=""
-          className="absolute inset-0 w-full h-full"
-          style={{ 
-            objectFit: 'fill',
-            padding: '8px',  // Small padding to prevent edge clipping
-          }}
-        />
-      </div>
+    <div className="relative min-h-screen bg-bg flex flex-col">
+      {/* Title Bar - Outside the frame at top */}
+      <FantasyHeader currentPage={currentPage} isLandingPage={isLandingPage} />
 
-      {/* Content directly on parchment */}
-      <div className="relative min-h-screen flex flex-col" style={{ 
-        padding: '80px 100px',  // Account for frame thickness
-      }}>
-        {/* Fantasy Header with Title Bar */}
-        <FantasyHeader currentPage={currentPage} isLandingPage={isLandingPage} />
+      {/* Main content area with frame */}
+      <div className="flex-1 relative parchment-bg" style={{ margin: '20px 40px 40px 40px' }}>
+        {/* Ornate frame around content area only */}
+        <div className="absolute inset-0 pointer-events-none z-40">
+          <img 
+            src="/The-Destiny-Ledger-v1/assets/ornate-frame.png" 
+            alt=""
+            className="w-full h-full"
+            style={{ 
+              objectFit: 'fill',
+            }}
+          />
+        </div>
 
-        {/* Content area */}
-        <div className="flex flex-1" style={{ minHeight: isLandingPage ? 'calc(100vh - 200px)' : 'auto' }}>
+        {/* Content inside frame */}
+        <div className="relative h-full flex" style={{ 
+          padding: '60px 80px',  // Padding inside the frame
+        }}>
           {/* Sidebar - only show on non-landing pages */}
           {!isLandingPage && <FantasySidebar />}
           
           {/* Main content */}
           <main className={`flex-1 overflow-y-auto ${!isLandingPage ? 'ml-8' : ''}`}>
-            <div className={isLandingPage ? 'h-full flex items-center justify-center' : 'max-w-7xl mx-auto pt-6'}>
+            <div className={isLandingPage ? 'h-full flex items-center justify-center' : 'max-w-7xl mx-auto'}>
               {children}
             </div>
           </main>
