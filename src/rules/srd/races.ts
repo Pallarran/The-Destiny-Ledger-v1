@@ -51,16 +51,45 @@ export const races: Record<string, Race> = {
     speed: 30,
     languages: ['Common'],
     proficiencies: {
-      skills: [] // Variant Human gets extra skill
+      skills: []
     },
     traits: [
       {
         name: 'Extra Language',
         description: 'You can speak, read, and write one extra language of your choice.'
+      }
+    ]
+  },
+  
+  variant_human: {
+    id: 'variant_human',
+    name: 'Variant Human',
+    description: "If your campaign uses the optional feat rules, your Dungeon Master might allow these variant traits, all of which replace the human's Ability Score Increase trait.",
+    abilityScoreIncrease: [
+      // Two different +1s of choice - handled specially in UI
+    ],
+    size: 'Medium',
+    speed: 30,
+    languages: ['Common'],
+    proficiencies: {
+      skills: [] // One skill of choice - handled specially in UI
+    },
+    traits: [
+      {
+        name: 'Ability Score Increase',
+        description: 'Two different ability scores of your choice increase by 1.'
       },
       {
-        name: 'Extra Skill',
+        name: 'Skills',
         description: 'You gain proficiency in one skill of your choice.'
+      },
+      {
+        name: 'Feat',
+        description: 'You gain one feat of your choice.'
+      },
+      {
+        name: 'Extra Language',
+        description: 'You can speak, read, and write one extra language of your choice.'
       }
     ]
   },

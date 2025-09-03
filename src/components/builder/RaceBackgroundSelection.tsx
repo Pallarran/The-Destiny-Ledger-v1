@@ -7,6 +7,23 @@ import { getAllRaces, getRace } from '../../rules/loaders'
 import { Info } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import type { Race, Subrace } from '../../rules/srd/races'
+import { getAllSkills } from '../../rules/srd/skills'
+import { getAllFeats } from '../../rules/loaders'
+import { getSpellsByClassAndLevel } from '../../rules/srd/spells'
+
+// Draconic Ancestry Options for Dragonborn
+const DRACONIC_ANCESTRIES = [
+  { id: 'black', name: 'Black', damageType: 'Acid', breathWeapon: '5 by 30 ft. line (Dex. save)' },
+  { id: 'blue', name: 'Blue', damageType: 'Lightning', breathWeapon: '5 by 30 ft. line (Dex. save)' },
+  { id: 'brass', name: 'Brass', damageType: 'Fire', breathWeapon: '5 by 30 ft. line (Dex. save)' },
+  { id: 'bronze', name: 'Bronze', damageType: 'Lightning', breathWeapon: '5 by 30 ft. line (Dex. save)' },
+  { id: 'copper', name: 'Copper', damageType: 'Acid', breathWeapon: '5 by 30 ft. line (Dex. save)' },
+  { id: 'gold', name: 'Gold', damageType: 'Fire', breathWeapon: '15 ft. cone (Dex. save)' },
+  { id: 'green', name: 'Green', damageType: 'Poison', breathWeapon: '15 ft. cone (Con. save)' },
+  { id: 'red', name: 'Red', damageType: 'Fire', breathWeapon: '15 ft. cone (Dex. save)' },
+  { id: 'silver', name: 'Silver', damageType: 'Cold', breathWeapon: '15 ft. cone (Con. save)' },
+  { id: 'white', name: 'White', damageType: 'Cold', breathWeapon: '15 ft. cone (Con. save)' }
+]
 
 // SRD Backgrounds
 const BACKGROUNDS = [
@@ -102,7 +119,17 @@ export function RaceBackgroundSelection() {
     setRace,
     setSubrace,
     setBackground,
-    updateAbilityScores
+    updateAbilityScores,
+    setVariantHumanFeat,
+    setVariantHumanSkill,
+    setVariantHumanAbilities,
+    setHalfElfSkills,
+    setHalfElfAbilities,
+    setDragonbornAncestry,
+    setHighElfCantrip,
+    getAllKnownFeats,
+    getAllKnownSkills,
+    getAllKnownSpells
   } = useCharacterBuilderStore()
   
   const [selectedRaceData, setSelectedRaceData] = useState<Race | null>(null)
@@ -180,6 +207,11 @@ export function RaceBackgroundSelection() {
   if (!currentBuild) {
     return <div className="text-center text-muted">Loading race and background options...</div>
   }
+  
+  // Get all known items to prevent duplicates
+  const knownFeats = getAllKnownFeats()
+  const knownSkills = getAllKnownSkills()
+  const knownSpells = getAllKnownSpells()
   
   const selectedBackground = BACKGROUNDS.find(b => b.id === currentBuild.background)
   
@@ -310,6 +342,338 @@ export function RaceBackgroundSelection() {
                 )}
               </CardContent>
             </Card>
+          )}
+          
+          {/* Variant Human Racial Choices */}
+          {selectedRaceData?.id === 'variant_human' && (
+            <div className="space-y-4">
+              {/* Feat Selection */}
+              <div className="space-y-2">
+                <Label htmlFor="feat-select">Select Feat</Label>
+                <Select 
+                  value={currentBuild.variantHumanFeat || ''} 
+                  onValueChange={setVariantHumanFeat}
+                >
+                  <SelectTrigger id="feat-select">
+                    <SelectValue placeholder="Choose a feat..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {getAllFeats().sort((a, b) => a.name.localeCompare(b.name)).map(feat => {
+                      const isKnown = knownFeats.includes(feat.id)
+                      return (
+                        <SelectItem key={feat.id} value={feat.id} disabled={isKnown}>
+                          <div className="flex items-center justify-between w-full">
+                            <span className={isKnown ? "text-muted-foreground" : ""}>{feat.name}</span>
+                            {isKnown && <span className="text-xs text-muted-foreground ml-2">(Known)</span>}
+                          </div>
+                        </SelectItem>
+                      )
+                    })}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              {/* Skill Selection */}
+              <div className="space-y-2">
+                <Label htmlFor="skill-select">Select Skill</Label>
+                <Select 
+                  value={currentBuild.variantHumanSkill || ''} 
+                  onValueChange={setVariantHumanSkill}
+                >
+                  <SelectTrigger id="skill-select">
+                    <SelectValue placeholder="Choose a skill..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {getAllSkills().map(skill => {
+                      const isKnown = knownSkills.includes(skill.id)
+                      return (
+                        <SelectItem key={skill.id} value={skill.id} disabled={isKnown}>
+                          <div className="flex items-center justify-between w-full">
+                            <span className={isKnown ? "text-muted-foreground" : ""}>{skill.name}</span>
+                            {isKnown && <span className="text-xs text-muted-foreground ml-2">(Known)</span>}
+                          </div>
+                        </SelectItem>
+                      )
+                    })}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              {/* Ability Score Choices */}
+              <div className="space-y-2">
+                <Label>Select Two Different Abilities (+1 each)</Label>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <Label htmlFor="ability1-select" className="text-sm">First Ability</Label>
+                    <Select 
+                      value={currentBuild.variantHumanAbilities?.[0] || ''} 
+                      onValueChange={(value) => {
+                        const current = currentBuild.variantHumanAbilities || ['', '']
+                        setVariantHumanAbilities([value, current[1]])
+                      }}
+                    >
+                      <SelectTrigger id="ability1-select">
+                        <SelectValue placeholder="Choose..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA'].map(ability => (
+                          <SelectItem key={ability} value={ability} disabled={currentBuild.variantHumanAbilities?.[1] === ability}>
+                            {ability}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="ability2-select" className="text-sm">Second Ability</Label>
+                    <Select 
+                      value={currentBuild.variantHumanAbilities?.[1] || ''} 
+                      onValueChange={(value) => {
+                        const current = currentBuild.variantHumanAbilities || ['', '']
+                        setVariantHumanAbilities([current[0], value])
+                      }}
+                    >
+                      <SelectTrigger id="ability2-select">
+                        <SelectValue placeholder="Choose..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA'].map(ability => (
+                          <SelectItem key={ability} value={ability} disabled={currentBuild.variantHumanAbilities?.[0] === ability}>
+                            {ability}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+          
+          {/* Dragonborn Draconic Ancestry */}
+          {selectedRaceData?.id === 'dragonborn' && (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="ancestry-select">Select Draconic Ancestry</Label>
+                <Select 
+                  value={currentBuild.dragonbornAncestry || ''} 
+                  onValueChange={setDragonbornAncestry}
+                >
+                  <SelectTrigger id="ancestry-select">
+                    <SelectValue placeholder="Choose your draconic ancestry..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {DRACONIC_ANCESTRIES.map(ancestry => (
+                      <SelectItem key={ancestry.id} value={ancestry.id}>
+                        <div className="flex flex-col">
+                          <span className="font-medium">{ancestry.name} Dragon</span>
+                          <span className="text-xs text-muted-foreground">
+                            {ancestry.damageType} damage • {ancestry.breathWeapon}
+                          </span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {currentBuild.dragonbornAncestry && (
+                  <div className="mt-2">
+                    {(() => {
+                      const selected = DRACONIC_ANCESTRIES.find(a => a.id === currentBuild.dragonbornAncestry)
+                      if (!selected) return null
+                      return (
+                        <div className="text-sm p-2 border rounded bg-muted/20">
+                          <div className="font-medium text-panel">{selected.name} Dragon Ancestry</div>
+                          <div className="text-xs text-muted mt-1">
+                            <strong>Damage Resistance:</strong> {selected.damageType}
+                          </div>
+                          <div className="text-xs text-muted">
+                            <strong>Breath Weapon:</strong> {selected.breathWeapon}
+                          </div>
+                        </div>
+                      )
+                    })()}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+          
+          {/* Half-Elf Choices */}
+          {selectedRaceData?.id === 'half_elf' && (
+            <div className="space-y-4">
+              {/* Skill Selections */}
+              <div className="space-y-2">
+                <Label>Select Two Skills</Label>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <Label htmlFor="half-elf-skill1-select" className="text-sm">First Skill</Label>
+                    <Select 
+                      value={currentBuild.halfElfSkills?.[0] || ''} 
+                      onValueChange={(value) => {
+                        const current = currentBuild.halfElfSkills || ['', '']
+                        setHalfElfSkills([value, current[1]])
+                      }}
+                    >
+                      <SelectTrigger id="half-elf-skill1-select">
+                        <SelectValue placeholder="Choose..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {getAllSkills().map(skill => {
+                          const isKnown = knownSkills.includes(skill.id)
+                          const isSelectedAsSecond = currentBuild.halfElfSkills?.[1] === skill.id
+                          return (
+                            <SelectItem key={skill.id} value={skill.id} disabled={isKnown || isSelectedAsSecond}>
+                              <div className="flex items-center justify-between w-full">
+                                <span className={isKnown || isSelectedAsSecond ? "text-muted-foreground" : ""}>{skill.name}</span>
+                                {isKnown && <span className="text-xs text-muted-foreground ml-2">(Known)</span>}
+                              </div>
+                            </SelectItem>
+                          )
+                        })}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="half-elf-skill2-select" className="text-sm">Second Skill</Label>
+                    <Select 
+                      value={currentBuild.halfElfSkills?.[1] || ''} 
+                      onValueChange={(value) => {
+                        const current = currentBuild.halfElfSkills || ['', '']
+                        setHalfElfSkills([current[0], value])
+                      }}
+                    >
+                      <SelectTrigger id="half-elf-skill2-select">
+                        <SelectValue placeholder="Choose..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {getAllSkills().map(skill => {
+                          const isKnown = knownSkills.includes(skill.id)
+                          const isSelectedAsFirst = currentBuild.halfElfSkills?.[0] === skill.id
+                          return (
+                            <SelectItem key={skill.id} value={skill.id} disabled={isKnown || isSelectedAsFirst}>
+                              <div className="flex items-center justify-between w-full">
+                                <span className={isKnown || isSelectedAsFirst ? "text-muted-foreground" : ""}>{skill.name}</span>
+                                {isKnown && <span className="text-xs text-muted-foreground ml-2">(Known)</span>}
+                              </div>
+                            </SelectItem>
+                          )
+                        })}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Ability Score Choices */}
+              <div className="space-y-2">
+                <Label>Select Two Different Abilities (+1 each)</Label>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <Label htmlFor="half-elf-ability1-select" className="text-sm">First Ability</Label>
+                    <Select 
+                      value={currentBuild.halfElfAbilities?.[0] || ''} 
+                      onValueChange={(value) => {
+                        const current = currentBuild.halfElfAbilities || ['', '']
+                        setHalfElfAbilities([value, current[1]])
+                      }}
+                    >
+                      <SelectTrigger id="half-elf-ability1-select">
+                        <SelectValue placeholder="Choose..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA'].filter(ability => ability !== 'CHA').map(ability => (
+                          <SelectItem key={ability} value={ability} disabled={currentBuild.halfElfAbilities?.[1] === ability}>
+                            {ability}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="half-elf-ability2-select" className="text-sm">Second Ability</Label>
+                    <Select 
+                      value={currentBuild.halfElfAbilities?.[1] || ''} 
+                      onValueChange={(value) => {
+                        const current = currentBuild.halfElfAbilities || ['', '']
+                        setHalfElfAbilities([current[0], value])
+                      }}
+                    >
+                      <SelectTrigger id="half-elf-ability2-select">
+                        <SelectValue placeholder="Choose..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA'].filter(ability => ability !== 'CHA').map(ability => (
+                          <SelectItem key={ability} value={ability} disabled={currentBuild.halfElfAbilities?.[0] === ability}>
+                            {ability}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+          
+          {/* High Elf Cantrip Selection */}
+          {selectedRaceData?.id === 'elf' && selectedSubrace?.id === 'high_elf' && (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="cantrip-select">Select Wizard Cantrip</Label>
+                <Select 
+                  value={currentBuild.highElfCantrip || ''} 
+                  onValueChange={setHighElfCantrip}
+                >
+                  <SelectTrigger id="cantrip-select">
+                    <SelectValue placeholder="Choose a wizard cantrip..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {getSpellsByClassAndLevel('wizard', 0)
+                      .map(spell => ({
+                        ...spell,
+                        id: spell.name.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '')
+                      }))
+                      .sort((a, b) => a.name.localeCompare(b.name))
+                      .map(cantrip => {
+                        const isKnown = knownSpells.includes(cantrip.id)
+                        return (
+                          <SelectItem key={cantrip.id} value={cantrip.id} disabled={isKnown}>
+                            <div className="flex flex-col">
+                              <div className="flex items-center justify-between w-full">
+                                <span className={`font-medium ${isKnown ? "text-muted-foreground" : ""}`}>{cantrip.name}</span>
+                                {isKnown && <span className="text-xs text-muted-foreground ml-2">(Known)</span>}
+                              </div>
+                              <span className={`text-xs ${isKnown ? "text-muted-foreground" : "text-muted-foreground"}`}>
+                                {cantrip.school} • {cantrip.castingTime}
+                              </span>
+                            </div>
+                          </SelectItem>
+                        )
+                      })}
+                  </SelectContent>
+                </Select>
+                {currentBuild.highElfCantrip && (() => {
+                  const wizardCantrips = getSpellsByClassAndLevel('wizard', 0)
+                  const selected = wizardCantrips.find(spell => 
+                    spell.name.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '') === currentBuild.highElfCantrip
+                  )
+                  if (!selected) return null
+                  return (
+                    <div className="mt-2 text-sm p-2 border rounded bg-muted/20">
+                      <div className="font-medium text-panel">{selected.name}</div>
+                      <div className="text-xs text-muted mt-1">
+                        <strong>School:</strong> {selected.school} • <strong>Casting Time:</strong> {selected.castingTime}
+                      </div>
+                      <div className="text-xs text-muted mt-1">
+                        {selected.description.length > 100 
+                          ? `${selected.description.substring(0, 100)}...` 
+                          : selected.description}
+                      </div>
+                    </div>
+                  )
+                })()}
+              </div>
+            </div>
           )}
         </div>
         

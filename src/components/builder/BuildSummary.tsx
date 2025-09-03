@@ -3,6 +3,7 @@ import { Badge } from '../ui/badge'
 import { useCharacterBuilderStore } from '../../stores/characterBuilderStore'
 import { getRace, getClass } from '../../rules/loaders'
 import type { ClassDefinition } from '../../rules/types'
+import type { BuilderLevelEntry } from '../../types/character'
 import { getAllSkills, getProficiencyBonus } from '../../rules/srd/skills'
 import { getCanonicalBuild } from '../../utils/buildConverter'
 import { armor } from '../../rules/srd/armor'
@@ -12,7 +13,8 @@ import {
   Shield,
   Brain,
   Sparkles,
-  User
+  User,
+  Award
 } from 'lucide-react'
 
 // Spell slot progression tables
@@ -109,7 +111,7 @@ const WARLOCK_PACT_SLOTS = {
 } as const
 
 // Helper function to calculate total spell slots for multiclass builds
-function calculateTotalSpellSlots(timeline: any[]) {
+function calculateTotalSpellSlots(timeline: BuilderLevelEntry[]) {
   // Group levels by class and subclass
   const classLevels: Record<string, number> = {}
   const subclassInfo: Record<string, string> = {}
@@ -128,7 +130,7 @@ function calculateTotalSpellSlots(timeline: any[]) {
     if ((classId === 'fighter' || classId === 'rogue') && !subclassInfo[classId]) {
       // Search through timeline for subclass selection (usually at level 3+)
       const subclassEntry = timeline.find(entry => entry.classId === classId && entry.subclassId)
-      if (subclassEntry) {
+      if (subclassEntry && subclassEntry.subclassId) {
         subclassInfo[classId] = subclassEntry.subclassId
       }
     }
@@ -276,16 +278,50 @@ export function BuildSummary() {
   
   const backgroundSkills = getBackgroundSkills(currentBuild.background || '')
   
+  // Get all skill proficiencies from various sources
+  const downtimeSkills = currentBuild.downtimeTraining?.trainedSkillProficiencies || []
+  
+  // Get race skill proficiencies
+  const raceData = currentBuild.race ? getRace(currentBuild.race) : null
+  const raceSkills = raceData?.proficiencies?.skills || []
+  
+  // Add racial choice skills
+  const racialChoiceSkills: string[] = []
+  if (currentBuild.race === 'variant_human' && currentBuild.variantHumanSkill) {
+    racialChoiceSkills.push(currentBuild.variantHumanSkill)
+  }
+  if (currentBuild.race === 'half_elf' && currentBuild.halfElfSkills) {
+    racialChoiceSkills.push(...currentBuild.halfElfSkills)
+  }
+  
   // Calculate skill bonuses
   const skillBonuses = getAllSkills().map(skill => {
     const abilityMod = getAbilityModifier(abilityScores[skill.ability as keyof typeof abilityScores])
-    // Check proficiency from class skills OR background skills
-    // Note: skillProficiencies stores lowercase skill names, skill.name is capitalized
-    const isProficient = currentBuild.skillProficiencies?.some(profSkill => 
+    
+    // Check proficiency sources
+    const fromRace = raceSkills.some(raceSkill =>
+      raceSkill.toLowerCase() === skill.name.toLowerCase()
+    ) || racialChoiceSkills.some(raceSkill =>
+      raceSkill.toLowerCase() === skill.name.toLowerCase()
+    ) || false
+    const fromClass = currentBuild.skillProficiencies?.some(profSkill => 
       profSkill.toLowerCase() === skill.name.toLowerCase()
-    ) || backgroundSkills.some(bgSkill => 
+    ) || false
+    const fromBackground = backgroundSkills.some(bgSkill => 
       bgSkill.toLowerCase() === skill.name.toLowerCase()
     ) || false
+    const fromDowntime = downtimeSkills.some(dtSkill =>
+      dtSkill.toLowerCase() === skill.name.toLowerCase()
+    ) || false
+    
+    const isProficient = fromRace || fromClass || fromBackground || fromDowntime
+    
+    // Determine proficiency source for display (prioritize in order: Race, Class, Background, Training)
+    let proficiencySource = ''
+    if (fromRace) proficiencySource = 'Race'
+    else if (fromClass) proficiencySource = 'Class'
+    else if (fromBackground) proficiencySource = 'Background'
+    else if (fromDowntime) proficiencySource = 'Training'
     
     // Check expertise from canonical build AND legacy timeline (for backwards compatibility)
     const hasCanonicalExpertise = canonicalBuild.profs.expertise.some(expertiseSkill => 
@@ -302,6 +338,11 @@ export function BuildSummary() {
     
     const hasExpertise = hasCanonicalExpertise || hasLegacyExpertise || hasDowntimeExpertise
     
+    // Determine expertise source for display
+    let expertiseSource = ''
+    if (hasCanonicalExpertise || hasLegacyExpertise) expertiseSource = 'Class'
+    else if (hasDowntimeExpertise) expertiseSource = 'Training'
+    
     let bonus = abilityMod
     if (isProficient) bonus += proficiencyBonus
     if (hasExpertise) bonus += proficiencyBonus
@@ -311,7 +352,9 @@ export function BuildSummary() {
       isProficient,
       hasExpertise,
       bonus,
-      modifier: formatModifier(bonus)
+      modifier: formatModifier(bonus),
+      proficiencySource,
+      expertiseSource
     }
   })
   
@@ -530,7 +573,11 @@ export function BuildSummary() {
                       skill.hasExpertise ? 'text-ink/70' :
                       skill.isProficient ? 'text-white/70' :
                       'text-muted'
-                    }`}>({skill.ability})</div>
+                    }`}>
+                      ({skill.ability})
+                      {skill.proficiencySource && ` • ${skill.proficiencySource}`}
+                      {skill.hasExpertise && skill.expertiseSource && ` • ${skill.expertiseSource} Exp`}
+                    </div>
                   </div>
                   {(skill.hasExpertise || skill.isProficient) ? (
                     <Badge 
@@ -564,6 +611,137 @@ export function BuildSummary() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Feats */}
+      {(() => {
+        // Use canonical build to get all feats
+        const allFeats: Array<{ feat: string, source: string }> = []
+        const seenFeats = new Set<string>()
+        
+        // Get all feats from canonical build
+        canonicalBuild.feats.forEach(feat => {
+          if (!seenFeats.has(feat)) {
+            seenFeats.add(feat)
+            
+            // Determine source by checking where this feat appears
+            let source = 'Unknown'
+            
+            // Check if it's from level progression (ASI)
+            const levelEntry = (currentBuild.enhancedLevelTimeline || [])
+              .find(entry => entry.asiOrFeat === 'feat' && entry.featId === feat)
+            if (levelEntry) {
+              source = `Level ${levelEntry.level}`
+            }
+            // Check if it's from downtime training
+            else if (currentBuild.downtimeTraining?.trainedFeats?.includes(feat)) {
+              source = 'Training'
+            }
+            // Check if it's a racial feat (Variant Human gets one)
+            else if (currentBuild.race === 'variant_human' && currentBuild.variantHumanFeat === feat) {
+              source = 'Race'
+            }
+            // Check if it's from a subclass feature
+            else if (currentBuild.enhancedLevelTimeline?.some(entry => 
+              entry.features?.some(f => f.toLowerCase().includes(feat.toLowerCase()))
+            )) {
+              source = 'Class Feature'
+            }
+            
+            allFeats.push({ feat, source })
+          }
+        })
+        
+        // Also add any feats from enhanced timeline that might not be in canonical yet
+        const timelineFeats = (currentBuild.enhancedLevelTimeline || [])
+          .filter(entry => entry.asiOrFeat === 'feat' && entry.featId)
+          .map(entry => ({ feat: entry.featId!, source: 'Level ' + entry.level }))
+        
+        timelineFeats.forEach(featInfo => {
+          if (!seenFeats.has(featInfo.feat)) {
+            seenFeats.add(featInfo.feat)
+            allFeats.push(featInfo)
+          }
+        })
+        
+        // Add training feats that might not be in canonical
+        const trainingFeats = (currentBuild.downtimeTraining?.trainedFeats || [])
+        trainingFeats.forEach(feat => {
+          if (!seenFeats.has(feat)) {
+            seenFeats.add(feat)
+            allFeats.push({ feat, source: 'Training' })
+          }
+        })
+        
+        // Add Variant Human feat that might not be in canonical
+        if (currentBuild.race === 'variant_human' && currentBuild.variantHumanFeat) {
+          const feat = currentBuild.variantHumanFeat
+          if (!seenFeats.has(feat)) {
+            seenFeats.add(feat)
+            allFeats.push({ feat, source: 'Race' })
+          }
+        }
+        
+        if (allFeats.length === 0) return null
+        
+        // Sort feats by source priority: Race, Level, Class Feature, Training, Unknown
+        const sourcePriority: Record<string, number> = {
+          'Race': 1,
+          'Class Feature': 3,
+          'Training': 4,
+          'Unknown': 5
+        }
+        
+        allFeats.sort((a, b) => {
+          const aPriority = a.source.startsWith('Level') ? 2 : (sourcePriority[a.source] || 5)
+          const bPriority = b.source.startsWith('Level') ? 2 : (sourcePriority[b.source] || 5)
+          if (aPriority !== bPriority) return aPriority - bPriority
+          // Sort levels numerically
+          if (a.source.startsWith('Level') && b.source.startsWith('Level')) {
+            return parseInt(a.source.replace('Level ', '')) - parseInt(b.source.replace('Level ', ''))
+          }
+          return a.feat.localeCompare(b.feat)
+        })
+        
+        return (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Award className="w-5 h-5" />
+                Feats
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                {allFeats.map((featInfo, index) => {
+                  // Determine badge color based on source
+                  const getBadgeVariant = (source: string): "default" | "outline" | "secondary" | "destructive" => {
+                    if (source === 'Race') return 'default'
+                    if (source.startsWith('Level')) return 'secondary'
+                    if (source === 'Training') return 'outline'
+                    return 'outline'
+                  }
+                  
+                  return (
+                    <div key={`${featInfo.feat}-${index}`} className="flex items-center justify-between p-2 bg-panel/5 rounded">
+                      <span className="text-sm font-medium capitalize">
+                        {featInfo.feat.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                      </span>
+                      <Badge variant={getBadgeVariant(featInfo.source)} className="text-xs">
+                        {featInfo.source}
+                      </Badge>
+                    </div>
+                  )
+                })}
+              </div>
+              {allFeats.length > 0 && (
+                <div className="mt-3 text-xs text-muted">
+                  Total: {allFeats.length} feat{allFeats.length !== 1 ? 's' : ''}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )
+      })()}
 
       {/* Spell Slots */}
       {(spellSlotData.spellSlots || spellSlotData.warlockSlots) && (

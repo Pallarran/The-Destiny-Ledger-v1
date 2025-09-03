@@ -36,11 +36,10 @@ export const SpellSelection: React.FC<SpellSelectionProps> = ({
   spellsKnown,
   cantripsKnown,
   subclassId,
-  previousSpells = [],
   newCantripsToLearn = 0,
   newSpellsToLearn = 0
 }) => {
-  const { currentBuild } = useCharacterBuilderStore()
+  const { currentBuild, getAllKnownSpells } = useCharacterBuilderStore()
   
   // Helper function to calculate ability modifier
   const getAbilityModifier = (score: number) => Math.floor((score - 10) / 2)
@@ -63,12 +62,15 @@ export const SpellSelection: React.FC<SpellSelectionProps> = ({
     return spells
   }, [classId, subclassId])
   
+  // Get all globally known spells to prevent duplicates
+  const globalKnownSpells = getAllKnownSpells()
+  
   // Filter spells by selected level and search query
   const filteredSpells = useMemo(() => {
     let spells = availableSpells
     
-    // Filter out spells already known from previous levels
-    spells = spells.filter((s: Spell) => !previousSpells.includes(s.id))
+    // Filter out spells already known from ANY source (class levels, racial, etc.)
+    spells = spells.filter((s: Spell) => !globalKnownSpells.includes(s.id))
     
     // Filter by level
     if (selectedLevel === 'cantrip') {
@@ -89,7 +91,7 @@ export const SpellSelection: React.FC<SpellSelectionProps> = ({
     }
     
     return spells.sort((a: Spell, b: Spell) => a.name.localeCompare(b.name))
-  }, [availableSpells, selectedLevel, searchQuery, previousSpells])
+  }, [availableSpells, selectedLevel, searchQuery, globalKnownSpells])
   
   // Calculate spell limits based on class and level
   const getSpellLimits = () => {

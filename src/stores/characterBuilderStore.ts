@@ -49,6 +49,15 @@ interface CharacterBuilderStore extends CharacterBuilderState {
   updateAbilityScores: (scores: AbilityScoreArray) => void
   setSkillProficiencies: (skills: string[]) => void
   
+  // Racial choice actions
+  setVariantHumanFeat: (featId: string) => void
+  setVariantHumanSkill: (skillId: string) => void
+  setVariantHumanAbilities: (abilities: [string, string]) => void
+  setHalfElfSkills: (skills: [string, string]) => void
+  setHalfElfAbilities: (abilities: [string, string]) => void
+  setDragonbornAncestry: (ancestry: string) => void
+  setHighElfCantrip: (cantripId: string) => void
+  
   // Level progression actions
   addLevel: (classId: string, level: number) => void
   updateLevel: (level: number, updates: Partial<BuilderLevelEntry>) => void
@@ -93,6 +102,11 @@ interface CharacterBuilderStore extends CharacterBuilderState {
   resetBuild: () => void
   markDirty: () => void
   clearDirty: () => void
+  
+  // Utility functions to get all known items from all sources
+  getAllKnownSpells: () => string[]
+  getAllKnownFeats: () => string[]
+  getAllKnownSkills: () => string[]
 }
 
 // Helper function to get features for a level entry
@@ -520,19 +534,13 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
           }
           state.currentBuild.baseAbilityScores[ability] = value
           
-          // Update working scores to base value (racial bonuses will be applied separately)
-          state.currentBuild.abilityScores[ability] = value
-          
-          // Final scores will be recalculated with racial bonuses
-          if (!state.currentBuild.finalAbilityScores) {
-            state.currentBuild.finalAbilityScores = { ...state.currentBuild.abilityScores }
-          }
-          state.currentBuild.finalAbilityScores[ability] = value
-          
           state.isDirty = true
           validateStep(state, 'ability-scores')
         }
       })
+      
+      // Trigger full recalculation to apply racial bonuses and ASIs
+      get().recalculateAllAbilityScores()
     },
     
     setPointBuyConfig: (config: PointBuyConfig) => {
@@ -561,6 +569,8 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
       set((state) => {
         if (state.currentBuild) {
           state.currentBuild.race = raceId
+          // Clear racial bonuses when race changes to force recalculation
+          state.currentBuild.racialBonuses = {}
           state.isDirty = true
           validateStep(state, 'race-background')
         }
@@ -596,28 +606,23 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
             Object.keys(scores).forEach(key => {
               const ability = key as keyof AbilityScoreArray
               const bonus = scores[ability] - (state.currentBuild!.baseAbilityScores![ability] || 8)
-              if (bonus > 0) {
+              // Store all racial bonuses, including negative ones
+              if (bonus !== 0) {
                 racialBonuses[ability] = bonus
               }
             })
             state.currentBuild.racialBonuses = racialBonuses
+            console.log('Storing racial bonuses:', racialBonuses)
           }
-          
-          // This is called by racial bonus application, so these are final scores
-          state.currentBuild.finalAbilityScores = scores
-          // Keep abilityScores synced for compatibility
-          state.currentBuild.abilityScores = scores
-          
-          // After applying racial bonuses, recalculate to include any ASI increases
-          setTimeout(() => {
-            const { recalculateAllAbilityScores } = get()
-            recalculateAllAbilityScores()
-          }, 0)
           
           state.isDirty = true
           validateStep(state, 'ability-scores')
         }
       })
+      
+      // Recalculate all ability scores after updating racial bonuses
+      // This needs to be outside the set() to avoid race conditions
+      get().recalculateAllAbilityScores()
     },
 
     // Helper function to recalculate all ability scores including ASI increases
@@ -641,6 +646,24 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
                 finalScores[ability as keyof AbilityScoreArray] += bonus
               }
             })
+          }
+          
+          // Add racial choice bonuses
+          // Variant Human: Two different +1s of choice
+          if (state.currentBuild.race === 'variant_human' && state.currentBuild.variantHumanAbilities) {
+            const [ability1, ability2] = state.currentBuild.variantHumanAbilities
+            finalScores[ability1 as keyof AbilityScoreArray] += 1
+            finalScores[ability2 as keyof AbilityScoreArray] += 1
+          }
+          
+          // Half-Elf: +2 CHA + two different +1s of choice
+          if (state.currentBuild.race === 'half_elf') {
+            finalScores.CHA += 2 // Fixed +2 CHA for Half-Elf
+            if (state.currentBuild.halfElfAbilities) {
+              const [ability1, ability2] = state.currentBuild.halfElfAbilities
+              finalScores[ability1 as keyof AbilityScoreArray] += 1
+              finalScores[ability2 as keyof AbilityScoreArray] += 1
+            }
           }
           
           // Add ASI increases from all level progression (both regular ASIs and half-feats)
@@ -681,7 +704,9 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
 
     // Trigger racial bonus recalculation (for components to call when needed)
     triggerRacialBonusRecalculation: () => {
-      // This will be implemented if needed
+      // Force a recalculation of all ability scores
+      // This is useful when race/subrace changes or other conditions require a refresh
+      get().recalculateAllAbilityScores()
     },
     
     setSkillProficiencies: (skills: string[]) => {
@@ -689,6 +714,83 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
         if (state.currentBuild) {
           state.currentBuild.skillProficiencies = skills
           state.isDirty = true
+        }
+      })
+    },
+    
+    // Racial choice actions
+    setVariantHumanFeat: (featId: string) => {
+      set((state) => {
+        if (state.currentBuild) {
+          state.currentBuild.variantHumanFeat = featId
+          state.isDirty = true
+          validateStep(state, 'race-background')
+        }
+      })
+    },
+    
+    setVariantHumanSkill: (skillId: string) => {
+      set((state) => {
+        if (state.currentBuild) {
+          state.currentBuild.variantHumanSkill = skillId
+          state.isDirty = true
+          validateStep(state, 'race-background')
+        }
+      })
+    },
+    
+    setVariantHumanAbilities: (abilities: [string, string]) => {
+      set((state) => {
+        if (state.currentBuild) {
+          state.currentBuild.variantHumanAbilities = abilities
+          state.isDirty = true
+          validateStep(state, 'race-background')
+        }
+      })
+      
+      // Recalculate ability scores with new racial bonuses
+      get().recalculateAllAbilityScores()
+    },
+    
+    setHalfElfSkills: (skills: [string, string]) => {
+      set((state) => {
+        if (state.currentBuild) {
+          state.currentBuild.halfElfSkills = skills
+          state.isDirty = true
+          validateStep(state, 'race-background')
+        }
+      })
+    },
+    
+    setHalfElfAbilities: (abilities: [string, string]) => {
+      set((state) => {
+        if (state.currentBuild) {
+          state.currentBuild.halfElfAbilities = abilities
+          state.isDirty = true
+          validateStep(state, 'race-background')
+        }
+      })
+      
+      // Recalculate ability scores with new racial bonuses
+      get().recalculateAllAbilityScores()
+    },
+    
+    setDragonbornAncestry: (ancestry: string) => {
+      set((state) => {
+        if (state.currentBuild) {
+          state.currentBuild.dragonbornAncestry = ancestry
+          state.isDirty = true
+          validateStep(state, 'race-background')
+        }
+      })
+    },
+    
+    setHighElfCantrip: (cantripId: string) => {
+      set((state) => {
+        if (state.currentBuild) {
+          state.currentBuild.highElfCantrip = cantripId
+          state.isDirty = true
+          validateStep(state, 'race-background')
         }
       })
     },
@@ -1171,12 +1273,12 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
           
           state.currentBuild.downtimeTraining.sessions.push(newSession)
           state.isDirty = true
-          
-          // Recompute totals
-          get().recomputeTrainingTotals()
           validateStep(state, 'downtime-training')
         }
       })
+      
+      // Recompute totals after the state update
+      get().recomputeTrainingTotals()
       
       return newSession
     },
@@ -1188,13 +1290,13 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
           if (session) {
             Object.assign(session, updates)
             state.isDirty = true
-            
-            // Recompute totals
-            get().recomputeTrainingTotals()
             validateStep(state, 'downtime-training')
           }
         }
       })
+      
+      // Recompute totals after the state update
+      get().recomputeTrainingTotals()
     },
     
     removeTrainingSession: (sessionId) => {
@@ -1203,12 +1305,12 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
           state.currentBuild.downtimeTraining.sessions = 
             state.currentBuild.downtimeTraining.sessions.filter(s => s.id !== sessionId)
           state.isDirty = true
-          
-          // Recompute totals
-          get().recomputeTrainingTotals()
           validateStep(state, 'downtime-training')
         }
       })
+      
+      // Recompute totals after the state update
+      get().recomputeTrainingTotals()
     },
     
     addWeaponTraining: (sessionId, weaponTraining) => {
@@ -1221,13 +1323,13 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
             // Add new training
             session.weaponTraining.push(weaponTraining)
             state.isDirty = true
-            
-            // Recompute totals
-            get().recomputeTrainingTotals()
             validateStep(state, 'downtime-training')
           }
         }
       })
+      
+      // Recompute totals after the state update
+      get().recomputeTrainingTotals()
     },
     
     updateWeaponTraining: (sessionId, weaponType, updates) => {
@@ -1239,14 +1341,14 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
             if (weaponTraining) {
               Object.assign(weaponTraining, updates)
               state.isDirty = true
-              
-              // Recompute totals
-              get().recomputeTrainingTotals()
               validateStep(state, 'downtime-training')
             }
           }
         }
       })
+      
+      // Recompute totals after the state update
+      get().recomputeTrainingTotals()
     },
     
     removeWeaponTraining: (sessionId, weaponType) => {
@@ -1256,13 +1358,13 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
           if (session) {
             session.weaponTraining = session.weaponTraining.filter(wt => wt.weaponType !== weaponType)
             state.isDirty = true
-            
-            // Recompute totals
-            get().recomputeTrainingTotals()
             validateStep(state, 'downtime-training')
           }
         }
       })
+      
+      // Recompute totals after the state update
+      get().recomputeTrainingTotals()
     },
     
     recomputeTrainingTotals: () => {
@@ -1311,17 +1413,109 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
           training.trainedFeats = [...new Set(training.trainedFeats)]
           training.trainedSkillProficiencies = [...new Set(training.trainedSkillProficiencies)]
           training.trainedSkillExpertise = [...new Set(training.trainedSkillExpertise)]
-          
-          // Recalculate final ability scores to include training bonuses
-          get().recalculateAllAbilityScores()
         }
       })
+      
+      // Recalculate final ability scores to include training bonuses
+      // This needs to be outside the set() to properly trigger updates
+      get().recalculateAllAbilityScores()
     },
     
     clearDirty: () => {
       set((state) => {
         state.isDirty = false
       })
+    },
+    
+    // Utility functions to get all known items from all sources
+    getAllKnownSpells: () => {
+      const state = get()
+      const build = state.currentBuild
+      if (!build) return []
+      
+      const allSpells = new Set<string>()
+      
+      // 1. Spells from level progression (all classes)
+      build.enhancedLevelTimeline?.forEach(entry => {
+        if (entry.spellChoices) {
+          entry.spellChoices.forEach(spell => allSpells.add(spell))
+        }
+      })
+      
+      // 2. Racial spells
+      // High Elf wizard cantrip
+      if (build.race === 'elf' && build.subrace === 'high_elf' && build.highElfCantrip) {
+        allSpells.add(build.highElfCantrip)
+      }
+      
+      // Fixed racial spells (these are automatic, not selected, but still "known")
+      if (build.race === 'tiefling') {
+        allSpells.add('thaumaturgy')
+      }
+      if (build.race === 'elf' && build.subrace === 'drow') {
+        allSpells.add('dancing_lights')
+      }
+      if (build.race === 'gnome' && build.subrace === 'forest_gnome') {
+        allSpells.add('minor_illusion')
+      }
+      
+      return Array.from(allSpells)
+    },
+    
+    getAllKnownFeats: () => {
+      const state = get()
+      const build = state.currentBuild
+      if (!build) return []
+      
+      const allFeats = new Set<string>()
+      
+      // 1. Feats from ASI/feat choices in level progression
+      build.enhancedLevelTimeline?.forEach(entry => {
+        if (entry.featId) {
+          allFeats.add(entry.featId)
+        }
+      })
+      
+      // 2. Racial feats
+      // Variant Human feat
+      if (build.race === 'variant_human' && build.variantHumanFeat) {
+        allFeats.add(build.variantHumanFeat)
+      }
+      
+      // 3. Feats from downtime training
+      build.downtimeTraining?.sessions?.forEach(session => {
+        session.featsTrained?.forEach((feat: string) => allFeats.add(feat))
+      })
+      
+      return Array.from(allFeats)
+    },
+    
+    getAllKnownSkills: () => {
+      const state = get()
+      const build = state.currentBuild
+      if (!build) return []
+      
+      const allSkills = new Set<string>()
+      
+      // 1. Base skill proficiencies from build
+      build.skillProficiencies?.forEach(skill => allSkills.add(skill))
+      
+      // 2. Racial skill choices
+      // Variant Human skill
+      if (build.race === 'variant_human' && build.variantHumanSkill) {
+        allSkills.add(build.variantHumanSkill)
+      }
+      // Half-Elf skills
+      if (build.race === 'half_elf' && build.halfElfSkills) {
+        build.halfElfSkills.forEach(skill => allSkills.add(skill))
+      }
+      
+      // 3. Skills from downtime training
+      build.downtimeTraining?.sessions?.forEach(session => {
+        session.skillsTrained?.forEach((skill: string) => allSkills.add(skill))
+      })
+      
+      return Array.from(allSkills)
     }
   }))
 )

@@ -100,7 +100,8 @@ export const skills: Record<string, Skill> = {
 }
 
 // Helper to get all skills as an array
-export const getAllSkills = (): Skill[] => Object.values(skills)
+export const getAllSkills = (): (Skill & { id: string })[] => 
+  Object.entries(skills).map(([id, skill]) => ({ ...skill, id }))
 
 // Helper to get skill by name
 export const getSkillByName = (name: string): Skill | undefined => {

@@ -53,6 +53,15 @@ export interface CharacterBuilder extends BuildConfiguration {
   racialBonuses?: Partial<AbilityScoreArray>
   finalAbilityScores?: AbilityScoreArray
   
+  // Racial choice fields (for races with options)
+  variantHumanFeat?: string // Feat chosen for Variant Human
+  variantHumanSkill?: string // Skill chosen for Variant Human
+  variantHumanAbilities?: [string, string] // Two +1 ability choices for Variant Human
+  halfElfSkills?: [string, string] // Two skill choices for Half-Elf
+  halfElfAbilities?: [string, string] // Two +1 ability choices for Half-Elf
+  dragonbornAncestry?: string // Draconic ancestry chosen for Dragonborn
+  highElfCantrip?: string // Wizard cantrip chosen for High Elf
+  
   // Enhanced level progression
   enhancedLevelTimeline: BuilderLevelEntry[]
   maxLevel: number

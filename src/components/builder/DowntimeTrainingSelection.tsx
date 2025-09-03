@@ -344,6 +344,7 @@ interface TrainingSessionEditorProps {
 }
 
 function TrainingSessionEditor({ session, onSave, onCancel }: TrainingSessionEditorProps) {
+  const { getAllKnownFeats, getAllKnownSkills } = useCharacterBuilderStore()
   const [name, setName] = useState(session.name)
   const [description, setDescription] = useState(session.description || '')
   const [abilityImprovements, setAbilityImprovements] = useState<Partial<AbilityScoreArray>>(session.abilityImprovements)
@@ -391,9 +392,14 @@ function TrainingSessionEditor({ session, onSave, onCancel }: TrainingSessionEdi
     setWeaponTraining(prev => prev.filter((_, i) => i !== index))
   }
 
+  // Get known items from store
+  const knownFeats = getAllKnownFeats()
+  const knownSkills = getAllKnownSkills()
+
   // Feat helper functions
   const availableFeats = Object.values(feats).filter(feat => 
     !featsTrained.includes(feat.id) &&
+    !knownFeats.includes(feat.id) &&
     feat.name.toLowerCase().includes(featSearchTerm.toLowerCase())
   )
 
@@ -411,6 +417,7 @@ function TrainingSessionEditor({ session, onSave, onCancel }: TrainingSessionEdi
   const allSkills = getAllSkills()
   const availableSkills = allSkills.filter(skill => 
     !skillsTrained.includes(skill.name) &&
+    !knownSkills.includes(skill.id) &&
     skill.name.toLowerCase().includes(skillSearchTerm.toLowerCase())
   )
 
@@ -696,22 +703,29 @@ function TrainingSessionEditor({ session, onSave, onCancel }: TrainingSessionEdi
 
             {availableFeats.length > 0 ? (
               <div className="max-h-48 overflow-y-auto space-y-2 border rounded p-2">
-                {availableFeats.slice(0, 10).map(feat => (
-                  <div key={feat.id} className="flex items-start justify-between p-2 hover:bg-accent/5 rounded">
-                    <div className="flex-1">
-                      <h4 className="text-sm font-medium">{feat.name}</h4>
-                      <p className="text-xs text-muted line-clamp-2">{feat.description}</p>
+                {availableFeats.slice(0, 10).map(feat => {
+                  const isGloballyKnown = knownFeats.includes(feat.id)
+                  return (
+                    <div key={feat.id} className="flex items-start justify-between p-2 hover:bg-accent/5 rounded">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <h4 className={`text-sm font-medium ${isGloballyKnown ? 'text-muted-foreground' : ''}`}>{feat.name}</h4>
+                          {isGloballyKnown && <span className="text-xs text-muted-foreground">(Known)</span>}
+                        </div>
+                        <p className={`text-xs line-clamp-2 ${isGloballyKnown ? 'text-muted-foreground' : 'text-muted'}`}>{feat.description}</p>
+                      </div>
+                      <Button
+                        onClick={() => addFeatTrained(feat.id)}
+                        size="sm"
+                        variant="outline"
+                        className="ml-2"
+                        disabled={isGloballyKnown}
+                      >
+                        <Plus className="w-4 h-4" />
+                      </Button>
                     </div>
-                    <Button
-                      onClick={() => addFeatTrained(feat.id)}
-                      size="sm"
-                      variant="outline"
-                      className="ml-2"
-                    >
-                      <Plus className="w-4 h-4" />
-                    </Button>
-                  </div>
-                ))}
+                  )
+                })}
                 {availableFeats.length > 10 && (
                   <p className="text-xs text-muted text-center py-2">
                     Showing first 10 results. Continue typing to narrow search.
@@ -720,7 +734,7 @@ function TrainingSessionEditor({ session, onSave, onCancel }: TrainingSessionEdi
               </div>
             ) : (
               <p className="text-sm text-muted text-center py-4">
-                {featSearchTerm ? 'No feats match your search.' : 'All feats have been selected.'}
+                {featSearchTerm ? 'No available feats match your search.' : 'All available feats have been selected.'}
               </p>
             )}
           </div>
@@ -774,26 +788,33 @@ function TrainingSessionEditor({ session, onSave, onCancel }: TrainingSessionEdi
 
                 {availableSkills.length > 0 ? (
                   <div className="max-h-32 overflow-y-auto space-y-1 border rounded p-1">
-                    {availableSkills.slice(0, 8).map(skill => (
-                      <div key={skill.name} className="flex items-center justify-between p-1 hover:bg-accent/5 rounded">
-                        <div>
-                          <span className="text-sm font-medium">{skill.name}</span>
-                          <span className="text-xs text-muted ml-2">({skill.ability})</span>
+                    {availableSkills.slice(0, 8).map(skill => {
+                      const isGloballyKnown = knownSkills.includes(skill.id)
+                      return (
+                        <div key={skill.name} className="flex items-center justify-between p-1 hover:bg-accent/5 rounded">
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <span className={`text-sm font-medium ${isGloballyKnown ? 'text-muted-foreground' : ''}`}>{skill.name}</span>
+                              {isGloballyKnown && <span className="text-xs text-muted-foreground">(Known)</span>}
+                            </div>
+                            <span className={`text-xs ml-2 ${isGloballyKnown ? 'text-muted-foreground' : 'text-muted'}`}>({skill.ability})</span>
+                          </div>
+                          <Button
+                            onClick={() => addSkillTrained(skill.name)}
+                            size="sm"
+                            variant="outline"
+                            className="h-6 w-6 p-0"
+                            disabled={isGloballyKnown}
+                          >
+                            <Plus className="w-3 h-3" />
+                          </Button>
                         </div>
-                        <Button
-                          onClick={() => addSkillTrained(skill.name)}
-                          size="sm"
-                          variant="outline"
-                          className="h-6 w-6 p-0"
-                        >
-                          <Plus className="w-3 h-3" />
-                        </Button>
-                      </div>
-                    ))}
+                      )
+                    })}
                   </div>
                 ) : (
                   <p className="text-xs text-muted text-center py-3">
-                    {skillSearchTerm ? 'No skills match your search.' : 'All skills have been selected.'}
+                    {skillSearchTerm ? 'No available skills match your search.' : 'All available skills have been selected.'}
                   </p>
                 )}
               </div>

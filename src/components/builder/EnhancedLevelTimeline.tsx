@@ -193,9 +193,12 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
   removeLevel?: (level: number) => void
   canRemove?: boolean
 }) {
+  const { getAllKnownFeats } = useCharacterBuilderStore()
   const [expandedSection, setExpandedSection] = useState<string | null>(null)
-  // Use ClassIcon component for class representation
-
+  
+  // Get known feats to prevent duplicates
+  const knownFeats = getAllKnownFeats()
+  
   // Get class features for this level
   const classFeatures = classData?.features?.[classLevel] || []
   
@@ -608,9 +611,24 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
       const currentSpells = entry.spellChoices || []
       
       // Get all spells known from previous levels
-      const previousSpells = currentBuild?.enhancedLevelTimeline
+      let previousSpells = currentBuild?.enhancedLevelTimeline
         ?.filter((e: any) => e.level < entry.level && e.classId === entry.classId)
         ?.flatMap((e: any) => e.spellChoices || []) || []
+      
+      // Add racial spells to previously known spells
+      const racialSpells: string[] = []
+      
+      // High Elf gets a wizard cantrip
+      if (currentBuild?.race === 'elf' && currentBuild?.subrace === 'high_elf' && currentBuild?.highElfCantrip) {
+        if (entry.classId === 'wizard') { // Only relevant for wizard spell selection
+          racialSpells.push(currentBuild.highElfCantrip)
+        }
+      }
+      
+      // Add other racial spells as needed (Tiefling, Drow, etc. have fixed spells, not choices)
+      // Fixed racial spells don't need to be excluded from selection since they're automatic
+      
+      previousSpells = [...previousSpells, ...racialSpells]
       
       // Calculate how many new spells can be learned this level
       const previousCantrips = previousSpells.filter((spellId: string) => {
@@ -665,9 +683,21 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
       const currentSpells = entry.spellChoices || []
       
       // Get all spells known from previous levels of the same class
-      const previousSpells = currentBuild?.enhancedLevelTimeline
+      let previousSpells = currentBuild?.enhancedLevelTimeline
         ?.filter((e: any) => e.level < entry.level && e.classId === entry.classId && e.subclassId === subclassId)
         ?.flatMap((e: any) => e.spellChoices || []) || []
+      
+      // Add racial spells to previously known spells for third casters
+      const racialSpells: string[] = []
+      
+      // High Elf gets a wizard cantrip - relevant for Eldritch Knight (uses wizard spells)
+      if (currentBuild?.race === 'elf' && currentBuild?.subrace === 'high_elf' && currentBuild?.highElfCantrip) {
+        if (subclassId === 'eldritch_knight') { // Eldritch Knight uses wizard spell list
+          racialSpells.push(currentBuild.highElfCantrip)
+        }
+      }
+      
+      previousSpells = [...previousSpells, ...racialSpells]
       
       // Calculate how many new spells can be learned this level
       const previousCantrips = previousSpells.filter((spellId: string) => {
@@ -1464,23 +1494,29 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
                       <SelectValue placeholder="Select a feat..." />
                     </SelectTrigger>
                     <SelectContent className="max-h-80">
-                      {Object.values(feats).sort((a: any, b: any) => a.name.localeCompare(b.name)).map((feat: any) => (
-                        <SelectItem key={feat.id} value={feat.id}>
-                          <div className="flex flex-col gap-1">
-                            <div className="font-medium">
-                              {feat.name}
-                              {feat.abilityScoreIncrease && (
-                                <span className="ml-2 text-xs bg-accent/10 text-accent px-1 rounded">
-                                  +1 Ability Score
-                                </span>
-                              )}
+                      {Object.values(feats).sort((a: any, b: any) => a.name.localeCompare(b.name)).map((feat: any) => {
+                        const isKnown = knownFeats.includes(feat.id)
+                        return (
+                          <SelectItem key={feat.id} value={feat.id} disabled={isKnown}>
+                            <div className="flex flex-col gap-1">
+                              <div className="font-medium">
+                                <div className="flex items-center gap-2">
+                                  <span className={isKnown ? "text-muted-foreground" : ""}>{feat.name}</span>
+                                  {isKnown && <span className="text-xs text-muted-foreground">(Known)</span>}
+                                </div>
+                                {feat.abilityScoreIncrease && (
+                                  <span className={`ml-2 text-xs px-1 rounded ${isKnown ? 'bg-muted text-muted-foreground' : 'bg-accent/10 text-accent'}`}>
+                                    +1 Ability Score
+                                  </span>
+                                )}
+                              </div>
+                              <div className={`text-xs line-clamp-2 ${isKnown ? 'text-muted-foreground' : 'text-muted-foreground'}`}>
+                                {feat.description}
+                              </div>
                             </div>
-                            <div className="text-xs text-muted-foreground line-clamp-2">
-                              {feat.description}
-                            </div>
-                          </div>
-                        </SelectItem>
-                      ))}
+                          </SelectItem>
+                        )
+                      })}
                     </SelectContent>
                   </Select>
                   
