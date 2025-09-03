@@ -38,18 +38,18 @@ export function FantasyLayout({ children }: FantasyLayoutProps) {
         />
       </div>
 
-      {/* Main content area with large margins to make frame appear thin */}
-      <div className="relative min-h-screen parchment-bg" style={{ margin: '60px 80px 60px 80px' }}>
+      {/* Main content area with smaller margins for thinner frame border */}
+      <div className="relative min-h-screen parchment-bg" style={{ margin: '30px 40px 30px 40px' }}>
 
-        {/* Content inside frame */}
+        {/* Content inside frame - no top padding, title bar at frame edge */}
         <div className="relative h-full flex flex-col" style={{ 
-          padding: '40px 50px',  // Content padding within the parchment area
+          padding: '0px 20px 20px 20px',  // No top padding, title bar touches frame
         }}>
           {/* Title Bar - Inside frame at top */}
           <FantasyHeader currentPage={currentPage} isLandingPage={isLandingPage} />
 
-          {/* Content area */}
-          <div className="flex flex-1 mt-6">
+          {/* Content area with spacing from title bar */}
+          <div className="flex flex-1 mt-4" style={{ padding: '20px 0' }}>
             {/* Sidebar - only show on non-landing pages */}
             {!isLandingPage && <FantasySidebar />}
             
