@@ -22,6 +22,7 @@ import { RangerFeatureSelection } from './RangerFeatureSelection'
 import { SpellSelection } from './SpellSelection'
 import { ThirdCasterSpellSelection } from './ThirdCasterSpellSelection'
 import { WizardSpellPreparation } from './WizardSpellPreparation'
+import { PreparedCasterSpellPreparation } from './PreparedCasterSpellPreparation'
 import { MulticlassSpellSummary } from './MulticlassSpellSummary'
 import { maneuvers, getManeuverProgression } from '../../rules/srd/maneuvers'
 import { metamagicOptions, getMetamagicProgression } from '../../rules/srd/metamagic'
@@ -799,19 +800,36 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
         ))
         ?.flatMap((e: any) => e.spellChoices || []) || []
       
-      // Don't count racial spells against class progression - they're bonus spells
-      // High Elf cantrip, Tiefling spells, etc. are additional to class progression
-      // They should be excluded from selection but not count against limits
+      // Get racial spells to exclude from class progression limits
+      const racialSpells: string[] = []
       
-      // Calculate how many new spells can be learned this level
-      const previousCantrips = previousSpells.filter((spellId: string) => {
+      // High Elf gets a wizard cantrip - applies to wizards and classes that share wizard spell list
+      if (currentBuild?.race === 'elf' && currentBuild?.subrace === 'high_elf' && currentBuild?.highElfCantrip) {
+        if (entry.classId === 'wizard' || 
+           (entry.classId === 'fighter' && entry.subclassId === 'eldritch_knight') ||
+           (entry.classId === 'rogue' && entry.subclassId === 'arcane_trickster')) {
+          racialSpells.push(currentBuild.highElfCantrip)
+        }
+      }
+      
+      // Calculate how many new spells can be learned this level (excluding racial spells from previous count)
+      const allPreviousCantrips = previousSpells.filter((spellId: string) => {
         // We'd need to check if spell is cantrip, but for now assume based on common patterns
         return spellId.includes('cantrip') || ['fire_bolt', 'ray_of_frost', 'mage_hand', 'minor_illusion', 'prestidigitation', 'guidance', 'sacred_flame', 'spare_the_dying', 'druidcraft', 'produce_flame', 'vicious_mockery'].includes(spellId)
       })
-      const previousLeveledSpells = previousSpells.filter((spellId: string) => !previousCantrips.includes(spellId))
+      const racialCantrips = racialSpells.filter((spellId: string) => {
+        return spellId.includes('cantrip') || ['fire_bolt', 'ray_of_frost', 'mage_hand', 'minor_illusion', 'prestidigitation', 'guidance', 'sacred_flame', 'spare_the_dying', 'druidcraft', 'produce_flame', 'vicious_mockery'].includes(spellId)
+      })
       
-      const newCantripsToLearn = Math.max(0, spellProgression.cantripsKnown - previousCantrips.length)
+      // Only count class progression cantrips, not racial cantrips
+      const previousClassCantrips = allPreviousCantrips.filter((spell: string) => !racialCantrips.includes(spell))
+      const previousLeveledSpells = previousSpells.filter((spellId: string) => !allPreviousCantrips.includes(spellId))
+      
+      const newCantripsToLearn = Math.max(0, spellProgression.cantripsKnown - previousClassCantrips.length)
       const newSpellsToLearn = Math.max(0, spellProgression.spellsKnown - previousLeveledSpells.length)
+      
+      // Add racial spells back to previousSpells for display purposes in spell selection
+      previousSpells = [...previousSpells, ...racialSpells]
       
       // Different handling for wizard vs other casters
       if (entry.classId === 'wizard') {
@@ -974,6 +992,43 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
         wizardLevel: totalWizardLevels // Total wizard levels, not class level
       })
     }
+  }
+
+  // 4c. Prepared Caster Spell Preparation (cleric, druid, paladin) - separate from cantrip selection
+  const preparedCasterClasses = ['cleric', 'druid', 'paladin']
+  const preparedCasterLevelsUpToHere = currentBuild?.enhancedLevelTimeline
+    ?.filter((e: any) => e.level <= entry.level && preparedCasterClasses.includes(e.classId)) || []
+  
+  if (preparedCasterLevelsUpToHere.length > 0) {
+    // Group by class (in case of multiclass between prepared casters)
+    const preparedCastersByClass: Record<string, any[]> = {}
+    preparedCasterLevelsUpToHere.forEach((e: any) => {
+      if (!preparedCastersByClass[e.classId]) {
+        preparedCastersByClass[e.classId] = []
+      }
+      preparedCastersByClass[e.classId].push(e)
+    })
+
+    // For each prepared caster class, show spell preparation
+    Object.entries(preparedCastersByClass).forEach(([classId, levels]) => {
+      const isHighestLevel = entry.level === Math.max(...(currentBuild?.enhancedLevelTimeline?.map((e: any) => e.level) || [entry.level]))
+      const totalClassLevels = levels.length
+      
+      // Get currently prepared spells (stored on the latest entry)
+      const preparedSpells = entry.preparedSpells || []
+      
+      if (totalClassLevels > 0 && (isHighestLevel || entry.classId === classId)) {
+        sections.push({
+          id: `${classId}_preparation`,
+          title: `Prepare ${classId.charAt(0).toUpperCase() + classId.slice(1)} Spells`,
+          type: 'prepared_caster_preparation',
+          isComplete: true, // Always optional - can change these daily
+          classId: classId,
+          preparedSpells: preparedSpells,
+          classLevel: totalClassLevels // Total levels in this class
+        })
+      }
+    })
   }
 
   // 5. Skills (Level 1 only)
@@ -1583,6 +1638,20 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
             <WizardSpellPreparation
               level={section.wizardLevel}
               spellbookSpells={section.spellbookSpells || []}
+              preparedSpells={section.preparedSpells || []}
+              onPreparedSpellsChange={(spells) => {
+                updateLevel(entry.level, { preparedSpells: spells })
+              }}
+            />
+          </div>
+        )
+
+      case 'prepared_caster_preparation':
+        return (
+          <div className="p-3 bg-panel/5">
+            <PreparedCasterSpellPreparation
+              classId={section.classId}
+              level={section.classLevel}
               preparedSpells={section.preparedSpells || []}
               onPreparedSpellsChange={(spells) => {
                 updateLevel(entry.level, { preparedSpells: spells })

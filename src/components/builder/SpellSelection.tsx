@@ -147,6 +147,7 @@ export const SpellSelection: React.FC<SpellSelectionProps> = ({
     return spell && spell.level > 0
   })
   
+  
   const toggleSpell = (spellId: string) => {
     const spell = availableSpells.find((s: Spell) => s.id === spellId)
     if (!spell) return
