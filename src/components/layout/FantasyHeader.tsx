@@ -10,21 +10,21 @@ interface FantasyHeaderProps {
 
 export function FantasyHeader({ currentPage, isLandingPage }: FantasyHeaderProps) {
   return (
-    <header className="relative z-50 bg-ink shadow-xl border-b-4 border-gold">
-      {/* Main Title Bar */}
-      <div className="flex items-center justify-between px-12 py-4">
+    <header className="relative z-50 bg-ink/95 shadow-lg border-b-2 border-gold/60 rounded-t-lg">
+      {/* Single Title Bar with everything */}
+      <div className="flex items-center justify-between px-6 py-3">
         {/* Left: Logo and App Name */}
-        <Link to="/" className="flex items-center gap-4 hover:opacity-90 transition-opacity">
+        <Link to="/" className="flex items-center gap-3 hover:opacity-90 transition-opacity">
           <img 
             src={`${import.meta.env.BASE_URL}destiny-ledger-main-logo.png`} 
             alt="The Destiny Ledger" 
-            className="w-14 h-14 drop-shadow-xl" 
+            className="w-12 h-12 drop-shadow-lg" 
           />
           <div>
-            <h1 className="text-xl font-serif font-bold text-gold tracking-wider">
+            <h1 className="text-lg font-serif font-bold text-gold tracking-wider">
               THE DESTINY LEDGER
             </h1>
-            <p className="text-sm text-gold/80 uppercase tracking-widest">
+            <p className="text-xs text-gold/70 uppercase tracking-widest">
               OPTIMIZE & COMPARE
             </p>
           </div>
@@ -33,19 +33,19 @@ export function FantasyHeader({ currentPage, isLandingPage }: FantasyHeaderProps
         {/* Center: Section Title (only on non-landing pages) */}
         {!isLandingPage && (
           <div className="absolute left-1/2 transform -translate-x-1/2">
-            <h2 className="text-2xl font-serif font-bold text-panel tracking-widest drop-shadow-lg">
+            <h2 className="text-xl font-serif font-bold text-panel tracking-widest drop-shadow-md">
               {currentPage}
             </h2>
           </div>
         )}
 
         {/* Right: Version & Settings */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           <LegalModal />
           <VersionWatermark />
           <Link 
             to="/settings"
-            className="p-3 text-gold hover:text-panel transition-colors rounded-lg hover:bg-gold/20 border border-gold/30 hover:border-gold/60"
+            className="p-2 text-gold hover:text-panel transition-colors rounded-lg hover:bg-gold/10"
           >
             <Settings className="w-5 h-5" />
           </Link>
