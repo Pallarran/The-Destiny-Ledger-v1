@@ -250,32 +250,32 @@ h1, h2 {
 .frame-corner.top-left {
   top: 0;
   left: 0;
-  width: 60px;
-  height: 60px;
+  width: 120px;
+  height: 120px;
   background-image: url('/The-Destiny-Ledger-v1/assets/frame_top_left.png');
 }
 
 .frame-corner.top-right {
   top: 0;
   right: 0;
-  width: 60px;
-  height: 60px;
+  width: 120px;
+  height: 120px;
   background-image: url('/The-Destiny-Ledger-v1/assets/frame_top_right.png');
 }
 
 .frame-corner.bottom-left {
   bottom: 0;
   left: 0;
-  width: 60px;
-  height: 60px;
+  width: 120px;
+  height: 120px;
   background-image: url('/The-Destiny-Ledger-v1/assets/frame_bottom_left.png');
 }
 
 .frame-corner.bottom-right {
   bottom: 0;
   right: 0;
-  width: 60px;
-  height: 60px;
+  width: 120px;
+  height: 120px;
   background-image: url('/The-Destiny-Ledger-v1/assets/frame_bottom_right.png');
 }
 
@@ -287,9 +287,9 @@ h1, h2 {
 
 .frame-side.top {
   top: 0;
-  left: 60px;
-  right: 60px;
-  height: 30px;
+  left: 120px;
+  right: 120px;
+  height: 60px;
   background-image: url('/The-Destiny-Ledger-v1/assets/frame_top.png');
   background-size: auto 100%;
   background-repeat: repeat-x;
@@ -297,29 +297,29 @@ h1, h2 {
 
 .frame-side.bottom {
   bottom: 0;
-  left: 60px;
-  right: 60px;
-  height: 30px;
+  left: 120px;
+  right: 120px;
+  height: 60px;
   background-image: url('/The-Destiny-Ledger-v1/assets/frame_bottom.png');
   background-size: auto 100%;
   background-repeat: repeat-x;
 }
 
 .frame-side.left {
-  top: 60px;
-  bottom: 60px;
+  top: 120px;
+  bottom: 120px;
   left: 0;
-  width: 30px;
+  width: 60px;
   background-image: url('/The-Destiny-Ledger-v1/assets/frame_left.png');
   background-size: 100% auto;
   background-repeat: repeat-y;
 }
 
 .frame-side.right {
-  top: 60px;
-  bottom: 60px;
+  top: 120px;
+  bottom: 120px;
   right: 0;
-  width: 30px;
+  width: 60px;
   background-image: url('/The-Destiny-Ledger-v1/assets/frame_right.png');
   background-size: 100% auto;
   background-repeat: repeat-y;
