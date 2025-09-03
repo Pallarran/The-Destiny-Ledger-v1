@@ -10,7 +10,8 @@ interface FantasyHeaderProps {
 
 export function FantasyHeader({ currentPage, isLandingPage }: FantasyHeaderProps) {
   return (
-    <header className="relative z-50 bg-ink/95 shadow-lg border-b-2 border-gold/60 rounded-t-lg">
+    <header className="relative z-50 shadow-lg border-b-2 border-gold/40 rounded-t-lg" 
+            style={{ backgroundColor: '#2A3441' }}>
       {/* Single Title Bar with everything */}
       <div className="flex items-center justify-between px-6 py-3">
         {/* Left: Logo and App Name */}
@@ -21,10 +22,10 @@ export function FantasyHeader({ currentPage, isLandingPage }: FantasyHeaderProps
             className="w-12 h-12 drop-shadow-lg" 
           />
           <div>
-            <h1 className="text-lg font-serif font-bold text-gold tracking-wider">
+            <h1 className="text-lg font-serif font-bold text-gold tracking-wider drop-shadow-sm">
               THE DESTINY LEDGER
             </h1>
-            <p className="text-xs text-gold/70 uppercase tracking-widest">
+            <p className="text-xs text-gold/80 uppercase tracking-widest">
               OPTIMIZE & COMPARE
             </p>
           </div>
@@ -45,7 +46,7 @@ export function FantasyHeader({ currentPage, isLandingPage }: FantasyHeaderProps
           <VersionWatermark />
           <Link 
             to="/settings"
-            className="p-2 text-gold hover:text-panel transition-colors rounded-lg hover:bg-gold/10"
+            className="p-2 text-gold hover:text-panel transition-colors rounded-lg hover:bg-slate-600/30"
           >
             <Settings className="w-5 h-5" />
           </Link>
