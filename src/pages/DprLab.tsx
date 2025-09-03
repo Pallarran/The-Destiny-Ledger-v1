@@ -27,25 +27,26 @@ import { createDPRConfig } from '../stores/dprStore'
 export function DprLab() {
   const { builds: vaultBuilds } = useVaultStore()
   const { currentBuild: builderCurrentBuild, exportToBuildConfiguration } = useCharacterBuilderStore()
-  const { currentResult, currentConfig, selectedBuild: storeSelectedBuild, setConfiguration, setResult, setCalculating, setSelectedBuild } = useDPRStore()
+  const { currentResult, currentConfig, selectedBuild: storeSelectedBuild, setConfiguration, setResult, setCalculating, setSelectedBuild, clearResults } = useDPRStore()
   const { isInitialized, isCalculating, calculateDPRCurves } = useDPRWorker()
   
   // Get default settings from settings store
   const { greedyResourceUse: defaultGreedy, autoCalculateGWMSS: defaultAutoGWMSS } = useSettingsStore()
+  
+  // Track when user manually wants to select a different build
+  const [manualBuildSelection, setManualBuildSelection] = useState(false)
   
   // Use selected build from store, fallback to builder build if available
   const selectedBuild = useMemo(() => {
     if (storeSelectedBuild) {
       return storeSelectedBuild
     }
-    if (builderCurrentBuild) {
+    // Only fallback to builder build if user hasn't manually requested build selection
+    if (builderCurrentBuild && !manualBuildSelection) {
       return exportToBuildConfiguration()
     }
     return null
-  }, [storeSelectedBuild, builderCurrentBuild, exportToBuildConfiguration])
-  
-  // Track when user manually wants to select a different build
-  const [manualBuildSelection, setManualBuildSelection] = useState(false)
+  }, [storeSelectedBuild, builderCurrentBuild, exportToBuildConfiguration, manualBuildSelection])
   // Track if user has selected a vault build (to prevent auto-override)
   const [hasSelectedVaultBuild, setHasSelectedVaultBuild] = useState(false)
   
@@ -290,8 +291,6 @@ export function DprLab() {
   return (
     <div className="h-full">
       <Panel className="h-full flex flex-col">
-        <PanelHeader title="DPR Lab" />
-        
         <div className="space-y-6 flex-1 overflow-y-auto">
           {/* Build Selection */}
           {selectedBuild ? (
@@ -306,9 +305,16 @@ export function DprLab() {
                       <h3 className="font-semibold text-lg text-foreground">{selectedBuild.name}</h3>
                       <button
                         onClick={() => {
-                          setSelectedBuild(null)
-                          setManualBuildSelection(true)
-                          setHasSelectedVaultBuild(false) // Reset vault build selection
+                          try {
+                            console.log('Changing build - clearing selection')
+                            clearResults() // Clear any existing results and configurations
+                            setSelectedBuild(null)
+                            setManualBuildSelection(true)
+                            setHasSelectedVaultBuild(false) // Reset vault build selection
+                            console.log('Build selection cleared successfully')
+                          } catch (error) {
+                            console.error('Error changing build:', error)
+                          }
                         }}
                         className="px-2 py-1 text-xs bg-muted/10 hover:bg-muted/20 rounded transition-colors text-muted hover:text-foreground"
                       >
