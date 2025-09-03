@@ -55,9 +55,9 @@ export function Landing() {
   ]
 
   return (
-    <div className="w-full h-full flex flex-col justify-center">
+    <div className="w-full h-full flex flex-col justify-center overflow-hidden">
       {/* Compact centered layout */}
-      <div className="text-center max-w-7xl mx-auto">
+      <div className="text-center max-w-7xl mx-auto px-4">
         {/* Logo - smaller for single frame */}
         <div className="mb-8">
           <img 
@@ -80,18 +80,18 @@ export function Landing() {
         </div>
 
         {/* 6 Feature Cards in Single Row */}
-        <div className="grid grid-cols-6 gap-4">
+        <div className="grid grid-cols-6 gap-4 overflow-visible">
           {features.map((feature, index) => {
             const IconComponent = feature.icon
             return (
               <Link 
                 key={index}
                 to={feature.link} 
-                className="block bg-ink/5 rounded-xl p-4 hover:shadow-xl transition-all duration-300 hover:scale-105 hover:bg-ink/10 group border border-ink/10 hover:border-gold/50">
+                className="block bg-ink/5 rounded-xl p-4 hover:shadow-xl transition-all duration-300 hover:bg-ink/10 group border border-ink/10 hover:border-gold/50">
                 <div className="text-center">
                   <div className="flex flex-col items-center">
                     <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-gold/20 to-gold/5 rounded-xl flex items-center justify-center group-hover:from-gold/30 group-hover:to-gold/10 transition-all mb-3 border border-gold/20">
-                      <IconComponent className={`w-6 h-6 ${feature.color} group-hover:scale-110 transition-transform drop-shadow-sm`} />
+                      <IconComponent className={`w-6 h-6 ${feature.color} transition-colors drop-shadow-sm`} />
                     </div>
                     <h3 className="text-sm font-serif font-bold text-ink group-hover:text-gold transition-colors mb-2 tracking-wide leading-tight">
                       {feature.title}

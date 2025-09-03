@@ -44,15 +44,15 @@ export function FantasyLayout({ children }: FantasyLayoutProps) {
       {/* Main content area with smaller margins for thinner frame border */}
       <div className="relative min-h-screen parchment-bg" style={{ margin: '30px' }}>
 
-        {/* Content inside frame - no top padding, title bar at frame edge */}
+        {/* Content inside frame - add padding for fixed header */}
         <div className="relative h-full flex flex-col" style={{ 
-          padding: '0px 20px 20px 20px',  // No top padding, title bar touches frame
+          padding: '60px 20px 20px 20px',  // Top padding for fixed header
         }}>
-          {/* Title Bar - Inside frame at top */}
+          {/* Title Bar - Fixed at top of viewport */}
           <FantasyHeader currentPage={currentPage} isLandingPage={isLandingPage} />
 
-          {/* Content area with spacing from title bar */}
-          <div className="flex flex-1 mt-4" style={{ padding: '20px 0' }}>
+          {/* Content area */}
+          <div className="flex flex-1" style={{ padding: '20px 0' }}>
             {/* Sidebar - only show on non-landing pages */}
             {!isLandingPage && <FantasySidebar />}
             
