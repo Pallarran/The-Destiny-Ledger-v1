@@ -48,7 +48,7 @@ export function FantasyLayout({ children }: FantasyLayoutProps) {
         <div className="relative h-full flex flex-col" style={{ 
           padding: '0px 20px 20px 20px',  // No top padding, title bar touches frame
         }}>
-          {/* Title Bar - Sticky at top */}
+          {/* Title Bar - Inside frame at top */}
           <FantasyHeader currentPage={currentPage} isLandingPage={isLandingPage} />
 
           {/* Content area with spacing from title bar */}

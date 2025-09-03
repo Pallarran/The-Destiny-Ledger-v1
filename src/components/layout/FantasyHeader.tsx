@@ -10,7 +10,7 @@ interface FantasyHeaderProps {
 export function FantasyHeader({ currentPage, isLandingPage }: FantasyHeaderProps) {
   return (
     <header className="relative shadow-lg rounded-t-lg" 
-            style={{ backgroundColor: '#2A3441', zIndex: 10000, position: 'sticky', top: 0 }}>
+            style={{ backgroundColor: '#2A3441', zIndex: 10000 }}>
       {/* Single Title Bar with everything */}
       <div className="flex items-center justify-between px-6 py-3">
         {/* Left: Logo and App Name */}
