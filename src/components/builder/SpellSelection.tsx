@@ -161,7 +161,9 @@ export const SpellSelection: React.FC<SpellSelectionProps> = ({
   }
   
   // Calculate max spell level available
-  const maxSpellLevel = Math.min(9, Math.ceil(level / 2))
+  const maxSpellLevel = classId === 'artificer' 
+    ? Math.min(9, Math.floor(level / 2))  // Artificers get spells at level 2, not level 1
+    : Math.min(9, Math.ceil(level / 2))
   
   return (
     <div className="space-y-4">

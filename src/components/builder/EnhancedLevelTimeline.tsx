@@ -859,7 +859,16 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
       const previousLeveledSpells = previousSpells.filter((spellId: string) => !allPreviousCantrips.includes(spellId))
       
       const newCantripsToLearn = Math.max(0, spellProgression.cantripsKnown - previousClassCantrips.length)
-      const newSpellsToLearn = Math.max(0, spellProgression.spellsKnown - previousLeveledSpells.length)
+      
+      // Wizards have special spell learning rules - they add 2 spells to their spellbook each level
+      let newSpellsToLearn: number
+      if (entry.classId === 'wizard') {
+        // Level 1 wizard gets 6 spells, each subsequent level gets 2 more
+        newSpellsToLearn = classLevel === 1 ? 6 : 2
+      } else {
+        // Other spellcasters use the normal progression
+        newSpellsToLearn = Math.max(0, spellProgression.spellsKnown - previousLeveledSpells.length)
+      }
       
       
       // Add racial spells back to previousSpells for display purposes in spell selection
