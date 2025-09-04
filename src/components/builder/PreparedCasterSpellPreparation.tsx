@@ -45,6 +45,9 @@ export const PreparedCasterSpellPreparation: React.FC<PreparedCasterSpellPrepara
   } else if (classId === 'paladin') {
     spellcastingModifier = getAbilityModifier((abilityScores as any).CHA || 10)
     abilityName = 'CHA'
+  } else if (classId === 'artificer') {
+    spellcastingModifier = getAbilityModifier((abilityScores as any).INT || 10)
+    abilityName = 'INT'
   }
   
   // Calculate number of spells that can be prepared
@@ -57,10 +60,17 @@ export const PreparedCasterSpellPreparation: React.FC<PreparedCasterSpellPrepara
   const preparableSpells = useMemo(() => {
     return allClassSpells.filter((spell: Spell) => {
       // Only show spells the character can cast
-      const maxSpellLevel = Math.min(9, Math.ceil(level / 2))
+      let maxSpellLevel: number
+      if (classId === 'artificer') {
+        // Artificers get spells at level 2, not level 1
+        maxSpellLevel = Math.min(5, Math.floor(level / 2))
+      } else {
+        // Other prepared casters (clerics, druids, paladins)
+        maxSpellLevel = Math.min(9, Math.ceil(level / 2))
+      }
       return spell.level > 0 && spell.level <= maxSpellLevel
     })
-  }, [allClassSpells, level])
+  }, [allClassSpells, level, classId])
   
   // Filter spells by selected level and search query
   const filteredSpells = useMemo(() => {
@@ -96,7 +106,9 @@ export const PreparedCasterSpellPreparation: React.FC<PreparedCasterSpellPrepara
   }
   
   // Calculate max spell level available
-  const maxSpellLevel = Math.min(9, Math.ceil(level / 2))
+  const maxSpellLevel = classId === 'artificer' 
+    ? Math.min(5, Math.floor(level / 2))  // Artificers get spells at level 2, not level 1
+    : Math.min(9, Math.ceil(level / 2))
   
   const className = classId.charAt(0).toUpperCase() + classId.slice(1)
   
