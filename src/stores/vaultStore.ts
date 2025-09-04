@@ -44,7 +44,7 @@ const loadBuildsFromStorage = (): BuildConfiguration[] => {
     const stored = localStorage.getItem(VAULT_STORAGE_KEY)
     if (stored) {
       const parsed = JSON.parse(stored)
-      const builds = parsed.builds?.map((build: any) => ({
+      const builds = parsed.builds?.map((build: BuildConfiguration) => ({
         ...build,
         createdAt: build.createdAt ? new Date(build.createdAt) : new Date(),
         updatedAt: build.updatedAt ? new Date(build.updatedAt) : new Date()
@@ -302,7 +302,7 @@ export const useVaultStore = create<VaultStoreState>()(
         }
         
         // Convert dates and validate each build
-        const builds = parsed.builds.map((build: any) => ({
+        const builds = parsed.builds.map((build: BuildConfiguration) => ({
           ...build,
           createdAt: build.createdAt ? new Date(build.createdAt) : new Date(),
           updatedAt: build.updatedAt ? new Date(build.updatedAt) : new Date(),

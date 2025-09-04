@@ -147,7 +147,7 @@ export function DowntimeTrainingSelection() {
                         <span className="font-medium text-green-600">Ability Scores:</span>{' '}
                         <span className="text-muted">
                           {Object.entries(session.abilityImprovements)
-                            .filter(([_, value]) => value && value > 0)
+                            .filter(([, value]) => value && value > 0)
                             .map(([ability, value]) => `${ability} +${value}`)
                             .join(', ')}
                         </span>

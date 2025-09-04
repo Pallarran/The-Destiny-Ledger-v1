@@ -28,6 +28,8 @@ import {
 } from 'lucide-react'
 import { getClass } from '../../rules/loaders'
 import { subclasses } from '../../rules/srd/subclasses'
+import type { Feature, FightingStyle, Feat } from '../../rules/types'
+import type { Subclass } from '../../rules/srd/subclasses'
 import { feats } from '../../rules/srd/feats'
 import { getAttunementStatus } from '../../rules/attunement'
 
@@ -206,18 +208,18 @@ export function CharacterBuilder() {
     
     const activeConcentrationBuffs = (activeBuffs || [])
       .map((id: string) => buffs[id])
-      .filter((buff: any) => buff?.concentration)
+      .filter((buff) => buff?.concentration)
     
     const round0ConcentrationBuffs = (round0Buffs || [])
       .map((id: string) => buffs[id])
-      .filter((buff: any) => buff?.concentration)
+      .filter((buff) => buff?.concentration)
     
     if (activeConcentrationBuffs.length > 1) {
-      issues.push(`Multiple concentration spells in combat (${activeConcentrationBuffs.map((b: any) => b.name).join(', ')})`)
+      issues.push(`Multiple concentration spells in combat (${activeConcentrationBuffs.map((b) => b.name).join(', ')})`)
     }
     
     if (round0ConcentrationBuffs.length > 1) {
-      issues.push(`Multiple concentration spells in round 0 (${round0ConcentrationBuffs.map((b: any) => b.name).join(', ')})`)
+      issues.push(`Multiple concentration spells in round 0 (${round0ConcentrationBuffs.map((b) => b.name).join(', ')})`)
     }
     
     if (activeConcentrationBuffs.length > 0 && round0ConcentrationBuffs.length > 0) {
@@ -515,13 +517,13 @@ export function CharacterBuilder() {
                     
                     // Fighting Style
                     if (entry.fightingStyle) {
-                      const fightingStyleName = classData?.fightingStyles?.find((fs: any) => fs.id === entry.fightingStyle)?.name || entry.fightingStyle
+                      const fightingStyleName = classData?.fightingStyles?.find((fs: FightingStyle) => fs.id === entry.fightingStyle)?.name || entry.fightingStyle
                       features.push(`Fighting Style: ${fightingStyleName}`)
                     }
                     
                     // Archetype
                     if (entry.archetype) {
-                      const archetypeName = Object.values(subclasses).find((sub: any) => sub.id === entry.archetype)?.name || entry.archetype
+                      const archetypeName = Object.values(subclasses).find((sub: Subclass) => sub.id === entry.archetype)?.name || entry.archetype
                       features.push(`Archetype: ${archetypeName}`)
                     }
                     
@@ -532,7 +534,7 @@ export function CharacterBuilder() {
                         .join(', ')
                       features.push(`ASI: ${asiString}`)
                     } else if (entry.asiOrFeat === 'feat' && entry.featId) {
-                      const featName = Object.values(feats).find((f: any) => f.id === entry.featId)?.name || entry.featId
+                      const featName = Object.values(feats).find((f: Feat) => f.id === entry.featId)?.name || entry.featId
                       
                       // Check if this is a half-feat with ability score increases
                       if (entry.abilityIncreases) {
@@ -546,20 +548,20 @@ export function CharacterBuilder() {
                     }
                     
                     // Class Features (automatic ones)
-                    const autoFeatures = classFeatures.filter((f: any) => 
+                    const autoFeatures = classFeatures.filter((f: Feature) => 
                       f.rulesKey !== 'fighting_style' && f.rulesKey !== 'asi' && f.rulesKey !== 'archetype' && f.rulesKey !== 'archetype_feature'
                     )
-                    autoFeatures.forEach((feature: any) => {
+                    autoFeatures.forEach((feature: Feature) => {
                       features.push(`Class: ${feature.name}`)
                     })
                     
                     // Archetype Features
-                    const archetypeFeatures = classFeatures.filter((f: any) => f.rulesKey === 'archetype_feature')
+                    const archetypeFeatures = classFeatures.filter((f: Feature) => f.rulesKey === 'archetype_feature')
                     if (archetypeFeatures.length > 0 && entry.archetype) {
-                      const subclass = Object.values(subclasses).find((sub: any) => sub.id === entry.archetype)
+                      const subclass = Object.values(subclasses).find((sub: Subclass) => sub.id === entry.archetype)
                       if (subclass && subclass.features) {
-                        const subclassFeatures = subclass.features.filter((f: any) => f.level === classLevel)
-                        subclassFeatures.forEach((feature: any) => {
+                        const subclassFeatures = subclass.features.filter((f) => f.level === classLevel)
+                        subclassFeatures.forEach((feature) => {
                           features.push(`Archetype: ${feature.name}`)
                         })
                       }

@@ -11,7 +11,33 @@ import { subclasses } from '../../rules/srd/subclasses'
 import { getClass } from '../../rules/loaders'
 import { getProficiencyBonus } from '../../rules/srd/skills'
 import { Plus, Sword, ChevronRight, AlertTriangle, CheckCircle, Clock, Heart, TrendingUp, Sparkles, Trash2, Crown, Target, TreePine, Star } from 'lucide-react'
-import type { BuilderLevelEntry } from '../../types/character'
+import type { BuilderLevelEntry, CharacterBuilder } from '../../types/character'
+import type { ClassDefinition, Feature, Feat, AbilityScore } from '../../rules/types'
+import type { Subclass } from '../../rules/srd/subclasses'
+
+// Helper type for subclass features
+type SubclassFeature = {
+  level: number
+  name: string
+  description: string
+  rulesKey?: string
+}
+
+// Interface for level section data
+interface LevelSection {
+  type: string
+  title?: string
+  features?: Feature[]
+  benefits?: {name: string, description: string, showMulticlassInfo?: boolean}[]
+  options?: {id: string, name: string, description?: string}[]
+  selectedOptions?: string[]
+  selectedFeat?: string
+  selectedAbilityIncreases?: Record<string, number>
+  onSelect?: (id: string) => void
+  onASI?: (increases: Record<AbilityScore, number>) => void
+  onMultiSelect?: (ids: string[]) => void
+  [key: string]: unknown // Allow additional properties for specific section types
+}
 import { ExpertiseSelection } from './ExpertiseSelection'
 import { ManeuverSelection } from './ManeuverSelection'
 import { MetamagicSelection } from './MetamagicSelection'
@@ -35,7 +61,7 @@ import { spellsKnownProgression } from '../../rules/srd/spells'
 // Use ClassIcon component instead of Lucide icons
 
 // Helper function to calculate hit points gained at level
-function calculateHitPointsGained(classData: any, isFirstLevel: boolean): number {
+function calculateHitPointsGained(classData: ClassDefinition | null, isFirstLevel: boolean): number {
   if (!classData?.hitDie) return 0
   
   if (isFirstLevel) {
@@ -282,7 +308,7 @@ function getSpellProgression(classId: string, classLevel: number, subclass?: str
 }
 
 // Helper function to get level progression benefits
-function getLevelBenefits(level: number, classData: any, isFirstClassLevel: boolean) {
+function getLevelBenefits(level: number, classData: ClassDefinition | null, isFirstClassLevel: boolean) {
   const proficiencyBonus = getProficiencyBonus(level)
   const hitPointsGained = calculateHitPointsGained(classData, isFirstClassLevel)
   
@@ -297,12 +323,12 @@ function getLevelBenefits(level: number, classData: any, isFirstClassLevel: bool
 
 function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, updateLevel, selectFeat, selectASI, setSkillProficiencies, removeLevel, canRemove }: {
   entry: BuilderLevelEntry
-  classData?: any
+  classData?: ClassDefinition | null
   classLevel: number
-  currentBuild: any
-  updateLevel: (level: number, updates: any) => void
+  currentBuild: CharacterBuilder | null
+  updateLevel: (level: number, updates: Partial<BuilderLevelEntry>) => void
   selectFeat: (level: number, featId: string) => void
-  selectASI: (level: number, abilityIncreases: any) => void
+  selectASI: (level: number, abilityIncreases: Record<AbilityScore, number>) => void
   setSkillProficiencies: (skills: string[]) => void
   removeLevel?: (level: number) => void
   canRemove?: boolean
@@ -472,7 +498,7 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
   }
   
   // 1. Class Features (automatic)
-  const autoFeatures = classFeatures.filter((f: any) => 
+  const autoFeatures = classFeatures.filter((f: Feature) => 
     f.rulesKey !== 'fighting_style' && f.rulesKey !== 'asi' && f.rulesKey !== 'archetype' && f.rulesKey !== 'archetype_feature'
   )
   if (autoFeatures.length > 0) {
@@ -481,7 +507,7 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
       title: 'Class Features',
       type: 'auto',
       isComplete: true,
-      features: autoFeatures.map((f: any) => ({ 
+      features: autoFeatures.map((f: Feature) => ({ 
         name: f.name, 
         description: f.description,
         source: f.source 
@@ -490,7 +516,7 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
   }
   
   // 1a. Expertise Choice (for Rogue/Bard features)
-  const expertiseFeature = classFeatures.find((f: any) => 
+  const expertiseFeature = classFeatures.find((f: Feature) => 
     f.id === 'expertise_rogue' || f.id === 'expertise_rogue_6' || f.id === 'expertise_bard'
   )
   if (expertiseFeature) {
@@ -513,10 +539,10 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
     const progression = getManeuverProgression(entry.level)
     if (progression) {
       // Look for explicit Battle Master features at this level
-      const subclass = Object.values(subclasses).find((sub: any) => sub.id === entry.subclassId)
+      const subclass = Object.values(subclasses).find((sub: Subclass) => sub.id === entry.subclassId)
       if (subclass && subclass.features) {
-        const subclassFeatures = subclass.features.filter((f: any) => f.level === classLevel)
-        maneuverFeature = subclassFeatures.find((f: any) => 
+        const subclassFeatures = subclass.features.filter((f: SubclassFeature) => f.level === classLevel)
+        maneuverFeature = subclassFeatures.find((f: SubclassFeature) => 
           f.name === 'Combat Superiority' || f.name === 'Improved Combat Superiority'
         )
       }
@@ -551,7 +577,7 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
   let metamagicFeature = null
   if (entry.classId === 'sorcerer') {
     // Look for explicit Sorcerer metamagic features at this level
-    metamagicFeature = classFeatures.find((f: any) => 
+    metamagicFeature = classFeatures.find((f: Feature) => 
       f.id === 'metamagic' || f.id === 'metamagic_2' || f.id === 'metamagic_3'
     )
     
@@ -577,7 +603,7 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
   let eldritchInvocationFeature = null
   if (entry.classId === 'warlock') {
     // Look for explicit Warlock eldritch invocation features at this level
-    eldritchInvocationFeature = classFeatures.find((f: any) => 
+    eldritchInvocationFeature = classFeatures.find((f: Feature) => 
       f.id === 'eldritch_invocations' || f.id.includes('invocation')
     )
     
@@ -674,7 +700,7 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
   }
 
   // 2. Fighting Style Choice
-  const hasFightingStyle = classFeatures.some((f: any) => f.rulesKey === 'fighting_style')
+  const hasFightingStyle = classFeatures.some((f: Feature) => f.rulesKey === 'fighting_style')
   if (hasFightingStyle) {
     const availableStyles = classData?.fightingStyles || []
     sections.push({
@@ -683,7 +709,7 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
       type: 'choice',
       isComplete: !!entry.fightingStyle,
       currentChoice: entry.fightingStyle,
-      options: availableStyles.map((style: any) => ({
+      options: availableStyles.map((style) => ({
         id: style.id,
         name: style.name,
         description: style.description
@@ -696,16 +722,16 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
   }
 
   // 3. Archetype Choice (initial selection only)
-  const hasArchetype = classFeatures.some((f: any) => f.rulesKey === 'archetype')
+  const hasArchetype = classFeatures.some((f: Feature) => f.rulesKey === 'archetype')
   if (hasArchetype) {
-    const availableSubclasses = Object.values(subclasses).filter((sub: any) => sub.className === entry.classId)
+    const availableSubclasses = Object.values(subclasses).filter((sub: Subclass) => sub.className === entry.classId)
     sections.push({
       id: 'archetype',
       title: `${classData?.name} Archetype`,
       type: 'choice',
       isComplete: !!entry.archetype,
       currentChoice: entry.archetype,
-      options: availableSubclasses.map((subclass: any) => ({
+      options: availableSubclasses.map((subclass: Subclass) => ({
         id: subclass.id,
         name: subclass.name,
         description: subclass.description
@@ -718,15 +744,15 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
   }
 
   // 3b. Archetype Features (automatic)
-  const archetypeFeatures = classFeatures.filter((f: any) => f.rulesKey === 'archetype_feature')
+  const archetypeFeatures = classFeatures.filter((f: Feature) => f.rulesKey === 'archetype_feature')
   if (archetypeFeatures.length > 0) {
     // Get the specific archetype features from the selected subclass
     // Look for archetype in this level first, or find it from earlier levels of the same class
     let selectedArchetype = entry.archetype
     if (!selectedArchetype && currentBuild?.enhancedLevelTimeline) {
       const earlierArchetypeEntry = (currentBuild.enhancedLevelTimeline || [])
-        .filter((e: any) => e.classId === entry.classId && e.level < entry.level && e.archetype)
-        .sort((a: any, b: any) => b.level - a.level)[0]
+        .filter((e: BuilderLevelEntry) => e.classId === entry.classId && e.level < entry.level && e.archetype)
+        .sort((a: BuilderLevelEntry, b: BuilderLevelEntry) => b.level - a.level)[0]
       selectedArchetype = earlierArchetypeEntry?.archetype
     }
     
@@ -734,18 +760,19 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
     
     if (selectedArchetype) {
       // Find the subclass data
-      const subclass = Object.values(subclasses).find((sub: any) => sub.id === selectedArchetype)
+      const subclass = Object.values(subclasses).find((sub: Subclass) => sub.id === selectedArchetype)
       if (subclass && subclass.features) {
         // Get features for this class level from the subclass (features is an array, not keyed by level)
-        const subclassFeatures = subclass.features.filter((f: any) => f.level === classLevel)
+        const subclassFeatures = subclass.features.filter((f: SubclassFeature) => f.level === classLevel)
         if (subclassFeatures && subclassFeatures.length > 0) {
-          specificArchetypeFeatures.push(...subclassFeatures.map((f: any) => ({ 
+          specificArchetypeFeatures.push(...subclassFeatures.map((f: SubclassFeature) => ({ 
             name: f.name, 
             description: f.description 
           })))
         }
       }
     } else {
+      // No specific archetype features to display
     }
     
     sections.push({
@@ -755,7 +782,7 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
       isComplete: true,
       features: specificArchetypeFeatures.length > 0 
         ? specificArchetypeFeatures 
-        : archetypeFeatures.map((f: any) => ({ 
+        : archetypeFeatures.map((f: Feature) => ({ 
             name: f.name, 
             description: f.description,
             source: f.source
@@ -792,12 +819,12 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
       
       // Get all spells known from previous levels (consider multiclassing with same spell list)
       let previousSpells = currentBuild?.enhancedLevelTimeline
-        ?.filter((e: any) => e.level < entry.level && (
+        ?.filter((e: BuilderLevelEntry) => e.level < entry.level && (
           e.classId === entry.classId || // Same class
           (entry.classId === 'wizard' && e.classId === 'fighter' && e.subclassId === 'eldritch_knight') || // EK spells count for Wizard
           (e.classId === 'wizard' && entry.classId === 'fighter' && entry.subclassId === 'eldritch_knight') // Wizard spells count for EK
         ))
-        ?.flatMap((e: any) => e.spellChoices || []) || []
+        ?.flatMap((e: BuilderLevelEntry) => e.spellChoices || []) || []
       
       // Get racial spells to exclude from class progression limits
       const racialSpells: string[] = []
@@ -893,12 +920,12 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
       
       // Get all spells known from previous levels (consider multiclassing with same spell list)
       let previousSpells = currentBuild?.enhancedLevelTimeline
-        ?.filter((e: any) => e.level < entry.level && (
+        ?.filter((e: BuilderLevelEntry) => e.level < entry.level && (
           (e.classId === entry.classId && e.subclassId === subclassId) || // Same subclass
           (subclassId === 'eldritch_knight' && e.classId === 'wizard') || // Wizard spells count for EK
           (subclassId === 'arcane_trickster' && e.classId === 'wizard') // Wizard spells count for AT (they also use wizard list)
         ))
-        ?.flatMap((e: any) => e.spellChoices || []) || []
+        ?.flatMap((e: BuilderLevelEntry) => e.spellChoices || []) || []
       
       // Add racial spells to previously known spells for third casters
       const racialSpells: string[] = []
@@ -939,7 +966,7 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
   }
 
   // 4. ASI/Feat Choice
-  const hasASI = classFeatures.some((f: any) => f.rulesKey === 'asi')
+  const hasASI = classFeatures.some((f: Feature) => f.rulesKey === 'asi')
   if (hasASI) {
     sections.push({
       id: 'asi_feat',
@@ -949,7 +976,7 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
       currentChoice: entry.asiOrFeat,
       selectedFeat: entry.featId,
       abilityIncreases: entry.abilityIncreases,
-      onASI: (increases: any) => {
+      onASI: (increases: Record<AbilityScore, number>) => {
         selectASI(entry.level, increases)
         setExpandedSection(null)
       },
@@ -962,12 +989,12 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
 
   // 4b. Wizard Spell Preparation (separate from spellbook) - for any wizard in multiclass
   const wizardLevelsUpToHere = currentBuild?.enhancedLevelTimeline
-    ?.filter((e: any) => e.level <= entry.level && e.classId === 'wizard') || []
+    ?.filter((e: BuilderLevelEntry) => e.level <= entry.level && e.classId === 'wizard') || []
   
   if (wizardLevelsUpToHere.length > 0) {
     // Get all spells in spellbook from all wizard levels up to this point
     const spellbookSpells = wizardLevelsUpToHere
-      ?.flatMap((e: any) => e.spellChoices || [])
+      ?.flatMap((e: BuilderLevelEntry) => e.spellChoices || [])
       ?.filter((spellId: string) => {
         // Filter out cantrips as they can't be prepared
         const commonCantrips = ['fire_bolt', 'ray_of_frost', 'mage_hand', 'minor_illusion', 'prestidigitation']
@@ -995,13 +1022,13 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
   // 4c. Prepared Caster Spell Preparation (artificer, cleric, druid, paladin) - separate from cantrip selection
   const preparedCasterClasses = ['artificer', 'cleric', 'druid', 'paladin']
   const preparedCasterLevelsUpToHere = currentBuild?.enhancedLevelTimeline
-    ?.filter((e: any) => e.level <= entry.level && preparedCasterClasses.includes(e.classId)) || []
+    ?.filter((e: BuilderLevelEntry) => e.level <= entry.level && preparedCasterClasses.includes(e.classId)) || []
   
   
   if (preparedCasterLevelsUpToHere.length > 0) {
     // Group by class (in case of multiclass between prepared casters)
-    const preparedCastersByClass: Record<string, any[]> = {}
-    preparedCasterLevelsUpToHere.forEach((e: any) => {
+    const preparedCastersByClass: Record<string, BuilderLevelEntry[]> = {}
+    preparedCasterLevelsUpToHere.forEach((e: BuilderLevelEntry) => {
       if (!preparedCastersByClass[e.classId]) {
         preparedCastersByClass[e.classId] = []
       }
@@ -1157,7 +1184,7 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
                   {section.type === 'auto' && section.features && (
                     <div className="mt-2 pt-2 border-t border-current/20">
                       <div className="space-y-1">
-                        {section.features.map((feature: any, idx: number) => (
+                        {section.features.map((feature: Feature, idx: number) => (
                           <div key={idx} className="text-xs">
                             <div className="flex items-center gap-2">
                               <Badge variant="outline" className="text-xs">
@@ -1179,14 +1206,14 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
                   {section.type === 'benefits' && section.benefits && (
                     <div className="mt-2 pt-2 border-t border-current/20">
                       <div className="space-y-1">
-                        {section.benefits.map((benefit: any, idx: number) => {
+                        {section.benefits.map((benefit: {name: string, description: string, showMulticlassInfo?: boolean}, idx: number) => {
                           const IconComponent = benefit.icon
                           return (
                             <div key={idx} className="flex items-center gap-2 text-xs">
                               <IconComponent className={`w-3 h-3 ${benefit.isBonus ? 'text-gold' : 'text-red-500'}`} />
                               <span className="font-medium">{benefit.name}:</span>
                               <span className="text-muted">{benefit.description}</span>
-                              {(benefit as any).showMulticlassInfo && (
+                              {benefit.showMulticlassInfo && (
                                 <MulticlassSpellInfo currentLevel={entry.level} />
                               )}
                             </div>
@@ -1430,7 +1457,7 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
     </div>
   )
 
-  function renderSectionContent(section: any) {
+  function renderSectionContent(section: LevelSection) {
     switch (section.type) {
       case 'expertise':
         return (
@@ -1808,7 +1835,7 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
                   <Select 
                     value={section.selectedFeat || ""} 
                     onValueChange={(featId) => {
-                      const selectedFeat = Object.values(feats).find((f: any) => f.id === featId)
+                      const selectedFeat = Object.values(feats).find((f: Feat) => f.id === featId)
                       
                       // If feat has ability score increase options, we need to handle that
                       if (selectedFeat?.abilityScoreIncrease) {
@@ -1829,7 +1856,7 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
                       <SelectValue placeholder="Select a feat..." />
                     </SelectTrigger>
                     <SelectContent className="max-h-80">
-                      {Object.values(feats).sort((a: any, b: any) => a.name.localeCompare(b.name)).map((feat: any) => {
+                      {Object.values(feats).sort((a: Feat, b: Feat) => a.name.localeCompare(b.name)).map((feat: Feat) => {
                         const isKnown = knownFeats.includes(feat.id)
                         return (
                           <SelectItem key={feat.id} value={feat.id} disabled={isKnown}>
@@ -1857,7 +1884,7 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
                   
                   {/* Half-feat ability score selection */}
                   {section.selectedFeat && (() => {
-                    const selectedFeat = Object.values(feats).find((f: any) => f.id === section.selectedFeat)
+                    const selectedFeat = Object.values(feats).find((f: Feat) => f.id === section.selectedFeat)
                     if (!selectedFeat?.abilityScoreIncrease) return null
                     
                     return (
@@ -1866,7 +1893,7 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
                           Choose +1 Ability Score Increase:
                         </div>
                         <div className="grid grid-cols-3 gap-2">
-                          {selectedFeat.abilityScoreIncrease.choices.map((ability: any) => (
+                          {selectedFeat.abilityScoreIncrease.choices.map((ability: AbilityScore) => (
                             <label 
                               key={ability}
                               className="flex items-center gap-2 p-2 rounded hover:bg-accent/10 cursor-pointer text-sm"

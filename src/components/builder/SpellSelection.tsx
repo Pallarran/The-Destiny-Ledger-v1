@@ -53,7 +53,7 @@ export const SpellSelection: React.FC<SpellSelectionProps> = ({
   
   // Get all available spells for this class
   const availableSpells = useMemo(() => {
-    let spells = getSpellsByClass(classId)
+    const spells = getSpellsByClass(classId)
     
     // Add subclass spells if applicable (e.g., domain spells for clerics)
     if (subclassId) {

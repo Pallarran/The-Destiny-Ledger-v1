@@ -1,7 +1,7 @@
 import type { AbilityScoreArray } from '../rules/types'
 import type { DowntimeTraining } from '../types/downtimeTraining'
 
-export type AbilityScoreMethod = 'standard' | 'pointbuy' | 'manual'
+export type AbilityScoreMethod = 'standard' | 'pointbuy' | 'manual' | 'rolled' | 'custom'
 
 // Canonical Build type IDs from review document
 export type ClassId = string

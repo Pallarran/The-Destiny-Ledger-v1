@@ -131,8 +131,8 @@ function getFeaturesForLevel(classId: string, classLevel: number, totalLevel: nu
       const subclassData = getSubclass(subclassId)
       if (subclassData?.features && Array.isArray(subclassData.features)) {
         // Add subclass features for this class level (not total level)
-        const subclassFeatures = subclassData.features.filter((f: any) => f.level === classLevel)
-        features.push(...subclassFeatures.map((f: any) => f.name))
+        const subclassFeatures = subclassData.features.filter((f) => f.level === classLevel)
+        features.push(...subclassFeatures.map((f) => f.name))
       }
     }
   } catch (error) {
@@ -183,7 +183,7 @@ const createDefaultBuilder = (name: string = 'New Character'): CharacterBuilder 
     background: '',
     baseAbilityScores: { ...DEFAULT_ABILITY_SCORES },
     skillProficiencies: [],
-    abilityMethod: abilityMethod as any,
+    abilityMethod: abilityMethod as AbilityAssignmentMethod,
     abilityScores: { ...DEFAULT_ABILITY_SCORES },
     pointBuyLimit: pointBuyLimit,
     levelTimeline: [],
@@ -386,8 +386,8 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
               features: entry.features || [],
               isCompleted: true,
               validationErrors: [],
-              fightingStyle: (entry as any).fightingStyle,
-              archetype: (entry as any).archetype
+              fightingStyle: entry.fightingStyle,
+              archetype: entry.archetype
             })),
             
             // Builder state
@@ -441,7 +441,7 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
         background: currentBuild.background,
         baseAbilityScores: currentBuild.baseAbilityScores,
         skillProficiencies: currentBuild.skillProficiencies,
-        abilityMethod: currentBuild.abilityAssignmentMethod as any,
+        abilityMethod: currentBuild.abilityAssignmentMethod as AbilityAssignmentMethod,
         abilityScores: currentBuild.finalAbilityScores || currentBuild.abilityScores,
         pointBuyLimit: currentBuild.pointBuyConfig.totalPoints,
         levelTimeline: (currentBuild.enhancedLevelTimeline || []).map(entry => ({
@@ -453,18 +453,18 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
           featId: entry.featId,
           abilityIncreases: entry.abilityIncreases,
           notes: entry.notes,
-          fightingStyle: (entry as any).fightingStyle,
-          archetype: (entry as any).archetype,
+          fightingStyle: entry.fightingStyle,
+          archetype: entry.archetype,
           // Include all choice-based class features
-          expertiseChoices: (entry as any).expertiseChoices,
-          maneuverChoices: (entry as any).maneuverChoices,
-          metamagicChoices: (entry as any).metamagicChoices,
-          eldritchInvocationChoices: (entry as any).eldritchInvocationChoices,
-          mysticArcanumChoices: (entry as any).mysticArcanumChoices,
-          pactBoonChoice: (entry as any).pactBoonChoice,
-          favoredEnemyChoice: (entry as any).favoredEnemyChoice,
-          naturalExplorerChoice: (entry as any).naturalExplorerChoice,
-          spellChoices: (entry as any).spellChoices
+          expertiseChoices: entry.expertiseChoices,
+          maneuverChoices: entry.maneuverChoices,
+          metamagicChoices: entry.metamagicChoices,
+          eldritchInvocationChoices: entry.eldritchInvocationChoices,
+          mysticArcanumChoices: entry.mysticArcanumChoices,
+          pactBoonChoice: entry.pactBoonChoice,
+          favoredEnemyChoice: entry.favoredEnemyChoice,
+          naturalExplorerChoice: entry.naturalExplorerChoice,
+          spellChoices: entry.spellChoices
         })),
         currentLevel: currentBuild.currentLevel,
         mainHandWeapon: currentBuild.selectedMainHand,
@@ -505,7 +505,7 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
         const { addBuild, updateBuild } = useVaultStore.getState()
         
         // Check if build exists (update) or is new (add)
-        const existingBuild = useVaultStore.getState().builds.find((b: any) => b.id === buildConfig.id)
+        const existingBuild = useVaultStore.getState().builds.find((b) => b.id === buildConfig.id)
         if (existingBuild) {
           updateBuild(buildConfig.id, buildConfig)
         } else {
@@ -522,7 +522,7 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
       set((state) => {
         if (state.currentBuild) {
           state.currentBuild.abilityAssignmentMethod = method
-          state.currentBuild.abilityMethod = method as any
+          state.currentBuild.abilityMethod = method as AbilityAssignmentMethod
           state.isDirty = true
           validateStep(state, 'ability-scores')
         }
@@ -852,8 +852,8 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
               featId: entry.featId,
               abilityIncreases: entry.abilityIncreases,
               notes: entry.notes,
-              fightingStyle: (entry as any).fightingStyle,
-              archetype: (entry as any).archetype
+              fightingStyle: entry.fightingStyle,
+              archetype: entry.archetype
             }))
             
             state.currentBuild.currentLevel = Math.max(state.currentBuild.currentLevel || 1, level)
@@ -1027,8 +1027,8 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
               featId: entry.featId,
               abilityIncreases: entry.abilityIncreases,
               notes: entry.notes,
-              fightingStyle: (entry as any).fightingStyle,
-              archetype: (entry as any).archetype
+              fightingStyle: entry.fightingStyle,
+              archetype: entry.archetype
             }))
             
             state.isDirty = true
@@ -1570,13 +1570,13 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
 )
 
 // Helper functions
-function updateNavigationState(state: any) {
+function updateNavigationState(state: CharacterBuilderStore) {
   const currentIndex = BUILDER_STEPS.indexOf(state.currentStep)
   state.canGoBack = currentIndex > 0
   state.canProceed = currentIndex < BUILDER_STEPS.length - 1 && state.stepValidation[state.currentStep]
 }
 
-function validateStep(state: any, step: BuilderStep): boolean {
+function validateStep(state: CharacterBuilderStore, step: BuilderStep): boolean {
   if (!state.currentBuild) {
     state.stepValidation[step] = false
     return false
