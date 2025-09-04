@@ -245,7 +245,8 @@ export const SpellSelection: React.FC<SpellSelectionProps> = ({
             Cantrips
           </button>
           {/* Only show level tabs if this isn't a cantrip-only selection */}
-          {!(isPreparedCaster && newCantripsToLearn === 0 && newSpellsToLearn === 0) && 
+          {!((isPreparedCaster && newCantripsToLearn === 0 && newSpellsToLearn === 0) || 
+             (newCantripsToLearn > 0 && newSpellsToLearn === 0)) && 
             Array.from({ length: maxSpellLevel }, (_, i) => i + 1).map(lvl => (
               <button
                 key={lvl}
