@@ -87,7 +87,7 @@ export function DprLab() {
         setConfiguration(updatedConfig)
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [localConfig, currentConfig, selectedBuild, setConfiguration]) // Track actual values
 
   // Handle auto-switching from builder build (but not if user has manually selected vault build)

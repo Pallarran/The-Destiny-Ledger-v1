@@ -358,7 +358,7 @@ export class PathOptimizer {
       
       // Estimate attacks and damage
       let attacks = 1
-      let damagePerAttack = 8 + Math.max(strMod, dexMod)
+      const damagePerAttack = 8 + Math.max(strMod, dexMod)
       
       // Account for Extra Attack
       const hasExtraAttack = build.levelTimeline.some(entry => {
