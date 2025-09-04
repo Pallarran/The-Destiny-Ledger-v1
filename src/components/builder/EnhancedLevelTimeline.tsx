@@ -23,20 +23,27 @@ type SubclassFeature = {
   rulesKey?: string
 }
 
-// Interface for level section data
+// Interface for level section data - flexible to handle various section types
 interface LevelSection {
   type: string
   title?: string
-  features?: Feature[]
-  benefits?: {name: string, description: string, showMulticlassInfo?: boolean}[]
-  options?: {id: string, name: string, description?: string}[]
-  selectedOptions?: string[]
+  features?: (Feature | {name: string, description: string})[]
+  benefits?: ({
+    name: string
+    description: string
+    showMulticlassInfo?: boolean
+    icon?: any
+    isBonus?: boolean
+  })[]
+  options?: any[]
+  selectedOptions?: any[]
   selectedFeat?: string
   selectedAbilityIncreases?: Record<string, number>
   onSelect?: (id: string) => void
   onASI?: (increases: Record<AbilityScore, number>) => void
   onMultiSelect?: (ids: string[]) => void
-  [key: string]: unknown // Allow additional properties for specific section types
+  // Allow any additional properties for specific section types
+  [key: string]: any
 }
 import { ExpertiseSelection } from './ExpertiseSelection'
 import { ManeuverSelection } from './ManeuverSelection'
@@ -344,7 +351,7 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
   
   // Calculate level benefits
   const isFirstClassLevel = classLevel === 1
-  const levelBenefits = getLevelBenefits(entry.level, classData, isFirstClassLevel)
+  const levelBenefits = getLevelBenefits(entry.level, classData || null, isFirstClassLevel)
   
   // Check for spell progression - use multiclass if multiple caster classes exist
   const timeline = currentBuild?.enhancedLevelTimeline || []
@@ -1060,7 +1067,7 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
   if (entry.level === 1 && classLevel === 1) {
     const classSkills = classData?.skillChoices || []
     const skillCount = classData?.skillChoiceCount || 2
-    const selectedSkills = currentBuild.skillProficiencies || []
+    const selectedSkills = currentBuild?.skillProficiencies || []
     
     sections.push({
       id: 'skills',
@@ -1184,7 +1191,7 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
                   {section.type === 'auto' && section.features && (
                     <div className="mt-2 pt-2 border-t border-current/20">
                       <div className="space-y-1">
-                        {section.features.map((feature: Feature, idx: number) => (
+                        {section.features.map((feature: Feature | {name: string, description: string}, idx: number) => (
                           <div key={idx} className="text-xs">
                             <div className="flex items-center gap-2">
                               <Badge variant="outline" className="text-xs">
@@ -1206,7 +1213,7 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
                   {section.type === 'benefits' && section.benefits && (
                     <div className="mt-2 pt-2 border-t border-current/20">
                       <div className="space-y-1">
-                        {section.benefits.map((benefit: {name: string, description: string, showMulticlassInfo?: boolean}, idx: number) => {
+                        {section.benefits.map((benefit: {name: string, description: string, showMulticlassInfo?: boolean, icon?: any, isBonus?: boolean}, idx: number) => {
                           const IconComponent = benefit.icon
                           return (
                             <div key={idx} className="flex items-center gap-2 text-xs">
@@ -1706,7 +1713,7 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
         return (
           <div className="p-3 bg-panel/5">
             <div className="space-y-2">
-              {section.options.map((option: any) => (
+              {section.options?.map((option: any) => (
                 <label
                   key={option.id}
                   className="flex items-start gap-2 p-2 rounded hover:bg-accent/5 cursor-pointer"
