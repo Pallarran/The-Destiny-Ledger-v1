@@ -62,8 +62,8 @@ export const PreparedCasterSpellPreparation: React.FC<PreparedCasterSpellPrepara
       // Only show spells the character can cast
       let maxSpellLevel: number
       if (classId === 'artificer') {
-        // Artificers get spells at level 2, not level 1
-        maxSpellLevel = Math.min(5, Math.floor(level / 2))
+        // Artificers can cast spells at level 1 in this app, max 5th level spells at level 20
+        maxSpellLevel = Math.min(5, Math.max(1, Math.floor((level + 1) / 2)))
       } else {
         // Other prepared casters (clerics, druids, paladins)
         maxSpellLevel = Math.min(9, Math.ceil(level / 2))
@@ -107,7 +107,7 @@ export const PreparedCasterSpellPreparation: React.FC<PreparedCasterSpellPrepara
   
   // Calculate max spell level available
   const maxSpellLevel = classId === 'artificer' 
-    ? Math.min(5, Math.floor(level / 2))  // Artificers get spells at level 2, not level 1
+    ? Math.min(5, Math.max(1, Math.floor((level + 1) / 2)))  // Artificers can cast spells at level 1 in this app
     : Math.min(9, Math.ceil(level / 2))
   
   const className = classId.charAt(0).toUpperCase() + classId.slice(1)

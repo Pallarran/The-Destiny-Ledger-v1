@@ -42,7 +42,7 @@ export const SpellSelection: React.FC<SpellSelectionProps> = ({
   const { getAllKnownSpells, getRacialSpells } = useCharacterBuilderStore()
   
   const [searchQuery, setSearchQuery] = useState('')
-  const [selectedLevel, setSelectedLevel] = useState<number | 'cantrip'>(1)
+  const [selectedLevel, setSelectedLevel] = useState<number | 'cantrip'>('cantrip')
   const [expandedSpell, setExpandedSpell] = useState<string | null>(null)
   
   const classData = classes[classId]

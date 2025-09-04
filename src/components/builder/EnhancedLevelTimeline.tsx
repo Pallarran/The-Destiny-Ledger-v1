@@ -815,13 +815,28 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
     } : null
     
     // Check if this level grants new spells
-    const gainsSpells = spellProgression && (
-      !previousProgression ||
-      spellProgression.spellsKnown > previousProgression.spellsKnown ||
-      spellProgression.cantripsKnown > previousProgression.cantripsKnown
-    )
+    const isPreparedCaster = ['artificer', 'cleric', 'druid', 'paladin'].includes(entry.classId)
     
-    if (gainsSpells) {
+    let gainsSpells = false
+    if (isPreparedCaster && spellProgression) {
+      // Prepared casters: show spell section when they gain cantrips OR when they can cast spells
+      // All prepared casters get spells at level 1 (including artificer in this app)
+      const canCastSpells = classLevel >= 1
+      
+      gainsSpells = (
+        spellProgression.cantripsKnown > (previousProgression?.cantripsKnown || 0) || // New cantrips
+        canCastSpells // Can cast spells
+      )
+    } else if (spellProgression) {
+      // Spell-known casters: use the original logic
+      gainsSpells = (
+        !previousProgression ||
+        spellProgression.spellsKnown > previousProgression.spellsKnown ||
+        spellProgression.cantripsKnown > previousProgression.cantripsKnown
+      )
+    }
+    
+    if (gainsSpells && spellProgression) {
       const currentSpells = entry.spellChoices || []
       
       // Get all spells known from previous levels (consider multiclassing with same spell list)
@@ -931,7 +946,7 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
       spellProgression.cantripsKnown > previousProgression.cantripsKnown
     )
     
-    if (gainsSpells) {
+    if (gainsSpells && spellProgression) {
       const currentSpells = entry.spellChoices || []
       
       // Get all spells known from previous levels (consider multiclassing with same spell list)
