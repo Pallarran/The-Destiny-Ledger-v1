@@ -100,6 +100,7 @@ export interface SimulationConfig {
   greedyResourceUse: boolean // Use resources optimally
   autoGWMSS: boolean // Automatically determine when to use -5/+10
   forceGWMSS?: boolean // Force -5/+10 regardless of optimality
+  assumeSneakAttack?: boolean // Assume optimal conditions for sneak attack (default true)
 }
 
 export interface WeaponConfig {

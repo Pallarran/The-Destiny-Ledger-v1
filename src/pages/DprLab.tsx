@@ -37,6 +37,9 @@ export function DprLab() {
   // Track when user manually wants to select a different build
   const [manualBuildSelection, setManualBuildSelection] = useState(false)
   
+  // DPR Lab specific settings
+  const [assumeSneakAttack, setAssumeSneakAttack] = useState(true)
+  
   // Use selected build from store, fallback to builder build if available
   const selectedBuild = useMemo(() => {
     if (storeSelectedBuild) {
@@ -48,6 +51,17 @@ export function DprLab() {
     }
     return null
   }, [storeSelectedBuild, builderCurrentBuild, exportToBuildConfiguration, manualBuildSelection])
+  
+  // Calculate rogue levels for UI
+  const rogueLevel = useMemo(() => {
+    if (!selectedBuild?.levelTimeline) return 0
+    const classLevels = new Map<string, number>()
+    for (const entry of selectedBuild.levelTimeline) {
+      classLevels.set(entry.classId, (classLevels.get(entry.classId) || 0) + 1)
+    }
+    return classLevels.get('rogue') || 0
+  }, [selectedBuild?.levelTimeline])
+  
   // Track if user has selected a vault build (to prevent auto-override)
   const [hasSelectedVaultBuild, setHasSelectedVaultBuild] = useState(false)
   
@@ -57,8 +71,9 @@ export function DprLab() {
   const localConfig = useMemo(() => ({
     round0BuffsEnabled: false,
     greedyResourceUse: defaultGreedy,
-    autoGWMSS: defaultAutoGWMSS
-  }), [defaultGreedy, defaultAutoGWMSS])
+    autoGWMSS: defaultAutoGWMSS,
+    assumeSneakAttack // Assume optimal conditions for sneak attack
+  }), [defaultGreedy, defaultAutoGWMSS, assumeSneakAttack])
   
   // Fixed config for DPR calculations (AC range etc.)
   const fixedConfig = useMemo(() => ({
@@ -469,8 +484,27 @@ export function DprLab() {
               <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 lg:gap-6">
                 <HeroMetrics build={selectedBuild} result={currentResult} config={localConfig} />
                 <ChartFrame title="DPR vs Armor Class">
-                  {/* Visibility Toggles */}
-                  <div className="flex gap-2 p-2 border-b border-border/20">
+                  {/* Configuration and Visibility Toggles */}
+                  <div className="border-b border-border/20">
+                    {/* Configuration Row */}
+                    {rogueLevel > 0 && (
+                      <div className="flex items-center gap-2 p-2 border-b border-border/10">
+                        <span className="text-xs text-muted">Rogue Settings:</span>
+                        <button
+                          onClick={() => setAssumeSneakAttack(!assumeSneakAttack)}
+                          className={`flex items-center gap-1.5 px-2 py-1 text-xs font-medium rounded transition-colors ${
+                            assumeSneakAttack
+                              ? 'bg-emerald/10 text-emerald-600 border border-emerald/20' 
+                              : 'bg-muted/20 text-muted border border-muted/20'
+                          }`}
+                        >
+                          <span className={`w-2 h-2 rounded-full ${assumeSneakAttack ? 'bg-emerald-500' : 'bg-muted'}`} />
+                          Assume Sneak Attack ({Math.ceil(rogueLevel / 2)}d6)
+                        </button>
+                      </div>
+                    )}
+                    {/* Visibility Toggles */}
+                    <div className="flex gap-2 p-2">
                     <button
                       onClick={() => setCurveVisibility(prev => ({ ...prev, normal: !prev.normal }))}
                       className={`flex items-center gap-1.5 px-2 py-1 text-xs font-medium rounded transition-colors ${
@@ -504,6 +538,7 @@ export function DprLab() {
                       <span className="w-2 h-2 rounded-full" style={{ backgroundColor: 'var(--danger)' }} />
                       Disadvantage
                     </button>
+                    </div>
                   </div>
                   
                   <ResponsiveContainer width="100%" height={280}>
