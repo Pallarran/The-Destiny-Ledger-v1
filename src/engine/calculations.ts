@@ -146,11 +146,7 @@ export function shouldUsePowerAttack(
 }
 
 // Check if sneak attack can be used
-function canUseSneakAttack(
-  weapon: WeaponConfig, 
-  advantageState: 'advantage' | 'normal' | 'disadvantage',
-  assumeOptimalConditions: boolean = true
-): boolean {
+function canUseSneakAttack(weapon: WeaponConfig, advantageState: 'advantage' | 'normal' | 'disadvantage'): boolean {
   // Must not have disadvantage
   if (advantageState === 'disadvantage') {
     return false
@@ -164,14 +160,9 @@ function canUseSneakAttack(
     return false
   }
   
-  // If we assume optimal conditions, we can always get sneak attack (advantage OR ally adjacent)
+  // Assume optimal conditions for DPR calculations (advantage OR ally adjacent)
   // In actual play, this would depend on tactical positioning
-  if (assumeOptimalConditions) {
-    return true
-  }
-  
-  // Otherwise, only allow if we have advantage
-  return advantageState === 'advantage'
+  return true
 }
 
 // Main DPR calculation for a build
@@ -221,8 +212,7 @@ export function calculateBuildDPR(
                                    state.hasDisadvantage ? 'disadvantage' : 'normal'
 
   // Add sneak attack damage if conditions are met
-  const assumeOptimalSneakAttack = config.assumeSneakAttack !== false // Default to true if undefined
-  if (state.sneakAttackDice > 0 && canUseSneakAttack(weapon, sneakAttackAdvantageState, assumeOptimalSneakAttack)) {
+  if (state.sneakAttackDice > 0 && canUseSneakAttack(weapon, sneakAttackAdvantageState)) {
     baseDamage.additionalDice?.push({
       count: state.sneakAttackDice,
       die: 6,
