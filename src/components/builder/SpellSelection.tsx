@@ -244,19 +244,22 @@ export const SpellSelection: React.FC<SpellSelectionProps> = ({
           >
             Cantrips
           </button>
-          {Array.from({ length: maxSpellLevel }, (_, i) => i + 1).map(lvl => (
-            <button
-              key={lvl}
-              onClick={() => setSelectedLevel(lvl)}
-              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                selectedLevel === lvl
-                  ? 'bg-white text-purple-600 shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              Level {lvl}
-            </button>
-          ))}
+          {/* Only show level tabs if this isn't a cantrip-only selection */}
+          {!(isPreparedCaster && newCantripsToLearn === 0 && newSpellsToLearn === 0) && 
+            Array.from({ length: maxSpellLevel }, (_, i) => i + 1).map(lvl => (
+              <button
+                key={lvl}
+                onClick={() => setSelectedLevel(lvl)}
+                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                  selectedLevel === lvl
+                    ? 'bg-white text-purple-600 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                Level {lvl}
+              </button>
+            ))
+          }
         </div>
       </div>
       
