@@ -9,16 +9,16 @@ interface FantasyHeaderProps {
 
 export function FantasyHeader({ currentPage, isLandingPage }: FantasyHeaderProps) {
   return (
-    <header className="fixed top-0 left-0 right-0 shadow-lg" 
+    <header className="fixed top-0 left-0 right-0 shadow-lg h-20" 
             style={{ backgroundColor: '#2A3441', zIndex: 10000, margin: '30px', marginBottom: 0, borderTopLeftRadius: '8px', borderTopRightRadius: '8px' }}>
       {/* Single Title Bar with everything */}
-      <div className="flex items-center justify-between px-6 py-3">
+      <div className="flex items-center justify-between px-6 py-3 h-full">
         {/* Left: Logo and App Name */}
         <Link to="/" className="flex items-center gap-3 hover:opacity-90 transition-opacity">
           <img 
             src={`${import.meta.env.BASE_URL}destiny-ledger-main-logo.png`} 
             alt="The Destiny Ledger" 
-            className="w-14 h-14 drop-shadow-lg" 
+            className="w-20 h-20 drop-shadow-lg" 
           />
           <div>
             <h1 className="text-lg font-serif font-bold text-accent tracking-wider drop-shadow-sm">
