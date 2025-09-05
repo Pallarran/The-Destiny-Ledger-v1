@@ -380,6 +380,15 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
               weaponTraining: {}
             },
             
+            // Load racial choices
+            variantHumanFeat: build.variantHumanFeat,
+            variantHumanSkill: build.variantHumanSkill,
+            variantHumanAbilities: build.variantHumanAbilities,
+            halfElfSkills: build.halfElfSkills,
+            halfElfAbilities: build.halfElfAbilities,
+            dragonbornAncestry: build.dragonbornAncestry,
+            highElfCantrip: build.highElfCantrip,
+            
             // Ensure level timeline exists and is valid
             enhancedLevelTimeline: (build.levelTimeline || []).map(entry => ({
               ...entry,
@@ -479,7 +488,15 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
         attunedItems: currentBuild.equipment?.attunedItems || currentBuild.attunedItems || [],
         activeBuffs: currentBuild.activeBuffs,
         round0Buffs: currentBuild.round0Buffs,
-        downtimeTraining: currentBuild.downtimeTraining
+        downtimeTraining: currentBuild.downtimeTraining,
+        // Include all racial choices
+        variantHumanFeat: currentBuild.variantHumanFeat,
+        variantHumanSkill: currentBuild.variantHumanSkill,
+        variantHumanAbilities: currentBuild.variantHumanAbilities,
+        halfElfSkills: currentBuild.halfElfSkills,
+        halfElfAbilities: currentBuild.halfElfAbilities,
+        dragonbornAncestry: currentBuild.dragonbornAncestry,
+        highElfCantrip: currentBuild.highElfCantrip
       }
     },
     
