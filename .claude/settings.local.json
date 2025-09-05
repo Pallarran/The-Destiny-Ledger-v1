@@ -41,7 +41,22 @@
       "Bash(gh run list:*)",
       "WebFetch(domain:www.dndbeyond.com)",
       "WebFetch(domain:dnd5e.wikidot.com)",
-      "WebFetch(domain:www.5esrd.com)"
+      "WebFetch(domain:www.5esrd.com)",
+      "Read(/C:\\Users\\vince\\Code\\The-Destiny-Ledger-v1\\src\\pages/**)",
+      "Read(/C:\\Users\\vince\\Code\\The-Destiny-Ledger-v1\\src\\engine/**)",
+      "Read(/C:\\Users\\vince\\Code\\The-Destiny-Ledger-v1\\src\\engine/**)",
+      "Read(/C:\\Users\\vince\\Code\\The-Destiny-Ledger-v1\\src\\pages/**)",
+      "Read(/C:\\Users\\vince\\Code\\The-Destiny-Ledger-v1\\src\\pages/**)",
+      "Read(/C:\\Users\\vince\\Code\\The-Destiny-Ledger-v1\\src\\pages/**)",
+      "Read(/C:\\Users\\vince\\Code\\The-Destiny-Ledger-v1\\src\\pages/**)",
+      "Read(/C:\\Users\\vince\\Code\\The-Destiny-Ledger-v1\\src\\engine/**)",
+      "Read(/C:\\Users\\vince\\Code\\The-Destiny-Ledger-v1\\src\\pages/**)",
+      "Read(/C:\\Users\\vince\\Code\\The-Destiny-Ledger-v1\\src\\components\\layout/**)",
+      "Read(/C:\\Users\\vince\\Code\\The-Destiny-Ledger-v1\\src\\components\\layout/**)",
+      "Read(/C:\\Users\\vince\\Code\\The-Destiny-Ledger-v1\\src\\pages/**)",
+      "Read(/C:\\Users\\vince\\Code\\The-Destiny-Ledger-v1\\src\\pages/**)",
+      "Read(/C:\\Users\\vince\\Code\\The-Destiny-Ledger-v1\\src\\pages/**)",
+      "Read(/C:\\Users\\vince\\Code\\The-Destiny-Ledger-v1\\src\\pages/**)"
     ],
     "deny": [],
     "ask": []

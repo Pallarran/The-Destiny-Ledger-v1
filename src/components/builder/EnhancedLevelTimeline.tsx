@@ -63,7 +63,7 @@ import { eldritchInvocations, getInvocationProgression } from '../../rules/srd/e
 import { allMysticArcanumSpells, getMysticArcanumAvailableAtLevel } from '../../rules/srd/mysticArcanum'
 import { pactBoons } from '../../rules/srd/pactBoons'
 import { favoredEnemies, naturalExplorerTerrains, getRangerFeaturesAtLevel } from '../../rules/srd/rangerFeatures'
-import { spellsKnownProgression } from '../../rules/srd/spells'
+import { spellsKnownProgression, allSpells } from '../../rules/srd/spells'
 
 // Use ClassIcon component instead of Lucide icons
 
@@ -861,12 +861,14 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
       }
       
       // Calculate how many new spells can be learned this level (excluding racial spells from previous count)
+      // Use actual spell data to check if a spell is a cantrip
       const allPreviousCantrips = previousSpells.filter((spellId: string) => {
-        // We'd need to check if spell is cantrip, but for now assume based on common patterns
-        return spellId.includes('cantrip') || ['fire_bolt', 'ray_of_frost', 'mage_hand', 'minor_illusion', 'prestidigitation', 'guidance', 'sacred_flame', 'spare_the_dying', 'druidcraft', 'produce_flame', 'vicious_mockery'].includes(spellId)
+        const spell = Object.values(allSpells).find(s => s.id === spellId)
+        return spell?.level === 0
       })
       const racialCantrips = racialSpells.filter((spellId: string) => {
-        return spellId.includes('cantrip') || ['fire_bolt', 'ray_of_frost', 'mage_hand', 'minor_illusion', 'prestidigitation', 'guidance', 'sacred_flame', 'spare_the_dying', 'druidcraft', 'produce_flame', 'vicious_mockery'].includes(spellId)
+        const spell = Object.values(allSpells).find(s => s.id === spellId)
+        return spell?.level === 0
       })
       
       // Only count class progression cantrips, not racial cantrips
