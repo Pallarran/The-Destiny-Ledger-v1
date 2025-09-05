@@ -2058,17 +2058,20 @@ export const subclasses: Record<string, Subclass> = {
       {
         level: 2,
         name: 'Chronal Shift',
-        description: 'You can magically exert limited control over the flow of time around a creature.'
+        description: 'You can magically exert limited control over the flow of time around a creature.',
+        rulesKey: 'chronal_shift'
       },
       {
         level: 2,
         name: 'Temporal Awareness',
-        description: 'You can add your Intelligence modifier to your initiative rolls.'
+        description: 'You can add your Intelligence modifier to your initiative rolls.',
+        rulesKey: 'temporal_awareness'
       },
       {
         level: 6,
         name: 'Momentary Stasis',
-        description: 'You can force a Large or smaller creature to make a Constitution saving throw.'
+        description: 'You can force a Large or smaller creature to make a Constitution saving throw.',
+        rulesKey: 'momentary_stasis'
       },
       {
         level: 10,
@@ -2078,7 +2081,8 @@ export const subclasses: Record<string, Subclass> = {
       {
         level: 14,
         name: 'Convergent Future',
-        description: 'You can peer through possible futures and magically pull one of them into being.'
+        description: 'You can peer through possible futures and magically pull one of them into being.',
+        rulesKey: 'convergent_future'
       }
     ]
   },

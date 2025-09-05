@@ -9,8 +9,7 @@ import { useVaultStore } from '../stores/vaultStore'
 import { buildToCombatState, getWeaponConfig } from '../engine/simulator'
 import { calculateBuildDPR } from '../engine/calculations'
 import { getBuildRating } from '../utils/dprThresholds'
-import { getAllSpells } from '../rules/loaders'
-import { skills } from '../rules/srd/skills'
+// TODO: Import spell data when available
 import type { BuildConfiguration } from '../stores/types'
 import type { SimulationConfig } from '../engine/types'
 import { Plus, X, TrendingUp, TrendingDown, Download, Eye, EyeOff, Minus } from 'lucide-react'
@@ -44,7 +43,6 @@ const COMPARISON_COLORS = [
 
 // Analyze spell contributions to role capabilities
 const analyzeSpellCapabilities = (build: BuildConfiguration) => {
-  const spells = getAllSpells()
   const capabilities = {
     social: 0,
     defense: 0,
@@ -54,84 +52,68 @@ const analyzeSpellCapabilities = (build: BuildConfiguration) => {
     control: 0
   }
 
-  // Get level timeline spells and prepared spells
-  const buildSpells = new Set<string>()
+  // Get all known spells from level timeline
+  const knownSpells = new Set<string>()
   
-  // From level timeline (known/prepared spells)
   build.levelTimeline?.forEach(entry => {
-    entry.spells?.forEach(spell => buildSpells.add(spell))
+    entry.spellChoices?.forEach(spellId => knownSpells.add(spellId))
   })
 
-  // From spell arrays in build
-  build.spells?.forEach(spellId => buildSpells.add(spellId))
-  build.cantrips?.forEach(cantrip => buildSpells.add(cantrip))
+  // Add racial cantrips
+  if (build.highElfCantrip) {
+    knownSpells.add(build.highElfCantrip)
+  }
 
-  buildSpells.forEach(spellId => {
-    const spell = spells[spellId]
-    if (!spell) return
-
-    const tags = spell.tags || []
-    const spellLevel = spell.level
-    const baseValue = Math.max(1, spellLevel) // Cantrips = 1, higher spells = their level
-
-    // Social capabilities
-    if (tags.includes('charm') || tags.includes('enchantment') || 
-        tags.includes('illusion') || tags.includes('deception') ||
-        spell.name.toLowerCase().includes('charm') ||
-        spell.name.toLowerCase().includes('suggestion') ||
-        spell.name.toLowerCase().includes('friends') ||
-        spell.name.toLowerCase().includes('disguise')) {
-      capabilities.social += baseValue * 2
+  // Analyze known spells by name for capabilities
+  knownSpells.forEach(spellId => {
+    const spellName = spellId.toLowerCase()
+    
+    // Social spells (charm, illusion, social interaction)
+    if (spellName.includes('charm') || spellName.includes('suggestion') || 
+        spellName.includes('friends') || spellName.includes('disguise') ||
+        spellName.includes('invisibility') || spellName.includes('illusion') ||
+        spellName.includes('enthrall') || spellName.includes('modify_memory')) {
+      capabilities.social += 3
     }
 
-    // Support capabilities  
-    if (tags.includes('healing') || tags.includes('buff') || 
-        tags.includes('support') || tags.includes('restoration') ||
-        spell.name.toLowerCase().includes('heal') ||
-        spell.name.toLowerCase().includes('bless') ||
-        spell.name.toLowerCase().includes('aid') ||
-        spell.name.toLowerCase().includes('guidance')) {
-      capabilities.support += baseValue * 2
+    // Support spells (healing, buffs, aid)
+    if (spellName.includes('heal') || spellName.includes('cure') || 
+        spellName.includes('bless') || spellName.includes('aid') ||
+        spellName.includes('guidance') || spellName.includes('bardic') ||
+        spellName.includes('restoration') || spellName.includes('revivify')) {
+      capabilities.support += 3
     }
 
-    // Control capabilities
-    if (tags.includes('control') || tags.includes('debuff') || 
-        tags.includes('save') || tags.includes('enchantment') ||
-        spell.name.toLowerCase().includes('hold') ||
-        spell.name.toLowerCase().includes('sleep') ||
-        spell.name.toLowerCase().includes('web') ||
-        spell.name.toLowerCase().includes('slow')) {
-      capabilities.control += baseValue * 2
+    // Control spells (save-or-suck, battlefield control)
+    if (spellName.includes('hold') || spellName.includes('sleep') || 
+        spellName.includes('web') || spellName.includes('slow') ||
+        spellName.includes('banishment') || spellName.includes('polymorph') ||
+        spellName.includes('counterspell') || spellName.includes('dispel')) {
+      capabilities.control += 3
     }
 
-    // Exploration capabilities
-    if (tags.includes('utility') || tags.includes('divination') || 
-        tags.includes('senses') || tags.includes('detection') ||
-        spell.name.toLowerCase().includes('detect') ||
-        spell.name.toLowerCase().includes('locate') ||
-        spell.name.toLowerCase().includes('identify') ||
-        spell.name.toLowerCase().includes('comprehend')) {
-      capabilities.exploration += baseValue * 2
+    // Exploration spells (utility, detection, travel)
+    if (spellName.includes('detect') || spellName.includes('locate') || 
+        spellName.includes('identify') || spellName.includes('comprehend') ||
+        spellName.includes('find') || spellName.includes('scrying') ||
+        spellName.includes('clairvoyance') || spellName.includes('commune')) {
+      capabilities.exploration += 3
     }
 
-    // Defense capabilities
-    if (tags.includes('abjuration') || tags.includes('defense') || 
-        tags.includes('resistance') || tags.includes('protection') ||
-        spell.name.toLowerCase().includes('shield') ||
-        spell.name.toLowerCase().includes('ward') ||
-        spell.name.toLowerCase().includes('protection') ||
-        spell.name.toLowerCase().includes('sanctuary')) {
-      capabilities.defense += baseValue * 2
+    // Defense spells (protection, warding, resistance)
+    if (spellName.includes('shield') || spellName.includes('ward') || 
+        spellName.includes('protection') || spellName.includes('sanctuary') ||
+        spellName.includes('armor') || spellName.includes('resistance') ||
+        spellName.includes('absorb') || spellName.includes('stoneskin')) {
+      capabilities.defense += 3
     }
 
-    // Mobility capabilities
-    if (tags.includes('movement') || tags.includes('teleport') || 
-        tags.includes('fly') || tags.includes('speed') ||
-        spell.name.toLowerCase().includes('fly') ||
-        spell.name.toLowerCase().includes('dimension') ||
-        spell.name.toLowerCase().includes('misty') ||
-        spell.name.toLowerCase().includes('expeditious')) {
-      capabilities.mobility += baseValue * 2
+    // Mobility spells (movement, teleportation, travel)
+    if (spellName.includes('fly') || spellName.includes('dimension') || 
+        spellName.includes('misty') || spellName.includes('expeditious') ||
+        spellName.includes('teleport') || spellName.includes('transport') ||
+        spellName.includes('freedom') || spellName.includes('spider_climb')) {
+      capabilities.mobility += 3
     }
   })
 
@@ -150,7 +132,7 @@ const analyzeSkillCapabilities = (build: BuildConfiguration) => {
   }
 
   const skillProfs = build.skillProficiencies || []
-  const expertise = build.expertise || []
+  const expertise: string[] = [] // TODO: Extract expertise from build when available
 
   // Helper function to add skill value
   const addSkillValue = (skillId: string, category: keyof typeof capabilities) => {

@@ -883,6 +883,55 @@ export function classFeatureToModifiers(featureId: string, level?: number): Modi
         uses: { max: 1, recharge: 'shortRest' }
       } as PassiveModifier)
       break
+      
+    // === CHRONURGY WIZARD SUBCLASS FEATURES ===
+    case 'chronal_shift':
+      modifiers.push({
+        id: 'chronal_shift_modifier',
+        name: 'Chronal Shift',
+        description: 'Force reroll of attack roll, ability check, or saving throw',
+        source: 'Chronurgy Wizard',
+        type: 'passive',
+        condition: 'always',
+        uses: { max: 2, recharge: 'longRest' }
+      } as PassiveModifier)
+      break
+      
+    case 'temporal_awareness':
+      modifiers.push({
+        id: 'temporal_awareness_initiative',
+        name: 'Temporal Awareness',
+        description: 'Add INT modifier to initiative rolls',
+        source: 'Chronurgy Wizard',
+        type: 'passive',
+        condition: 'always',
+        value: Math.floor(((level || 10) >= 20 ? 20 : 16 - 10) / 2) // Simplified INT mod based on level
+      } as PassiveModifier)
+      break
+      
+    case 'momentary_stasis':
+      modifiers.push({
+        id: 'momentary_stasis_incapacitate',
+        name: 'Momentary Stasis',
+        description: 'Incapacitate Large or smaller creature',
+        source: 'Chronurgy Wizard',
+        type: 'passive',
+        condition: 'always',
+        uses: { max: 1, recharge: 'longRest' }
+      } as PassiveModifier)
+      break
+      
+    case 'convergent_future':
+      modifiers.push({
+        id: 'convergent_future_luck',
+        name: 'Convergent Future',
+        description: 'Force advantage or disadvantage on any roll within 60 feet',
+        source: 'Chronurgy Wizard',
+        type: 'passive',
+        condition: 'always',
+        uses: { max: 1, recharge: 'longRest' }
+      } as PassiveModifier)
+      break
   }
   
   return modifiers
