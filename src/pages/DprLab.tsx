@@ -23,6 +23,7 @@ import { useVaultStore } from '../stores/vaultStore'
 import { useCharacterBuilderStore } from '../stores/characterBuilderStore'
 import { useSettingsStore } from '../stores/settingsStore'
 import { createDPRConfig } from '../stores/dprStore'
+import { autoSelectOptimalBuffs } from '../utils/buffSelection'
 
 export function DprLab() {
   const { builds: vaultBuilds } = useVaultStore()
@@ -39,13 +40,25 @@ export function DprLab() {
   
   // Use selected build from store, fallback to builder build if available
   const selectedBuild = useMemo(() => {
+    let build = null
+    
     if (storeSelectedBuild) {
-      return storeSelectedBuild
+      build = storeSelectedBuild
+    } else if (builderCurrentBuild && !manualBuildSelection) {
+      // Only fallback to builder build if user hasn't manually requested build selection
+      build = exportToBuildConfiguration()
     }
-    // Only fallback to builder build if user hasn't manually requested build selection
-    if (builderCurrentBuild && !manualBuildSelection) {
-      return exportToBuildConfiguration()
+    
+    // Apply auto-selected buffs if build exists
+    if (build) {
+      const optimalBuffs = autoSelectOptimalBuffs(build, true)
+      return {
+        ...build,
+        activeBuffs: optimalBuffs.activeBuffs,
+        round0Buffs: optimalBuffs.round0Buffs
+      }
     }
+    
     return null
   }, [storeSelectedBuild, builderCurrentBuild, exportToBuildConfiguration, manualBuildSelection])
   
@@ -56,7 +69,7 @@ export function DprLab() {
   const isAutoCalculatingRef = useRef(false)
   
   const localConfig = useMemo(() => ({
-    round0BuffsEnabled: false,
+    round0BuffsEnabled: true, // Enable round 0 buffs since we're auto-selecting them
     greedyResourceUse: defaultGreedy,
     autoGWMSS: defaultAutoGWMSS
   }), [defaultGreedy, defaultAutoGWMSS])
