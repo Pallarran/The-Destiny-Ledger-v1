@@ -69,15 +69,23 @@ export function buildToCombatState(build: BuildConfiguration, level?: number): C
   state.sneakAttackDice = Math.ceil(rogueLevel / 2)
   
   // Process level timeline for features and fighting styles
+  const classLevelCounts: { [classId: string]: number } = {}
+  
   for (const entry of build.levelTimeline) {
     if (entry.level > targetLevel) break
     
-    // Check for class features
+    // Track class level for each class
+    classLevelCounts[entry.classId] = (classLevelCounts[entry.classId] || 0) + 1
+    const currentClassLevel = classLevelCounts[entry.classId]
+    
+    // Check for class features using the correct class level
     const classData = getClass(entry.classId)
     if (classData) {
-      const features = classData.features[entry.level] || []
+      const features = classData.features[currentClassLevel] || []
       for (const feature of features) {
         if (feature.rulesKey === 'extra_attack') {
+          state.extraAttacks = 1
+        } else if (feature.rulesKey === 'extra_attack_1') {
           state.extraAttacks = 1
         } else if (feature.rulesKey === 'extra_attack_2') {
           state.extraAttacks = 2
