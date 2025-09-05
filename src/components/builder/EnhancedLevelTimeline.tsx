@@ -800,9 +800,7 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
   // 3e. Spell Selection (for spellcasting classes)
   const fullCasters = ['wizard', 'cleric', 'bard', 'sorcerer', 'druid']
   const halfCasters = ['paladin', 'ranger', 'artificer']
-  const isSpellcaster = fullCasters.includes(entry.classId) || halfCasters.includes(entry.classId) ||
-    (entry.classId === 'fighter' && entry.subclassId === 'eldritch_knight') ||
-    (entry.classId === 'rogue' && entry.subclassId === 'arcane_trickster')
+  const isSpellcaster = fullCasters.includes(entry.classId) || halfCasters.includes(entry.classId)
   
   if (isSpellcaster && classLevel > 0) {
     // Get spell progression from rules - use subclass progression for third-casters
@@ -980,9 +978,10 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
       previousSpells = [...previousSpells, ...racialSpells]
       
       // Calculate how many new spells can be learned this level
+      // Use actual spell data to check if a spell is a cantrip
       const previousCantrips = previousSpells.filter((spellId: string) => {
-        // We'd need to check if spell is cantrip, but for now assume based on common patterns
-        return spellId.includes('cantrip') || ['fire_bolt', 'ray_of_frost', 'mage_hand', 'minor_illusion', 'prestidigitation', 'guidance', 'sacred_flame', 'spare_the_dying', 'druidcraft', 'produce_flame', 'vicious_mockery'].includes(spellId)
+        const spell = Object.values(allSpells).find(s => s.id === spellId)
+        return spell?.level === 0
       })
       const previousLeveledSpells = previousSpells.filter((spellId: string) => !previousCantrips.includes(spellId))
       
