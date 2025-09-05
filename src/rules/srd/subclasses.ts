@@ -22,7 +22,8 @@ export const subclasses: Record<string, Subclass> = {
       {
         level: 3,
         name: 'Improved Critical',
-        description: 'Your weapon attacks score a critical hit on a roll of 19 or 20.'
+        description: 'Your weapon attacks score a critical hit on a roll of 19 or 20.',
+        rulesKey: 'improved_critical'
       },
       {
         level: 7,
@@ -38,7 +39,8 @@ export const subclasses: Record<string, Subclass> = {
       {
         level: 15,
         name: 'Superior Critical',
-        description: 'Your weapon attacks score a critical hit on a roll of 18–20.'
+        description: 'Your weapon attacks score a critical hit on a roll of 18–20.',
+        rulesKey: 'superior_critical'
       },
       {
         level: 18,
@@ -56,7 +58,8 @@ export const subclasses: Record<string, Subclass> = {
       {
         level: 3,
         name: 'Combat Superiority',
-        description: 'You learn maneuvers that are fueled by special dice called superiority dice. You learn 3 maneuvers and have 4 superiority dice (d8).'
+        description: 'You learn maneuvers that are fueled by special dice called superiority dice. You learn 3 maneuvers and have 4 superiority dice (d8).',
+        rulesKey: 'combat_superiority'
       },
       {
         level: 3,
@@ -71,12 +74,14 @@ export const subclasses: Record<string, Subclass> = {
       {
         level: 10,
         name: 'Improved Combat Superiority',
-        description: 'Your superiority dice turn into d10s. At 18th level, they turn into d12s.'
+        description: 'Your superiority dice turn into d10s. At 18th level, they turn into d12s.',
+        rulesKey: 'improved_combat_superiority'
       },
       {
         level: 15,
         name: 'Relentless',
-        description: 'When you roll initiative and have no superiority dice remaining, you regain 1 superiority die.'
+        description: 'When you roll initiative and have no superiority dice remaining, you regain 1 superiority die.',
+        rulesKey: 'relentless'
       }
     ]
   },
@@ -99,12 +104,14 @@ export const subclasses: Record<string, Subclass> = {
       {
         level: 7,
         name: 'War Magic',
-        description: 'When you use your action to cast a cantrip, you can make one weapon attack as a bonus action.'
+        description: 'When you use your action to cast a cantrip, you can make one weapon attack as a bonus action.',
+        rulesKey: 'war_magic'
       },
       {
         level: 10,
         name: 'Eldritch Strike',
-        description: 'When you hit a creature with your weapon attack, that creature has disadvantage on the next saving throw it makes against a spell you cast before the end of your next turn.'
+        description: 'When you hit a creature with your weapon attack, that creature has disadvantage on the next saving throw it makes against a spell you cast before the end of your next turn.',
+        rulesKey: 'eldritch_strike'
       },
       {
         level: 15,
@@ -114,7 +121,8 @@ export const subclasses: Record<string, Subclass> = {
       {
         level: 18,
         name: 'Improved War Magic',
-        description: 'When you use your action to cast a spell, you can make one weapon attack as a bonus action.'
+        description: 'When you use your action to cast a spell, you can make one weapon attack as a bonus action.',
+        rulesKey: 'improved_war_magic'
       }
     ]
   },
@@ -149,7 +157,8 @@ export const subclasses: Record<string, Subclass> = {
       {
         level: 17,
         name: 'Thief\'s Reflexes',
-        description: 'You can take two turns during the first round of any combat.'
+        description: 'You can take two turns during the first round of any combat.',
+        rulesKey: 'thiefs_reflexes'
       }
     ]
   },
@@ -167,7 +176,8 @@ export const subclasses: Record<string, Subclass> = {
       {
         level: 3,
         name: 'Assassinate',
-        description: 'You have advantage on attack rolls against any creature that hasn\'t taken a turn in the combat yet. Any hit you score against a creature that is surprised is a critical hit.'
+        description: 'You have advantage on attack rolls against any creature that hasn\'t taken a turn in the combat yet. Any hit you score against a creature that is surprised is a critical hit.',
+        rulesKey: 'assassinate'
       },
       {
         level: 9,
@@ -182,7 +192,8 @@ export const subclasses: Record<string, Subclass> = {
       {
         level: 17,
         name: 'Death Strike',
-        description: 'When you attack and hit a creature that is surprised, it must make a Constitution saving throw (DC 8 + your Dexterity modifier + your proficiency bonus). On a failed save, double the damage of your attack against the creature.'
+        description: 'When you attack and hit a creature that is surprised, it must make a Constitution saving throw (DC 8 + your Dexterity modifier + your proficiency bonus). On a failed save, double the damage of your attack against the creature.',
+        rulesKey: 'death_strike'
       }
     ]
   },
@@ -205,7 +216,8 @@ export const subclasses: Record<string, Subclass> = {
       {
         level: 9,
         name: 'Magical Ambush',
-        description: 'If you are hidden from a creature when you cast a spell on it, the creature has disadvantage on any saving throw it makes against the spell this turn.'
+        description: 'If you are hidden from a creature when you cast a spell on it, the creature has disadvantage on any saving throw it makes against the spell this turn.',
+        rulesKey: 'magical_ambush'
       },
       {
         level: 13,
@@ -240,17 +252,20 @@ export const subclasses: Record<string, Subclass> = {
       {
         level: 6,
         name: 'Potent Cantrip',
-        description: 'When a creature succeeds on a saving throw against your cantrip, the creature takes half the cantrip\'s damage (if any) but suffers no additional effect from the cantrip.'
+        description: 'When a creature succeeds on a saving throw against your cantrip, the creature takes half the cantrip\'s damage (if any) but suffers no additional effect from the cantrip.',
+        rulesKey: 'potent_cantrip'
       },
       {
         level: 10,
         name: 'Empowered Evocation',
-        description: 'You can add your Intelligence modifier to one damage roll of any wizard evocation spell you cast.'
+        description: 'You can add your Intelligence modifier to one damage roll of any wizard evocation spell you cast.',
+        rulesKey: 'empowered_evocation'
       },
       {
         level: 14,
         name: 'Overchannel',
-        description: 'When you cast a wizard spell of 1st through 5th level that deals damage, you can deal maximum damage with that spell.'
+        description: 'When you cast a wizard spell of 1st through 5th level that deals damage, you can deal maximum damage with that spell.',
+        rulesKey: 'overchannel'
       }
     ]
   },
@@ -301,7 +316,8 @@ export const subclasses: Record<string, Subclass> = {
       {
         level: 2,
         name: 'Portent',
-        description: 'You can replace any attack roll, saving throw, or ability check made by you or a creature that you can see with one of your portent rolls.'
+        description: 'You can replace any attack roll, saving throw, or ability check made by you or a creature that you can see with one of your portent rolls.',
+        rulesKey: 'portent'
       },
       {
         level: 6,
@@ -334,7 +350,8 @@ export const subclasses: Record<string, Subclass> = {
       {
         level: 2,
         name: 'Hypnotic Gaze',
-        description: 'You can use your action to choose one humanoid within 5 feet of you. The target must succeed on a Wisdom saving throw or be charmed by you until the end of your next turn.'
+        description: 'You can use your action to choose one humanoid within 5 feet of you. The target must succeed on a Wisdom saving throw or be charmed by you until the end of your next turn.',
+        rulesKey: 'hypnotic_gaze'
       },
       {
         level: 6,
@@ -400,7 +417,8 @@ export const subclasses: Record<string, Subclass> = {
       {
         level: 2,
         name: 'Grim Harvest',
-        description: 'You gain the ability to reap life energy from creatures you kill with your spells. Once per turn when you kill one or more creatures with a spell of 1st level or higher, you regain hit points equal to twice the spell\'s level.'
+        description: 'You gain the ability to reap life energy from creatures you kill with your spells. Once per turn when you kill one or more creatures with a spell of 1st level or higher, you regain hit points equal to twice the spell\'s level.',
+        rulesKey: 'grim_harvest'
       },
       {
         level: 6,
@@ -600,7 +618,8 @@ export const subclasses: Record<string, Subclass> = {
       {
         level: 8,
         name: 'Divine Strike',
-        description: 'You gain the ability to infuse your weapon strikes with divine energy. Once on each of your turns when you hit a creature with a weapon attack, you can cause the attack to deal an extra 1d8 radiant damage.'
+        description: 'You gain the ability to infuse your weapon strikes with divine energy. Once on each of your turns when you hit a creature with a weapon attack, you can cause the attack to deal an extra 1d8 radiant damage.',
+        rulesKey: 'divine_strike_life'
       },
       {
         level: 17,
@@ -628,12 +647,14 @@ export const subclasses: Record<string, Subclass> = {
       {
         level: 1,
         name: 'War Priest',
-        description: 'When you use the Attack action, you can make one weapon attack as a bonus action. You can use this feature a number of times equal to your Wisdom modifier (minimum of once).'
+        description: 'When you use the Attack action, you can make one weapon attack as a bonus action. You can use this feature a number of times equal to your Wisdom modifier (minimum of once).',
+        rulesKey: 'war_priest'
       },
       {
         level: 2,
         name: 'Channel Divinity: Guided Strike',
-        description: 'You can use your Channel Divinity to strike with supernatural accuracy. When you make an attack roll, you can use your Channel Divinity to gain a +10 bonus to the roll.'
+        description: 'You can use your Channel Divinity to strike with supernatural accuracy. When you make an attack roll, you can use your Channel Divinity to gain a +10 bonus to the roll.',
+        rulesKey: 'guided_strike'
       },
       {
         level: 6,
@@ -643,7 +664,8 @@ export const subclasses: Record<string, Subclass> = {
       {
         level: 8,
         name: 'Divine Strike',
-        description: 'You gain the ability to infuse your weapon strikes with divine energy. Once on each of your turns when you hit a creature with a weapon attack, you can cause the attack to deal an extra 1d8 damage of the same type dealt by the weapon.'
+        description: 'You gain the ability to infuse your weapon strikes with divine energy. Once on each of your turns when you hit a creature with a weapon attack, you can cause the attack to deal an extra 1d8 damage of the same type dealt by the weapon.',
+        rulesKey: 'divine_strike_war'
       },
       {
         level: 17,
@@ -795,12 +817,14 @@ export const subclasses: Record<string, Subclass> = {
       {
         level: 1,
         name: 'Wrath of the Storm',
-        description: 'When a creature within 5 feet of you that you can see hits you with an attack, you can use your reaction to cause the creature to make a Dexterity saving throw.'
+        description: 'When a creature within 5 feet of you that you can see hits you with an attack, you can use your reaction to cause the creature to make a Dexterity saving throw.',
+        rulesKey: 'wrath_of_the_storm'
       },
       {
         level: 2,
         name: 'Channel Divinity: Destructive Wrath',
-        description: 'You can use your Channel Divinity to wield the power of the storm with unchecked ferocity. When you roll lightning or thunder damage, you can use your Channel Divinity to deal maximum damage, instead of rolling.'
+        description: 'You can use your Channel Divinity to wield the power of the storm with unchecked ferocity. When you roll lightning or thunder damage, you can use your Channel Divinity to deal maximum damage, instead of rolling.',
+        rulesKey: 'destructive_wrath'
       },
       {
         level: 6,
@@ -868,7 +892,8 @@ export const subclasses: Record<string, Subclass> = {
       {
         level: 3,
         name: 'Frenzy',
-        description: 'When you choose to rage, you can go into a frenzy. If you do so, for the duration of your rage you can make a single melee weapon attack as a bonus action on each of your turns after this one.'
+        description: 'When you choose to rage, you can go into a frenzy. If you do so, for the duration of your rage you can make a single melee weapon attack as a bonus action on each of your turns after this one.',
+        rulesKey: 'frenzy'
       },
       {
         level: 6,
@@ -883,7 +908,8 @@ export const subclasses: Record<string, Subclass> = {
       {
         level: 14,
         name: 'Retaliation',
-        description: 'When you take damage from a creature that is within 5 feet of you, you can use your reaction to make a melee weapon attack against that creature.'
+        description: 'When you take damage from a creature that is within 5 feet of you, you can use your reaction to make a melee weapon attack against that creature.',
+        rulesKey: 'retaliation'
       }
     ]
   },
@@ -901,7 +927,8 @@ export const subclasses: Record<string, Subclass> = {
       {
         level: 3,
         name: 'Totem Spirit',
-        description: 'Choose a totem spirit and gain its feature. You must make or acquire a physical totem object that incorporates fur, feathers, claws, teeth, or bones of the totem animal.'
+        description: 'Choose a totem spirit and gain its feature. You must make or acquire a physical totem object that incorporates fur, feathers, claws, teeth, or bones of the totem animal.',
+        rulesKey: 'totem_spirit'
       },
       {
         level: 6,
@@ -964,7 +991,8 @@ export const subclasses: Record<string, Subclass> = {
       {
         level: 3,
         name: 'Combat Inspiration',
-        description: 'A creature that has a Bardic Inspiration die from you can roll that die and add the number rolled to a weapon damage roll it just made.'
+        description: 'A creature that has a Bardic Inspiration die from you can roll that die and add the number rolled to a weapon damage roll it just made.',
+        rulesKey: 'combat_inspiration'
       },
       {
         level: 6,
@@ -995,7 +1023,8 @@ export const subclasses: Record<string, Subclass> = {
       {
         level: 3,
         name: 'Channel Divinity: Sacred Weapon',
-        description: 'You can use your Channel Divinity to imbue one weapon that you are holding with positive energy.'
+        description: 'You can use your Channel Divinity to imbue one weapon that you are holding with positive energy.',
+        rulesKey: 'sacred_weapon'
       },
       {
         level: 3,
@@ -1043,7 +1072,8 @@ export const subclasses: Record<string, Subclass> = {
       {
         level: 7,
         name: 'Aura of Warding',
-        description: 'You and friendly creatures within 10 feet of you have resistance to damage from spells.'
+        description: 'You and friendly creatures within 10 feet of you have resistance to damage from spells.',
+        rulesKey: 'aura_of_warding'
       },
       {
         level: 15,
@@ -1076,7 +1106,8 @@ export const subclasses: Record<string, Subclass> = {
       {
         level: 3,
         name: 'Channel Divinity: Vow of Enmity',
-        description: 'You can use your Channel Divinity to utter a vow of enmity against a creature you can see within 10 feet of you.'
+        description: 'You can use your Channel Divinity to utter a vow of enmity against a creature you can see within 10 feet of you.',
+        rulesKey: 'vow_of_enmity'
       },
       {
         level: 7,
@@ -1106,7 +1137,8 @@ export const subclasses: Record<string, Subclass> = {
       {
         level: 3,
         name: 'Hunter\'s Prey',
-        description: 'Choose one of the following features: Colossus Slayer, Giant Killer, or Horde Breaker.'
+        description: 'Choose one of the following features: Colossus Slayer, Giant Killer, or Horde Breaker.',
+        rulesKey: 'hunters_prey'
       },
       {
         level: 7,
@@ -1116,7 +1148,8 @@ export const subclasses: Record<string, Subclass> = {
       {
         level: 11,
         name: 'Multiattack',
-        description: 'Choose one of the following features: Volley or Whirlwind Attack.'
+        description: 'Choose one of the following features: Volley or Whirlwind Attack.',
+        rulesKey: 'ranger_multiattack'
       },
       {
         level: 15,
@@ -1174,7 +1207,8 @@ export const subclasses: Record<string, Subclass> = {
       {
         level: 6,
         name: 'Elemental Affinity',
-        description: 'When you cast a spell that deals damage of the type associated with your draconic ancestry, you can add your Charisma modifier to one damage roll of that spell.'
+        description: 'When you cast a spell that deals damage of the type associated with your draconic ancestry, you can add your Charisma modifier to one damage roll of that spell.',
+        rulesKey: 'elemental_affinity'
       },
       {
         level: 14,
@@ -1202,7 +1236,8 @@ export const subclasses: Record<string, Subclass> = {
       {
         level: 1,
         name: 'Tides of Chaos',
-        description: 'You can manipulate the forces of chance and chaos to gain advantage on one attack roll, ability check, or saving throw. Once you do so, you must finish a long rest before you can use this feature again.'
+        description: 'You can manipulate the forces of chance and chaos to gain advantage on one attack roll, ability check, or saving throw. Once you do so, you must finish a long rest before you can use this feature again.',
+        rulesKey: 'tides_of_chaos'
       },
       {
         level: 6,
@@ -1237,7 +1272,8 @@ export const subclasses: Record<string, Subclass> = {
       {
         level: 1,
         name: 'Dark One\'s Blessing',
-        description: 'When you reduce a hostile creature to 0 hit points, you gain temporary hit points equal to your Charisma modifier + your warlock level (minimum of 1).'
+        description: 'When you reduce a hostile creature to 0 hit points, you gain temporary hit points equal to your Charisma modifier + your warlock level (minimum of 1).',
+        rulesKey: 'dark_ones_blessing'
       },
       {
         level: 6,
@@ -1788,7 +1824,8 @@ export const subclasses: Record<string, Subclass> = {
       {
         level: 3,
         name: 'Skirmisher',
-        description: 'You can move up to half your speed as a reaction when an enemy ends its turn within 5 feet of you.'
+        description: 'You can move up to half your speed as a reaction when an enemy ends its turn within 5 feet of you.',
+        rulesKey: 'skirmisher'
       },
       {
         level: 3,
@@ -1803,12 +1840,14 @@ export const subclasses: Record<string, Subclass> = {
       {
         level: 13,
         name: 'Ambush Master',
-        description: 'You excel at leading ambushes and acting first in a fight.'
+        description: 'You excel at leading ambushes and acting first in a fight.',
+        rulesKey: 'ambush_master'
       },
       {
         level: 17,
         name: 'Sudden Strike',
-        description: 'You can strike with deadly speed. If you take the Attack action on your turn, you can make one additional attack as a bonus action.'
+        description: 'You can strike with deadly speed. If you take the Attack action on your turn, you can make one additional attack as a bonus action.',
+        rulesKey: 'sudden_strike'
       }
     ]
   },
@@ -1828,7 +1867,8 @@ export const subclasses: Record<string, Subclass> = {
       {
         level: 3,
         name: 'Rakish Audacity',
-        description: 'Your confidence propels you into battle. You can give yourself a bonus to your initiative rolls equal to your Charisma modifier.'
+        description: 'Your confidence propels you into battle. You can give yourself a bonus to your initiative rolls equal to your Charisma modifier.',
+        rulesKey: 'rakish_audacity'
       },
       {
         level: 9,
@@ -1843,7 +1883,8 @@ export const subclasses: Record<string, Subclass> = {
       {
         level: 17,
         name: 'Master Duelist',
-        description: 'Your mastery of the blade lets you turn failure into success in combat.'
+        description: 'Your mastery of the blade lets you turn failure into success in combat.',
+        rulesKey: 'master_duelist'
       }
     ]
   },
@@ -2084,7 +2125,8 @@ export const subclasses: Record<string, Subclass> = {
       {
         level: 3,
         name: 'Rallying Cry',
-        description: 'When you use your Second Wind feature, you can choose up to three creatures within 60 feet of you that are allied with you.'
+        description: 'When you use your Second Wind feature, you can choose up to three creatures within 60 feet of you that are allied with you.',
+        rulesKey: 'rallying_cry'
       },
       {
         level: 7,
@@ -2094,7 +2136,8 @@ export const subclasses: Record<string, Subclass> = {
       {
         level: 10,
         name: 'Inspiring Surge',
-        description: 'When you use your Action Surge feature, you can choose one creature within 60 feet of you that is allied with you.'
+        description: 'When you use your Action Surge feature, you can choose one creature within 60 feet of you that is allied with you.',
+        rulesKey: 'inspiring_surge'
       },
       {
         level: 15,

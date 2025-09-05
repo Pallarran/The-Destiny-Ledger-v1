@@ -215,8 +215,8 @@ describe('Golden Tests - Canonical Builds', () => {
     const build = createTestBuild('L5 GWM Champion', canonical)
     const dpr = calculateBuildDPR(build, 16)
     
-    // Expected DPR: ~6.0 (current implementation - will calibrate as GWM modifier is integrated)
-    expect(dpr).toBeCloseTo(6.0, 1)
+    // Expected DPR: ~12.0 (with Champion Improved Critical feature now implemented)
+    expect(dpr).toBeCloseTo(12.0, 1)
   })
 
   it('Level 5 Battlemaster Fighter (Superiority Dice)', () => {
@@ -273,8 +273,8 @@ describe('Golden Tests - Canonical Builds', () => {
     const build = createTestBuild('L5 Battlemaster', canonical)
     const dpr = calculateBuildDPR(build, 16)
     
-    // Expected DPR: ~12.0 (current implementation - will calibrate as superiority dice are implemented)
-    expect(dpr).toBeCloseTo(12.0, 1)
+    // Expected DPR: ~17.4 (with Battle Master Combat Superiority dice now implemented)
+    expect(dpr).toBeCloseTo(17.4, 1)
   })
 
   it('Level 5 Hexblade Warlock (EB + Agonizing + Hex)', () => {

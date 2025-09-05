@@ -377,6 +377,512 @@ export function classFeatureToModifiers(featureId: string, level?: number): Modi
         value: sneakDice * 3.5 // Average of d6
       } as DamageModifier)
       break
+      
+    // === FIGHTER SUBCLASS FEATURES ===
+    case 'improved_critical':
+      modifiers.push({
+        id: 'improved_critical_range',
+        name: 'Improved Critical',
+        description: 'Critical hits on 19-20',
+        source: 'Champion',
+        type: 'critRange',
+        condition: 'always',
+        value: 1 // Expands crit range by 1 (19-20 instead of 20)
+      } as CritRangeModifier)
+      break
+      
+    case 'superior_critical':
+      modifiers.push({
+        id: 'superior_critical_range',
+        name: 'Superior Critical',
+        description: 'Critical hits on 18-20',
+        source: 'Champion',
+        type: 'critRange',
+        condition: 'always',
+        value: 2 // Expands crit range by 2 (18-20 instead of 20)
+      } as CritRangeModifier)
+      break
+      
+    case 'combat_superiority':
+      // Battle Master superiority dice add average damage
+      modifiers.push({
+        id: 'superiority_dice_damage',
+        name: 'Combat Superiority',
+        description: 'Maneuver damage with superiority dice',
+        source: 'Battle Master',
+        type: 'damage',
+        condition: 'always',
+        value: 4.5, // Average of d8 superiority die
+        uses: { max: 4, recharge: 'shortRest' }
+      } as DamageModifier)
+      break
+      
+    case 'improved_combat_superiority':
+      // Battle Master superiority dice upgrade to d10s
+      modifiers.push({
+        id: 'improved_superiority_dice_damage',
+        name: 'Improved Combat Superiority',
+        description: 'Maneuver damage with improved superiority dice',
+        source: 'Battle Master',
+        type: 'damage',
+        condition: 'always',
+        value: 5.5, // Average of d10 superiority die
+        uses: { max: level && level >= 18 ? 6 : 5, recharge: 'shortRest' }
+      } as DamageModifier)
+      break
+      
+    case 'war_magic':
+      modifiers.push({
+        id: 'war_magic_bonus_attack',
+        name: 'War Magic',
+        description: 'Bonus action weapon attack after cantrip',
+        source: 'Eldritch Knight',
+        type: 'bonusAction',
+        condition: 'always',
+        provides: 'weapon_attack'
+      } as ActionEconomyModifier)
+      break
+      
+    case 'improved_war_magic':
+      modifiers.push({
+        id: 'improved_war_magic_bonus_attack',
+        name: 'Improved War Magic',
+        description: 'Bonus action weapon attack after spell',
+        source: 'Eldritch Knight',
+        type: 'bonusAction',
+        condition: 'always',
+        provides: 'weapon_attack'
+      } as ActionEconomyModifier)
+      break
+      
+    // === ROGUE SUBCLASS FEATURES ===
+    case 'thiefs_reflexes':
+      modifiers.push({
+        id: 'thiefs_reflexes_extra_turn',
+        name: 'Thief\'s Reflexes',
+        description: 'Two turns on first round',
+        source: 'Thief',
+        type: 'extraAttack',
+        condition: 'first_attack_of_turn',
+        value: 1 // Effectively doubles attacks on first round
+      } as ExtraAttackModifier)
+      break
+      
+    case 'assassinate':
+      modifiers.push({
+        id: 'assassinate_advantage',
+        name: 'Assassinate',
+        description: 'Advantage vs creatures that haven\'t acted',
+        source: 'Assassin',
+        type: 'advantage',
+        condition: 'first_attack_of_turn' // Simplified - in real combat, track initiative
+      } as AdvantageModifier)
+      
+      modifiers.push({
+        id: 'assassinate_autocrit',
+        name: 'Assassinate Auto-Crit',
+        description: 'Auto-crit on surprised targets',
+        source: 'Assassin',
+        type: 'onHit',
+        condition: 'first_attack_of_turn', // Simplified condition
+        effect: { damage: 0 } // Handled specially as guaranteed crit
+      } as TriggerModifier)
+      break
+      
+    case 'death_strike':
+      modifiers.push({
+        id: 'death_strike_damage',
+        name: 'Death Strike',
+        description: 'Double damage on surprised targets',
+        source: 'Assassin',
+        type: 'onHit',
+        condition: 'first_attack_of_turn', // Simplified condition
+        effect: { damage: 0 } // Handled specially - doubles total damage
+      } as TriggerModifier)
+      break
+      
+    // === WIZARD SUBCLASS FEATURES ===
+    case 'potent_cantrip':
+      modifiers.push({
+        id: 'potent_cantrip_damage',
+        name: 'Potent Cantrip',
+        description: 'Half damage on save vs cantrips',
+        source: 'Evocation Wizard',
+        type: 'passive',
+        condition: 'always',
+        value: 0 // Handled specially in spell damage calculation
+      } as PassiveModifier)
+      break
+      
+    case 'empowered_evocation':
+      modifiers.push({
+        id: 'empowered_evocation_damage',
+        name: 'Empowered Evocation',
+        description: 'Add INT modifier to evocation spell damage',
+        source: 'Evocation Wizard',
+        type: 'damage',
+        condition: 'always',
+        value: Math.floor(((level || 10) >= 20 ? 20 : 16 - 10) / 2) // Simplified INT mod based on level
+      } as DamageModifier)
+      break
+      
+    case 'overchannel':
+      modifiers.push({
+        id: 'overchannel_damage',
+        name: 'Overchannel',
+        description: 'Maximum damage on spells',
+        source: 'Evocation Wizard',
+        type: 'passive',
+        condition: 'always',
+        uses: { max: 1, recharge: 'longRest' }
+      } as PassiveModifier)
+      break
+      
+    case 'portent':
+      modifiers.push({
+        id: 'portent_advantage',
+        name: 'Portent',
+        description: 'Replace rolls with portent dice',
+        source: 'Divination Wizard',
+        type: 'passive',
+        condition: 'always',
+        uses: { max: level && level >= 14 ? 3 : 2, recharge: 'longRest' }
+      } as PassiveModifier)
+      break
+      
+    // === BARBARIAN SUBCLASS FEATURES ===
+    case 'frenzy':
+      modifiers.push({
+        id: 'frenzy_bonus_attack',
+        name: 'Frenzy',
+        description: 'Bonus action attack while raging',
+        source: 'Berserker',
+        type: 'bonusAction',
+        condition: 'melee_weapon',
+        provides: 'frenzy_attack'
+      } as ActionEconomyModifier)
+      break
+      
+    case 'retaliation':
+      modifiers.push({
+        id: 'retaliation_reaction',
+        name: 'Retaliation',
+        description: 'Reaction attack when taking damage',
+        source: 'Berserker',
+        type: 'reaction',
+        condition: 'melee_weapon'
+      } as ActionEconomyModifier)
+      break
+      
+    case 'totem_spirit':
+      // Bear spirit provides resistance, Eagle provides advantage, Wolf provides pack tactics
+      modifiers.push({
+        id: 'totem_spirit_bear',
+        name: 'Totem Spirit (Bear)',
+        description: 'Resistance to all damage except psychic while raging',
+        source: 'Totem Warrior',
+        type: 'passive',
+        condition: 'always'
+      } as PassiveModifier)
+      break
+      
+    // === CLERIC SUBCLASS FEATURES ===
+    case 'divine_strike_life':
+      modifiers.push({
+        id: 'divine_strike_radiant',
+        name: 'Divine Strike (Life)',
+        description: 'Extra 1d8 radiant damage on weapon attacks',
+        source: 'Life Cleric',
+        type: 'damage',
+        condition: 'always',
+        value: 4.5 // Average of 1d8
+      } as DamageModifier)
+      break
+      
+    case 'war_priest':
+      modifiers.push({
+        id: 'war_priest_bonus_attack',
+        name: 'War Priest',
+        description: 'Bonus action weapon attack after Attack action',
+        source: 'War Cleric',
+        type: 'bonusAction',
+        condition: 'always',
+        provides: 'weapon_attack',
+        uses: { max: 3, recharge: 'longRest' } // Simplified WIS modifier
+      } as ActionEconomyModifier)
+      break
+      
+    case 'guided_strike':
+      modifiers.push({
+        id: 'guided_strike_bonus',
+        name: 'Guided Strike',
+        description: '+10 to attack roll using Channel Divinity',
+        source: 'War Cleric',
+        type: 'toHit',
+        condition: 'always',
+        value: 10,
+        uses: { max: 1, recharge: 'shortRest' } // Channel Divinity usage
+      } as ToHitModifier)
+      break
+      
+    // === BARD SUBCLASS FEATURES ===
+    case 'combat_inspiration':
+      modifiers.push({
+        id: 'combat_inspiration_damage',
+        name: 'Combat Inspiration',
+        description: 'Add bardic inspiration die to damage rolls',
+        source: 'Valor Bard',
+        type: 'damage',
+        condition: 'always',
+        value: 3.5, // Average of d6 inspiration die (simplified)
+        uses: { max: 3, recharge: 'shortRest' } // Simplified usage
+      } as DamageModifier)
+      break
+      
+    // === PALADIN SUBCLASS FEATURES ===
+    case 'sacred_weapon':
+      modifiers.push({
+        id: 'sacred_weapon_bonus',
+        name: 'Sacred Weapon',
+        description: 'Weapon glows and adds CHA modifier to attack rolls',
+        source: 'Devotion Paladin',
+        type: 'toHit',
+        condition: 'always',
+        value: 3, // Simplified CHA modifier
+        uses: { max: 1, recharge: 'shortRest' } // Channel Divinity usage
+      } as ToHitModifier)
+      break
+      
+    case 'vow_of_enmity':
+      modifiers.push({
+        id: 'vow_of_enmity_advantage',
+        name: 'Vow of Enmity',
+        description: 'Advantage on attacks against vowed enemy',
+        source: 'Vengeance Paladin',
+        type: 'advantage',
+        condition: 'always',
+        uses: { max: 1, recharge: 'shortRest' } // Channel Divinity usage
+      } as AdvantageModifier)
+      break
+      
+    // === RANGER SUBCLASS FEATURES ===
+    case 'hunters_prey':
+      // Colossus Slayer: extra 1d8 to damaged targets
+      modifiers.push({
+        id: 'colossus_slayer_damage',
+        name: 'Colossus Slayer',
+        description: 'Extra 1d8 damage to damaged targets',
+        source: 'Hunter Ranger',
+        type: 'damage',
+        condition: 'target_below_full_hp',
+        value: 4.5 // Average of 1d8
+      } as DamageModifier)
+      break
+      
+    case 'ranger_multiattack':
+      // Volley: attack multiple targets within 10 feet
+      modifiers.push({
+        id: 'volley_multiattack',
+        name: 'Volley',
+        description: 'Attack multiple targets in range',
+        source: 'Hunter Ranger',
+        type: 'extraAttack',
+        condition: 'ranged_weapon',
+        value: 2 // Simplified - can hit multiple targets
+      } as ExtraAttackModifier)
+      break
+      
+    // === SORCERER SUBCLASS FEATURES ===
+    case 'elemental_affinity':
+      modifiers.push({
+        id: 'elemental_affinity_damage',
+        name: 'Elemental Affinity',
+        description: 'Add CHA modifier to draconic damage type',
+        source: 'Draconic Sorcerer',
+        type: 'damage',
+        condition: 'always',
+        value: 4 // Simplified CHA modifier
+      } as DamageModifier)
+      break
+      
+    case 'tides_of_chaos':
+      modifiers.push({
+        id: 'tides_of_chaos_advantage',
+        name: 'Tides of Chaos',
+        description: 'Advantage on attack rolls, ability checks, or saves',
+        source: 'Wild Magic Sorcerer',
+        type: 'advantage',
+        condition: 'always',
+        uses: { max: 1, recharge: 'longRest' }
+      } as AdvantageModifier)
+      break
+      
+    // === WARLOCK SUBCLASS FEATURES ===
+    case 'dark_ones_blessing':
+      modifiers.push({
+        id: 'dark_ones_blessing_temp_hp',
+        name: 'Dark One\'s Blessing',
+        description: 'Temporary HP when reducing enemy to 0',
+        source: 'Fiend Warlock',
+        type: 'onKill',
+        condition: 'always',
+        effect: { restoreResource: 'temporary_hp' }
+      } as TriggerModifier)
+      break
+      
+    // === ADDITIONAL FIGHTER SUBCLASS FEATURES ===
+    case 'rallying_cry':
+      modifiers.push({
+        id: 'rallying_cry_heal',
+        name: 'Rallying Cry',
+        description: 'Heal allies when using Second Wind',
+        source: 'Purple Dragon Knight',
+        type: 'passive',
+        condition: 'always'
+      } as PassiveModifier)
+      break
+      
+    case 'inspiring_surge':
+      modifiers.push({
+        id: 'inspiring_surge_ally_attack',
+        name: 'Inspiring Surge',
+        description: 'Ally can attack when you Action Surge',
+        source: 'Purple Dragon Knight',
+        type: 'passive',
+        condition: 'always'
+      } as PassiveModifier)
+      break
+      
+    case 'eldritch_strike':
+      modifiers.push({
+        id: 'eldritch_strike_disadvantage',
+        name: 'Eldritch Strike',
+        description: 'Target has disadvantage on next save vs your spells',
+        source: 'Eldritch Knight',
+        type: 'onHit',
+        condition: 'always',
+        effect: { damage: 0 }
+      } as TriggerModifier)
+      break
+      
+    // === ADDITIONAL ROGUE SUBCLASS FEATURES ===
+    case 'skirmisher':
+      modifiers.push({
+        id: 'skirmisher_reaction_move',
+        name: 'Skirmisher',
+        description: 'Move as reaction when enemy moves near',
+        source: 'Scout',
+        type: 'reaction',
+        condition: 'always'
+      } as ActionEconomyModifier)
+      break
+      
+    case 'ambush_master':
+      modifiers.push({
+        id: 'ambush_master_advantage',
+        name: 'Ambush Master',
+        description: 'Advantage on initiative and Stealth checks',
+        source: 'Scout',
+        type: 'advantage',
+        condition: 'first_attack_of_turn'
+      } as AdvantageModifier)
+      break
+      
+    case 'sudden_strike':
+      modifiers.push({
+        id: 'sudden_strike_extra_attack',
+        name: 'Sudden Strike',
+        description: 'Extra attack as bonus action',
+        source: 'Scout',
+        type: 'bonusAction',
+        condition: 'always',
+        provides: 'weapon_attack'
+      } as ActionEconomyModifier)
+      break
+      
+    case 'rakish_audacity':
+      modifiers.push({
+        id: 'rakish_audacity_initiative',
+        name: 'Rakish Audacity',
+        description: 'Add CHA modifier to initiative',
+        source: 'Swashbuckler',
+        type: 'passive',
+        condition: 'always',
+        value: 3 // Simplified CHA modifier
+      } as PassiveModifier)
+      break
+      
+    case 'master_duelist':
+      modifiers.push({
+        id: 'master_duelist_reroll',
+        name: 'Master Duelist',
+        description: 'Turn missed attack into hit',
+        source: 'Swashbuckler',
+        type: 'passive',
+        condition: 'always',
+        uses: { max: 1, recharge: 'longRest' }
+      } as PassiveModifier)
+      break
+      
+    // === ADDITIONAL WIZARD SUBCLASS FEATURES ===
+    case 'hypnotic_gaze':
+      modifiers.push({
+        id: 'hypnotic_gaze_charm',
+        name: 'Hypnotic Gaze',
+        description: 'Charm humanoid within 5 feet',
+        source: 'Enchantment Wizard',
+        type: 'passive',
+        condition: 'always'
+      } as PassiveModifier)
+      break
+      
+    case 'grim_harvest':
+      modifiers.push({
+        id: 'grim_harvest_heal',
+        name: 'Grim Harvest',
+        description: 'Regain HP when killing with spells',
+        source: 'Necromancy Wizard',
+        type: 'onKill',
+        condition: 'always',
+        effect: { restoreResource: 'hit_points' }
+      } as TriggerModifier)
+      break
+      
+    // === ADDITIONAL CLERIC SUBCLASS FEATURES ===
+    case 'divine_strike_war':
+      modifiers.push({
+        id: 'divine_strike_weapon',
+        name: 'Divine Strike (War)',
+        description: 'Extra 1d8 weapon damage',
+        source: 'War Cleric',
+        type: 'damage',
+        condition: 'always',
+        value: 4.5 // Average of 1d8
+      } as DamageModifier)
+      break
+      
+    case 'wrath_of_the_storm':
+      modifiers.push({
+        id: 'wrath_of_the_storm_reaction',
+        name: 'Wrath of the Storm',
+        description: 'Reaction damage when hit in melee',
+        source: 'Tempest Cleric',
+        type: 'reaction',
+        condition: 'always'
+      } as ActionEconomyModifier)
+      break
+      
+    case 'destructive_wrath':
+      modifiers.push({
+        id: 'destructive_wrath_max_damage',
+        name: 'Destructive Wrath',
+        description: 'Maximum lightning/thunder damage',
+        source: 'Tempest Cleric',
+        type: 'passive',
+        condition: 'always',
+        uses: { max: 1, recharge: 'shortRest' }
+      } as PassiveModifier)
+      break
   }
   
   return modifiers
