@@ -11,7 +11,6 @@ import { PowerAttackGuidance } from '../components/dpr/PowerAttackGuidance'
 import { HeroMetrics } from '../components/dpr/HeroMetrics'
 import { SmartInsights } from '../components/dpr/SmartInsights'
 import { TacticalAdvice } from '../components/dpr/TacticalAdvice'
-import { RoundScriptsPanel } from '../components/dpr/RoundScriptsPanel'
 import { 
   Loader2,
   RefreshCw,
@@ -446,7 +445,7 @@ export function DprLab() {
         
         {selectedBuild && (
           <Tabs defaultValue="overview" className="w-full">
-            <TabsList className="grid w-full grid-cols-5 h-auto">
+            <TabsList className="grid w-full grid-cols-4 h-auto">
               <TabsTrigger value="overview" className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground text-sm px-3 py-2">
                 <span className="hidden sm:inline">Overview</span>
                 <span className="sm:hidden">Info</span>
@@ -454,10 +453,6 @@ export function DprLab() {
               <TabsTrigger value="analysis" className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground text-sm px-3 py-2">
                 <span className="hidden sm:inline">Analysis</span>
                 <span className="sm:hidden">Chart</span>
-              </TabsTrigger>
-              <TabsTrigger value="round-scripts" className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground text-sm px-3 py-2">
-                <span className="hidden sm:inline">Round Scripts</span>
-                <span className="sm:hidden">Scripts</span>
               </TabsTrigger>
               <TabsTrigger value="combat-optimizer" className="data-[state=active]:bg-accent data-[state=active]:text-accent-foreground text-sm px-3 py-2">
                 <span className="hidden sm:inline">Optimizer</span>
@@ -673,9 +668,6 @@ export function DprLab() {
               </div>
             </TabsContent>
 
-            <TabsContent value="round-scripts" className="mt-6">
-              <RoundScriptsPanel build={selectedBuild} />
-            </TabsContent>
 
             <TabsContent value="combat-optimizer" className="mt-6">
               <CombatRoundOptimizer />
