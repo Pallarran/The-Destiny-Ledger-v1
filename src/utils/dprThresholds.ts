@@ -1,4 +1,6 @@
-// Unified DPR thresholds for consistent assessment across components
+// Treantmonk's baseline damage system for D&D 5e optimization
+export type DPRRating = 'needs-work' | 'poor' | 'good' | 'very-good' | 'excellent'
+
 export interface DPRThresholds {
   excellent: number
   good: number
@@ -7,73 +9,59 @@ export interface DPRThresholds {
 }
 
 /**
+ * Get Treantmonk's baseline damage for a given level
+ * These baselines already factor in hit chance and crit chance
+ */
+export function getTreantmonkBaseline(level: number): number {
+  if (level === 1) return 5.85
+  if (level >= 2 && level <= 3) return 7.65
+  if (level === 4) return 8.25
+  if (level >= 5 && level <= 7) return 16.5
+  if (level >= 8 && level <= 10) return 17.7
+  if (level >= 11 && level <= 12) return 26.55
+  if (level >= 13 && level <= 16) return 26.55
+  if (level >= 17 && level <= 20) return 35.4
+  
+  // Fallback for invalid levels
+  return 5.85
+}
+
+/**
  * Get level-adjusted DPR thresholds for build assessment
- * Based on D&D 5e tier expectations:
- * - Tier 1 (1-4): Basic threats, ~3-5 DPR per attack expected
- * - Tier 2 (5-10): Regional threats, ~5-8 DPR per attack expected  
- * - Tier 3 (11-16): World threats, ~8-12 DPR per attack expected
- * - Tier 4 (17-20): Cosmic threats, ~12-15 DPR per attack expected
+ * Using Treantmonk's baseline system
  */
 export function getLevelAdjustedDPRThresholds(level: number): DPRThresholds {
-  if (level <= 4) {
-    // Tier 1: Local Heroes
-    return { 
-      excellent: 15,  // Outstanding for tier
-      good: 10,       // Above average
-      average: 7,     // Expected baseline
-      low: 5          // Below expected
-    }
-  } else if (level <= 10) {
-    // Tier 2: Heroes of the Realm  
-    return { 
-      excellent: 25,  // Outstanding for tier
-      good: 18,       // Above average
-      average: 12,    // Expected baseline
-      low: 10         // Below expected
-    }
-  } else if (level <= 16) {
-    // Tier 3: Masters of the Realm
-    return { 
-      excellent: 35,  // Outstanding for tier
-      good: 25,       // Above average
-      average: 18,    // Expected baseline
-      low: 15         // Below expected
-    }
-  } else {
-    // Tier 4: Masters of the World
-    return { 
-      excellent: 45,  // Outstanding for tier
-      good: 32,       // Above average
-      average: 25,    // Expected baseline
-      low: 20         // Below expected
-    }
+  const baseline = getTreantmonkBaseline(level)
+  
+  return {
+    excellent: baseline * 2,      // Excellent: 200% of baseline
+    good: baseline * 1.5,         // Very Good: 150% of baseline
+    average: baseline,            // Good: 100% of baseline
+    low: baseline * 0.5          // Needs work: 50% of baseline
   }
 }
 
 /**
- * Get a build rating based on DPR and hit chance
+ * Get a build rating based on DPR using Treantmonk's system
+ * DPR should already factor in hit chance (expected DPR)
  */
 export function getBuildRating(
   avgDPR: number, 
-  hitChance: number, 
+  _hitChance: number, 
   level: number
-): 'excellent' | 'good' | 'average' | 'needs-work' {
-  const thresholds = getLevelAdjustedDPRThresholds(level)
+): DPRRating {
+  const baseline = getTreantmonkBaseline(level)
+  const percentage = (avgDPR / baseline) * 100
   
-  // Excellent: High DPR and good accuracy
-  if (avgDPR >= thresholds.excellent && hitChance > 0.65) {
+  if (percentage >= 200) {
     return 'excellent'
-  }
-  // Good: Good DPR and decent accuracy
-  else if (avgDPR >= thresholds.good && hitChance > 0.55) {
+  } else if (percentage >= 150) {
+    return 'very-good'
+  } else if (percentage >= 100) {
     return 'good'
-  }
-  // Average: Average DPR or decent DPR with poor accuracy
-  else if (avgDPR >= thresholds.average && hitChance > 0.45) {
-    return 'average'
-  }
-  // Needs work: Low DPR or very poor accuracy
-  else {
+  } else if (percentage > 50) {
+    return 'poor'
+  } else {
     return 'needs-work'
   }
 }
@@ -82,17 +70,18 @@ export function getBuildRating(
  * Get descriptive text for a DPR value at a given level
  */
 export function describeDPR(avgDPR: number, level: number): string {
-  const thresholds = getLevelAdjustedDPRThresholds(level)
+  const baseline = getTreantmonkBaseline(level)
+  const percentage = (avgDPR / baseline) * 100
   
-  if (avgDPR >= thresholds.excellent) {
-    return `Excellent damage output for level ${level}`
-  } else if (avgDPR >= thresholds.good) {
-    return `Good damage output for level ${level}`
-  } else if (avgDPR >= thresholds.average) {
-    return `Average damage output for level ${level}`
-  } else if (avgDPR >= thresholds.low) {
-    return `Below average damage for level ${level}`
+  if (percentage >= 200) {
+    return `Excellent damage output (${percentage.toFixed(0)}% of baseline)`
+  } else if (percentage >= 150) {
+    return `Very good damage output (${percentage.toFixed(0)}% of baseline)`
+  } else if (percentage >= 100) {
+    return `Good damage output (${percentage.toFixed(0)}% of baseline)`
+  } else if (percentage > 50) {
+    return `Poor damage output (${percentage.toFixed(0)}% of baseline)`
   } else {
-    return `Low damage output for level ${level}`
+    return `Needs work (${percentage.toFixed(0)}% of baseline)`
   }
 }

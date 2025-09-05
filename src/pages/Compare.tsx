@@ -514,8 +514,9 @@ export function Compare() {
                                 variant="outline" 
                                 className={`capitalize ${
                                   buildRating === 'excellent' ? 'bg-green-500/10 text-green-600 border-green-500/20' :
-                                  buildRating === 'good' ? 'bg-blue-500/10 text-blue-600 border-blue-500/20' :
-                                  buildRating === 'average' ? 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20' :
+                                  buildRating === 'very-good' ? 'bg-blue-500/10 text-blue-600 border-blue-500/20' :
+                                  buildRating === 'good' ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' :
+                                  buildRating === 'poor' ? 'bg-orange-500/10 text-orange-600 border-orange-500/20' :
                                   'bg-red-500/10 text-danger border-red-500/20'
                                 }`}
                               >

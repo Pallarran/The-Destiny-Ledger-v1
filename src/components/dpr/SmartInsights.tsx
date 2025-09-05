@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card'
 import { Lightbulb, TrendingUp, AlertTriangle, CheckCircle, Info } from 'lucide-react'
 import { buildToCombatState, getWeaponConfig } from '../../engine/simulator'
 import { calculateBuildDPR } from '../../engine/calculations'
-import { getLevelAdjustedDPRThresholds, describeDPR } from '../../utils/dprThresholds'
+import { getTreantmonkBaseline, describeDPR } from '../../utils/dprThresholds'
 import type { BuildConfiguration, DPRResult } from '../../stores/types'
 import type { SimulationConfig } from '../../engine/types'
 
@@ -51,36 +51,44 @@ function generateInsights(
   // Get character level for scaling baselines
   const characterLevel = Math.max(...(build.levelTimeline?.map(l => l.level) || [1]))
   
-  // Use unified thresholds
-  const thresholds = getLevelAdjustedDPRThresholds(characterLevel)
+  // Use Treantmonk's baseline system
+  const baseline = getTreantmonkBaseline(characterLevel)
+  const percentage = (avgDPR / baseline) * 100
 
-  // Analyze DPR performance with unified baselines
-  if (avgDPR >= thresholds.excellent) {
+  // Analyze DPR performance with Treantmonk's baselines
+  if (percentage >= 200) {
     insights.push({
       type: 'strength',
       title: 'Excellent Damage Output',
-      description: `Your ${avgDPR.toFixed(1)} average DPR is ${describeDPR(avgDPR, characterLevel).toLowerCase()}. You'll consistently contribute significant damage in combat.`,
+      description: `Your ${avgDPR.toFixed(1)} average DPR is ${describeDPR(avgDPR, characterLevel).toLowerCase()}. You're dealing exceptional damage that will dominate encounters.`,
       priority: 'high'
     })
-  } else if (avgDPR >= thresholds.good) {
+  } else if (percentage >= 150) {
+    insights.push({
+      type: 'strength',
+      title: 'Very Good Damage Output',
+      description: `Your ${avgDPR.toFixed(1)} average DPR is ${describeDPR(avgDPR, characterLevel).toLowerCase()}. You're significantly outperforming baseline expectations.`,
+      priority: 'high'
+    })
+  } else if (percentage >= 100) {
     insights.push({
       type: 'strength',
       title: 'Good Damage Output',
-      description: `Your ${avgDPR.toFixed(1)} average DPR is ${describeDPR(avgDPR, characterLevel).toLowerCase()}. You're performing above expectations.`,
+      description: `Your ${avgDPR.toFixed(1)} average DPR is ${describeDPR(avgDPR, characterLevel).toLowerCase()}. You're meeting or exceeding optimization standards.`,
       priority: 'medium'
     })
-  } else if (avgDPR >= thresholds.average) {
-    insights.push({
-      type: 'tip',
-      title: 'Average Damage Output',
-      description: `Your ${avgDPR.toFixed(1)} average DPR is ${describeDPR(avgDPR, characterLevel).toLowerCase()}. There's room for optimization.`,
-      priority: 'low'
-    })
-  } else if (avgDPR < thresholds.low) {
+  } else if (percentage > 50) {
     insights.push({
       type: 'weakness',
-      title: 'Low Damage Output',
-      description: `At ${avgDPR.toFixed(1)} average DPR, your damage is significantly below optimal for level ${characterLevel}. Consider improving your weapon, ability scores, or adding damage-boosting features.`,
+      title: 'Poor Damage Output',
+      description: `At ${avgDPR.toFixed(1)} average DPR, you're ${describeDPR(avgDPR, characterLevel).toLowerCase()}. Consider improving your build to reach the ${baseline.toFixed(1)} DPR baseline.`,
+      priority: 'high'
+    })
+  } else {
+    insights.push({
+      type: 'weakness',
+      title: 'Damage Output Needs Work',
+      description: `At ${avgDPR.toFixed(1)} average DPR, your damage ${describeDPR(avgDPR, characterLevel).toLowerCase()}. Major improvements needed to reach the ${baseline.toFixed(1)} DPR baseline.`,
       priority: 'high'
     })
   }

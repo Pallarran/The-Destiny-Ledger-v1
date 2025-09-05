@@ -1,9 +1,9 @@
 import { Card, CardContent } from '../ui/card'
 import { Badge } from '../ui/badge'
-import { TrendingUp, Target, Zap, Shield, Info } from 'lucide-react'
+import { TrendingUp, Target, Zap, Shield, Info, AlertTriangle } from 'lucide-react'
 import { buildToCombatState, getWeaponConfig } from '../../engine/simulator'
 import { calculateBuildDPR } from '../../engine/calculations'
-import { getBuildRating } from '../../utils/dprThresholds'
+import { getBuildRating, getTreantmonkBaseline, type DPRRating } from '../../utils/dprThresholds'
 import type { BuildConfiguration, DPRResult } from '../../stores/types'
 import type { SimulationConfig } from '../../engine/types'
 
@@ -40,7 +40,12 @@ interface AttackMetrics {
 
 interface HeroMetricsData {
   weaponName: string
-  buildRating: 'excellent' | 'good' | 'average' | 'needs-work'
+  buildRating: DPRRating
+  normalRating: DPRRating
+  powerRating?: DPRRating
+  normalPercentage: number
+  powerPercentage?: number
+  baseline: number
   keyStrength: string
   bestACRange: string
   additionalDamage: Array<{ source: string; dice: string }>
@@ -190,8 +195,20 @@ function calculateHeroMetrics(
 
   // Get character level for scaling baselines
   const characterLevel = Math.max(...(build.levelTimeline?.map(l => l.level) || [1]))
+  const baseline = getTreantmonkBaseline(characterLevel)
   
-  // Build rating based on best available DPR (power attack if better, otherwise normal)
+  // Calculate ratings for both attack types
+  const normalRating = getBuildRating(normalAC15Result.expectedDPR, normalAC15Result.hitChance, characterLevel)
+  const normalPercentage = (normalAC15Result.expectedDPR / baseline) * 100
+  
+  let powerRating: DPRRating | undefined
+  let powerPercentage: number | undefined
+  if (powerAC15Result) {
+    powerRating = getBuildRating(powerAC15Result.expectedDPR, powerAC15Result.hitChance, characterLevel)
+    powerPercentage = (powerAC15Result.expectedDPR / baseline) * 100
+  }
+  
+  // Overall build rating based on best available DPR
   const bestDPR = powerAC15Result && powerAC15Result.expectedDPR > normalAC15Result.expectedDPR 
     ? powerAC15Result.expectedDPR 
     : normalAC15Result.expectedDPR
@@ -210,6 +227,11 @@ function calculateHeroMetrics(
   return {
     weaponName,
     buildRating,
+    normalRating,
+    powerRating,
+    normalPercentage,
+    powerPercentage,
+    baseline,
     keyStrength,
     bestACRange,
     additionalDamage,
@@ -245,22 +267,24 @@ function calculateHeroMetrics(
   }
 }
 
-function getRatingColor(rating: string): string {
+function getRatingColor(rating: DPRRating): string {
   switch (rating) {
     case 'excellent': return 'text-green-600 bg-green-500/10 border-green-500/20'
-    case 'good': return 'text-blue-600 bg-blue-500/10 border-blue-500/20'
-    case 'average': return 'text-yellow-600 bg-yellow-500/10 border-yellow-500/20'
+    case 'very-good': return 'text-blue-600 bg-blue-500/10 border-blue-500/20'
+    case 'good': return 'text-emerald-600 bg-emerald-500/10 border-emerald-500/20'
+    case 'poor': return 'text-orange-600 bg-orange-500/10 border-orange-500/20'
     case 'needs-work': return 'text-red-600 bg-red-500/10 border-red-500/20'
     default: return 'text-gray-600 bg-gray-500/10 border-gray-500/20'
   }
 }
 
 
-function getRatingIcon(rating: string) {
+function getRatingIcon(rating: DPRRating) {
   switch (rating) {
     case 'excellent': return TrendingUp
-    case 'good': return Target
-    case 'average': return Shield
+    case 'very-good': return Target
+    case 'good': return Shield
+    case 'poor': return AlertTriangle
     case 'needs-work': return Zap
     default: return Target
   }
@@ -375,7 +399,13 @@ export function HeroMetrics({ build, result, config }: HeroMetricsProps) {
 
         {/* Normal Attack Section */}
         <div className="space-y-2">
-          <div className="text-xs font-medium text-muted uppercase tracking-wider">Normal Attack</div>
+          <div className="flex items-center justify-between">
+            <div className="text-xs font-medium text-muted uppercase tracking-wider">Normal Attack</div>
+            <div className={`px-2 py-0.5 rounded text-[10px] font-medium flex items-center gap-1 ${getRatingColor(metrics.normalRating)}`}>
+              <span className="capitalize">{metrics.normalRating.replace('-', ' ')}</span>
+              <span className="opacity-75">({metrics.normalPercentage.toFixed(0)}%)</span>
+            </div>
+          </div>
           <div className="bg-muted/5 border border-border/20 rounded-lg p-3">
             <div className="grid grid-cols-3 gap-3 text-sm">
               <div className="text-center">
@@ -415,15 +445,21 @@ export function HeroMetrics({ build, result, config }: HeroMetricsProps) {
         </div>
 
         {/* Power Attack Section - Only show if available */}
-        {metrics.hasPowerAttack && metrics.powerAttack && (
+        {metrics.hasPowerAttack && metrics.powerAttack && metrics.powerRating && (
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <div className="text-xs font-medium text-muted uppercase tracking-wider">Power Attack (-5/+10)</div>
-              {metrics.powerAttackAdvice && (
-                <Badge variant="outline" className="text-[10px] px-1.5 py-0">
-                  {metrics.powerAttackAdvice}
-                </Badge>
-              )}
+              <div className="flex items-center gap-2">
+                <div className="text-xs font-medium text-muted uppercase tracking-wider">Power Attack (-5/+10)</div>
+                {metrics.powerAttackAdvice && (
+                  <Badge variant="outline" className="text-[10px] px-1.5 py-0">
+                    {metrics.powerAttackAdvice}
+                  </Badge>
+                )}
+              </div>
+              <div className={`px-2 py-0.5 rounded text-[10px] font-medium flex items-center gap-1 ${getRatingColor(metrics.powerRating)}`}>
+                <span className="capitalize">{metrics.powerRating.replace('-', ' ')}</span>
+                <span className="opacity-75">({metrics.powerPercentage?.toFixed(0)}%)</span>
+              </div>
             </div>
             <div className="bg-purple/5 border border-purple/20 rounded-lg p-3">
               <div className="grid grid-cols-3 gap-3 text-sm">
@@ -470,14 +506,18 @@ export function HeroMetrics({ build, result, config }: HeroMetricsProps) {
         )}
 
         {/* Summary Stats */}
-        <div className="grid grid-cols-2 gap-3 text-xs">
+        <div className="grid grid-cols-3 gap-2 text-xs">
           <div className="text-center p-2 bg-muted/5 rounded">
-            <div className="text-muted mb-1">Best vs</div>
-            <div className="font-medium">{metrics.bestACRange}</div>
+            <div className="text-muted mb-1">Baseline</div>
+            <div className="font-medium">{metrics.baseline.toFixed(1)}</div>
           </div>
           <div className="text-center p-2 bg-muted/5 rounded">
-            <div className="text-muted mb-1">Key Strength</div>
-            <div className="font-medium">{metrics.keyStrength}</div>
+            <div className="text-muted mb-1">Best vs</div>
+            <div className="font-medium text-[11px]">{metrics.bestACRange}</div>
+          </div>
+          <div className="text-center p-2 bg-muted/5 rounded">
+            <div className="text-muted mb-1">Strength</div>
+            <div className="font-medium text-[11px]">{metrics.keyStrength}</div>
           </div>
         </div>
       </CardContent>
