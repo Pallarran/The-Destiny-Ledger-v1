@@ -1,6 +1,7 @@
+import React from 'react'
 import { Card, CardContent } from '../ui/card'
 import { Badge } from '../ui/badge'
-import { TrendingUp, Target, Zap, Shield, Info, AlertTriangle } from 'lucide-react'
+import { Star, TrendingUp, CheckCircle, AlertCircle, XCircle, Info } from 'lucide-react'
 import { buildToCombatState, getWeaponConfig } from '../../engine/simulator'
 import { calculateBuildDPR } from '../../engine/calculations'
 import { getBuildRating, getTreantmonkBaseline, type DPRRating } from '../../utils/dprThresholds'
@@ -281,12 +282,12 @@ function getRatingColor(rating: DPRRating): string {
 
 function getRatingIcon(rating: DPRRating) {
   switch (rating) {
-    case 'excellent': return TrendingUp
-    case 'very-good': return Target
-    case 'good': return Shield
-    case 'poor': return AlertTriangle
-    case 'needs-work': return Zap
-    default: return Target
+    case 'excellent': return Star
+    case 'very-good': return TrendingUp
+    case 'good': return CheckCircle
+    case 'poor': return AlertCircle
+    case 'needs-work': return XCircle
+    default: return CheckCircle
   }
 }
 
@@ -375,26 +376,13 @@ export function HeroMetrics({ build, result, config }: HeroMetricsProps) {
   }
   
 
-  const RatingIcon = getRatingIcon(metrics.buildRating)
-  const ratingColors = getRatingColor(metrics.buildRating)
-
   return (
     <Card>
       <CardContent className="p-4 space-y-4">
-        {/* Header: Weapon and Build Rating */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-accent"></div>
-            <span className="font-semibold text-foreground">{metrics.weaponName}</span>
-          </div>
-          <div className={`px-3 py-1 rounded-lg border flex items-center gap-2 ${ratingColors}`}>
-            <RatingIcon className="w-4 h-4" />
-            <div>
-              <div className="font-medium capitalize text-xs">
-                {metrics.buildRating.replace('-', ' ')}
-              </div>
-            </div>
-          </div>
+        {/* Header: Weapon Name */}
+        <div className="flex items-center gap-2">
+          <div className="w-2 h-2 rounded-full bg-accent"></div>
+          <span className="font-semibold text-foreground">{metrics.weaponName}</span>
         </div>
 
         {/* Normal Attack Section */}
@@ -402,6 +390,7 @@ export function HeroMetrics({ build, result, config }: HeroMetricsProps) {
           <div className="flex items-center justify-between">
             <div className="text-xs font-medium text-muted uppercase tracking-wider">Normal Attack</div>
             <div className={`px-2 py-0.5 rounded text-[10px] font-medium flex items-center gap-1 ${getRatingColor(metrics.normalRating)}`}>
+              {React.createElement(getRatingIcon(metrics.normalRating), { className: "w-3 h-3" })}
               <span className="capitalize">{metrics.normalRating.replace('-', ' ')}</span>
               <span className="opacity-75">({metrics.normalPercentage.toFixed(0)}%)</span>
             </div>
@@ -457,6 +446,7 @@ export function HeroMetrics({ build, result, config }: HeroMetricsProps) {
                 )}
               </div>
               <div className={`px-2 py-0.5 rounded text-[10px] font-medium flex items-center gap-1 ${getRatingColor(metrics.powerRating)}`}>
+                {React.createElement(getRatingIcon(metrics.powerRating), { className: "w-3 h-3" })}
                 <span className="capitalize">{metrics.powerRating.replace('-', ' ')}</span>
                 <span className="opacity-75">({metrics.powerPercentage?.toFixed(0)}%)</span>
               </div>
