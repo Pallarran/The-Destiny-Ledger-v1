@@ -975,18 +975,19 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
         }
       }
       
-      previousSpells = [...previousSpells, ...racialSpells]
-      
-      // Calculate how many new spells can be learned this level
+      // Calculate how many new spells can be learned this level (BEFORE adding racial spells)
       // Use actual spell data to check if a spell is a cantrip
-      const previousCantrips = previousSpells.filter((spellId: string) => {
+      const previousClassCantrips = previousSpells.filter((spellId: string) => {
         const spell = Object.values(allSpells).find(s => s.id === spellId)
         return spell?.level === 0
       })
-      const previousLeveledSpells = previousSpells.filter((spellId: string) => !previousCantrips.includes(spellId))
+      const previousLeveledSpells = previousSpells.filter((spellId: string) => !previousClassCantrips.includes(spellId))
       
-      const newCantripsToLearn = Math.max(0, spellProgression.cantripsKnown - previousCantrips.length)
+      const newCantripsToLearn = Math.max(0, spellProgression.cantripsKnown - previousClassCantrips.length)
       const newSpellsToLearn = Math.max(0, spellProgression.spellsKnown - previousLeveledSpells.length)
+      
+      // Add racial spells to previousSpells for display purposes in spell selection (after calculation)
+      previousSpells = [...previousSpells, ...racialSpells]
       
       sections.push({
         id: 'third_caster_spells',
