@@ -9,6 +9,8 @@ import { useVaultStore } from '../stores/vaultStore'
 import { buildToCombatState, getWeaponConfig } from '../engine/simulator'
 import { calculateBuildDPR } from '../engine/calculations'
 import { getBuildRating } from '../utils/dprThresholds'
+import { getAllSpells } from '../rules/loaders'
+import { skills } from '../rules/srd/skills'
 import type { BuildConfiguration } from '../stores/types'
 import type { SimulationConfig } from '../engine/types'
 import { Plus, X, TrendingUp, TrendingDown, Download, Eye, EyeOff, Minus } from 'lucide-react'
@@ -38,20 +40,320 @@ const COMPARISON_COLORS = [
   '#EA580C', // Orange
 ]
 
-// Calculate role scores for a build
+// === CAPABILITY ANALYSIS FUNCTIONS ===
+
+// Analyze spell contributions to role capabilities
+const analyzeSpellCapabilities = (build: BuildConfiguration) => {
+  const spells = getAllSpells()
+  const capabilities = {
+    social: 0,
+    defense: 0,
+    mobility: 0,
+    support: 0,
+    exploration: 0,
+    control: 0
+  }
+
+  // Get level timeline spells and prepared spells
+  const buildSpells = new Set<string>()
+  
+  // From level timeline (known/prepared spells)
+  build.levelTimeline?.forEach(entry => {
+    entry.spells?.forEach(spell => buildSpells.add(spell))
+  })
+
+  // From spell arrays in build
+  build.spells?.forEach(spellId => buildSpells.add(spellId))
+  build.cantrips?.forEach(cantrip => buildSpells.add(cantrip))
+
+  buildSpells.forEach(spellId => {
+    const spell = spells[spellId]
+    if (!spell) return
+
+    const tags = spell.tags || []
+    const spellLevel = spell.level
+    const baseValue = Math.max(1, spellLevel) // Cantrips = 1, higher spells = their level
+
+    // Social capabilities
+    if (tags.includes('charm') || tags.includes('enchantment') || 
+        tags.includes('illusion') || tags.includes('deception') ||
+        spell.name.toLowerCase().includes('charm') ||
+        spell.name.toLowerCase().includes('suggestion') ||
+        spell.name.toLowerCase().includes('friends') ||
+        spell.name.toLowerCase().includes('disguise')) {
+      capabilities.social += baseValue * 2
+    }
+
+    // Support capabilities  
+    if (tags.includes('healing') || tags.includes('buff') || 
+        tags.includes('support') || tags.includes('restoration') ||
+        spell.name.toLowerCase().includes('heal') ||
+        spell.name.toLowerCase().includes('bless') ||
+        spell.name.toLowerCase().includes('aid') ||
+        spell.name.toLowerCase().includes('guidance')) {
+      capabilities.support += baseValue * 2
+    }
+
+    // Control capabilities
+    if (tags.includes('control') || tags.includes('debuff') || 
+        tags.includes('save') || tags.includes('enchantment') ||
+        spell.name.toLowerCase().includes('hold') ||
+        spell.name.toLowerCase().includes('sleep') ||
+        spell.name.toLowerCase().includes('web') ||
+        spell.name.toLowerCase().includes('slow')) {
+      capabilities.control += baseValue * 2
+    }
+
+    // Exploration capabilities
+    if (tags.includes('utility') || tags.includes('divination') || 
+        tags.includes('senses') || tags.includes('detection') ||
+        spell.name.toLowerCase().includes('detect') ||
+        spell.name.toLowerCase().includes('locate') ||
+        spell.name.toLowerCase().includes('identify') ||
+        spell.name.toLowerCase().includes('comprehend')) {
+      capabilities.exploration += baseValue * 2
+    }
+
+    // Defense capabilities
+    if (tags.includes('abjuration') || tags.includes('defense') || 
+        tags.includes('resistance') || tags.includes('protection') ||
+        spell.name.toLowerCase().includes('shield') ||
+        spell.name.toLowerCase().includes('ward') ||
+        spell.name.toLowerCase().includes('protection') ||
+        spell.name.toLowerCase().includes('sanctuary')) {
+      capabilities.defense += baseValue * 2
+    }
+
+    // Mobility capabilities
+    if (tags.includes('movement') || tags.includes('teleport') || 
+        tags.includes('fly') || tags.includes('speed') ||
+        spell.name.toLowerCase().includes('fly') ||
+        spell.name.toLowerCase().includes('dimension') ||
+        spell.name.toLowerCase().includes('misty') ||
+        spell.name.toLowerCase().includes('expeditious')) {
+      capabilities.mobility += baseValue * 2
+    }
+  })
+
+  return capabilities
+}
+
+// Analyze skill contributions to role capabilities  
+const analyzeSkillCapabilities = (build: BuildConfiguration) => {
+  const capabilities = {
+    social: 0,
+    defense: 0,
+    mobility: 0,
+    support: 0,
+    exploration: 0,
+    control: 0
+  }
+
+  const skillProfs = build.skillProficiencies || []
+  const expertise = build.expertise || []
+
+  // Helper function to add skill value
+  const addSkillValue = (skillId: string, category: keyof typeof capabilities) => {
+    if (skillProfs.includes(skillId)) {
+      capabilities[category] += expertise.includes(skillId) ? 6 : 3 // Double for expertise
+    }
+  }
+
+  // Social skills
+  addSkillValue('deception', 'social')
+  addSkillValue('intimidation', 'social') 
+  addSkillValue('persuasion', 'social')
+  addSkillValue('performance', 'social')
+
+  // Exploration skills
+  addSkillValue('investigation', 'exploration')
+  addSkillValue('perception', 'exploration')
+  addSkillValue('survival', 'exploration')
+  addSkillValue('nature', 'exploration')
+  addSkillValue('history', 'exploration')
+  addSkillValue('arcana', 'exploration')
+  addSkillValue('religion', 'exploration')
+
+  // Support skills
+  addSkillValue('medicine', 'support')
+  addSkillValue('insight', 'support')
+  addSkillValue('animalHandling', 'support')
+
+  // Mobility skills
+  addSkillValue('acrobatics', 'mobility')
+  addSkillValue('athletics', 'mobility')
+  addSkillValue('stealth', 'mobility')
+
+  // Control skills (magical knowledge)
+  addSkillValue('arcana', 'control')
+  addSkillValue('religion', 'control')
+
+  return capabilities
+}
+
+// Analyze feat contributions to role capabilities
+const analyzeFeatCapabilities = (build: BuildConfiguration) => {
+  const capabilities = {
+    social: 0,
+    defense: 0,
+    mobility: 0,
+    support: 0,
+    exploration: 0,
+    control: 0
+  }
+
+  const buildFeats = new Set<string>()
+  
+  // From level timeline
+  build.levelTimeline?.forEach(entry => {
+    if (entry.featId) buildFeats.add(entry.featId)
+  })
+  
+  // From downtime training
+  build.downtimeTraining?.trainedFeats?.forEach(feat => buildFeats.add(feat))
+
+  buildFeats.forEach(featId => {
+    switch (featId) {
+      case 'actor':
+      case 'linguist': 
+        capabilities.social += 4
+        break
+      case 'observant':
+        capabilities.exploration += 4
+        capabilities.social += 2
+        break
+      case 'healer':
+      case 'inspiring_leader':
+        capabilities.support += 4
+        break
+      case 'spell_sniper':
+      case 'metamagic_adept':
+      case 'fey_touched':
+      case 'shadow_touched':
+        capabilities.control += 4
+        break
+      case 'mobile':
+      case 'alert':
+        capabilities.mobility += 4
+        break
+      case 'tough':
+      case 'resilient':
+      case 'lucky':
+        capabilities.defense += 4
+        break
+      case 'keen_mind':
+        capabilities.exploration += 4
+        break
+      case 'skill_expert':
+        // Adds expertise, but we'd need to know which skills
+        capabilities.exploration += 2
+        capabilities.social += 2
+        break
+    }
+  })
+
+  return capabilities
+}
+
+// Analyze class/subclass feature contributions to role capabilities
+const analyzeFeatureCapabilities = (build: BuildConfiguration) => {
+  const capabilities = {
+    social: 0,
+    defense: 0,
+    mobility: 0,
+    support: 0,
+    exploration: 0,
+    control: 0
+  }
+
+  const buildFeatures = new Set<string>()
+  
+  // From level timeline
+  build.levelTimeline?.forEach(entry => {
+    entry.features?.forEach(feature => buildFeatures.add(feature))
+  })
+
+  buildFeatures.forEach(featureId => {
+    // Based on common D&D features - this could be expanded with a feature database
+    const featureLower = featureId.toLowerCase()
+    
+    // Social features
+    if (featureLower.includes('charm') || featureLower.includes('persuasion') || 
+        featureLower.includes('deception') || featureLower.includes('intimidation') ||
+        featureLower.includes('bardic_inspiration') || featureLower.includes('expertise')) {
+      capabilities.social += 3
+    }
+
+    // Support features 
+    if (featureLower.includes('heal') || featureLower.includes('cure') || 
+        featureLower.includes('blessing') || featureLower.includes('aid') ||
+        featureLower.includes('bardic_inspiration') || featureLower.includes('guidance')) {
+      capabilities.support += 3
+    }
+
+    // Control features
+    if (featureLower.includes('spell') || featureLower.includes('magic') || 
+        featureLower.includes('invocation') || featureLower.includes('metamagic') ||
+        featureLower.includes('enchant') || featureLower.includes('illusion')) {
+      capabilities.control += 3
+    }
+
+    // Defense features
+    if (featureLower.includes('armor') || featureLower.includes('shield') || 
+        featureLower.includes('resist') || featureLower.includes('ward') ||
+        featureLower.includes('defense') || featureLower.includes('tough')) {
+      capabilities.defense += 3
+    }
+
+    // Mobility features
+    if (featureLower.includes('speed') || featureLower.includes('movement') || 
+        featureLower.includes('dash') || featureLower.includes('climb') ||
+        featureLower.includes('fly') || featureLower.includes('teleport')) {
+      capabilities.mobility += 3
+    }
+
+    // Exploration features
+    if (featureLower.includes('detect') || featureLower.includes('sense') || 
+        featureLower.includes('track') || featureLower.includes('survival') ||
+        featureLower.includes('nature') || featureLower.includes('investigate')) {
+      capabilities.exploration += 3
+    }
+  })
+
+  return capabilities
+}
+
+// Enhanced role score calculation
 const calculateRoleScores = (build: BuildConfiguration) => {
   const abilityScores = build.abilityScores || {}
   
-  // Basic scoring based on ability scores and build characteristics
-  const social = Math.min(100, ((abilityScores.CHA || 10) - 10) * 5 + 20)
-  const defense = Math.min(100, ((abilityScores.CON || 10) - 8) * 4 + (build.armor ? 20 : 0) + (build.shield ? 15 : 0))
-  const mobility = Math.min(100, ((abilityScores.DEX || 10) - 10) * 5 + 20)
-  const support = Math.min(100, ((abilityScores.WIS || 10) - 10) * 3 + ((abilityScores.CHA || 10) - 10) * 2 + 15)
-  const exploration = Math.min(100, ((abilityScores.WIS || 10) - 10) * 3 + ((abilityScores.INT || 10) - 10) * 3 + 20)
-  const control = Math.min(100, ((abilityScores.INT || 10) - 10) * 4 + ((abilityScores.WIS || 10) - 10) * 2 + 20)
+  // Base ability score contributions (reduced weight)
+  const baseScores = {
+    social: Math.max(0, ((abilityScores.CHA || 10) - 10) * 2),
+    defense: Math.max(0, ((abilityScores.CON || 10) - 10) * 2 + (build.armor ? 8 : 0) + (build.shield ? 6 : 0)), 
+    mobility: Math.max(0, ((abilityScores.DEX || 10) - 10) * 2),
+    support: Math.max(0, ((abilityScores.WIS || 10) - 10) * 1.5 + ((abilityScores.CHA || 10) - 10) * 1),
+    exploration: Math.max(0, ((abilityScores.WIS || 10) - 10) * 1.5 + ((abilityScores.INT || 10) - 10) * 1.5),
+    control: Math.max(0, ((abilityScores.INT || 10) - 10) * 2 + ((abilityScores.WIS || 10) - 10) * 1)
+  }
+
+  // Get capability bonuses from all sources
+  const spellCaps = analyzeSpellCapabilities(build)
+  const skillCaps = analyzeSkillCapabilities(build)
+  const featCaps = analyzeFeatCapabilities(build)
+  const featureCaps = analyzeFeatureCapabilities(build)
+
+  // Combine all sources with weights
+  const social = Math.min(100, baseScores.social + spellCaps.social + skillCaps.social + featCaps.social + featureCaps.social + 10)
+  const defense = Math.min(100, baseScores.defense + spellCaps.defense + skillCaps.defense + featCaps.defense + featureCaps.defense + 10)
+  const mobility = Math.min(100, baseScores.mobility + spellCaps.mobility + skillCaps.mobility + featCaps.mobility + featureCaps.mobility + 10)  
+  const support = Math.min(100, baseScores.support + spellCaps.support + skillCaps.support + featCaps.support + featureCaps.support + 10)
+  const exploration = Math.min(100, baseScores.exploration + spellCaps.exploration + skillCaps.exploration + featCaps.exploration + featureCaps.exploration + 10)
+  const control = Math.min(100, baseScores.control + spellCaps.control + skillCaps.control + featCaps.control + featureCaps.control + 10)
 
   return { social, defense, mobility, support, exploration, control }
 }
+
 
 // Calculate accurate DPR using the actual calculation engine
 const calculateDprEstimate = (build: BuildConfiguration, ac: number) => {
