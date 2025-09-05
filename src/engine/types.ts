@@ -34,6 +34,11 @@ export interface CombatState {
   actionSurge: boolean
   sneakAttackDice: number
   superiorityDice?: { count: number; die: number }
+  hasRage: boolean
+  hasMartialArts: boolean
+  critRange?: number // 20 = normal, 19 = improved critical, 18 = superior critical
+  hasAssassinate: boolean
+  hasFrenzy: boolean
   
   // Fighting Styles
   fightingStyles: FightingStyleType[]

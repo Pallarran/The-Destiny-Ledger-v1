@@ -4,6 +4,7 @@ import type { BuildConfiguration, DPRConfiguration, DPRResult } from '../stores/
 import { getClass, getFeat } from '../rules/loaders'
 import { weapons } from '../rules/srd/weapons'
 import { buffs } from '../rules/srd/buffs'
+import { subclasses } from '../rules/srd/subclasses'
 
 // Convert a build configuration to combat state
 export function buildToCombatState(build: BuildConfiguration, level?: number): CombatState {
@@ -43,6 +44,10 @@ export function buildToCombatState(build: BuildConfiguration, level?: number): C
     extraAttacks: 0,
     actionSurge: false,
     sneakAttackDice: 0,
+    hasRage: false,
+    hasMartialArts: false,
+    hasAssassinate: false,
+    hasFrenzy: false,
     fightingStyles: [],
     hasGWM: false,
     hasSharpshooter: false,
@@ -83,22 +88,73 @@ export function buildToCombatState(build: BuildConfiguration, level?: number): C
     if (classData) {
       const features = classData.features[currentClassLevel] || []
       for (const feature of features) {
-        if (feature.rulesKey === 'extra_attack') {
-          state.extraAttacks = 1
-        } else if (feature.rulesKey === 'extra_attack_1') {
-          state.extraAttacks = 1
+        // Extra Attack progression
+        if (feature.rulesKey === 'extra_attack' || feature.rulesKey === 'extra_attack_1') {
+          state.extraAttacks = Math.max(state.extraAttacks, 1)
         } else if (feature.rulesKey === 'extra_attack_2') {
-          state.extraAttacks = 2
+          state.extraAttacks = Math.max(state.extraAttacks, 2)
         } else if (feature.rulesKey === 'extra_attack_3') {
-          state.extraAttacks = 3
-        } else if (feature.rulesKey === 'action_surge') {
+          state.extraAttacks = Math.max(state.extraAttacks, 3)
+        }
+        // Fighter features
+        else if (feature.rulesKey === 'action_surge') {
           state.actionSurge = true
+        }
+        // Barbarian features
+        else if (feature.rulesKey === 'rage') {
+          state.hasRage = true
+        }
+        // Rogue features
+        else if (feature.rulesKey?.startsWith('sneak_attack_')) {
+          const diceMatch = feature.rulesKey.match(/sneak_attack_(\d+)d6/)
+          if (diceMatch) {
+            state.sneakAttackDice = Math.max(state.sneakAttackDice, parseInt(diceMatch[1]))
+          }
+        }
+        // Monk features
+        else if (feature.rulesKey === 'martial_arts') {
+          state.hasMartialArts = true
         }
       }
       
       // Check for fighting styles from actual build data
       if (entry.fightingStyle) {
         state.fightingStyles.push(entry.fightingStyle as any)
+      }
+    }
+    
+    // Check for subclass features
+    if (entry.archetype || entry.subclassId) {
+      const subclassId = entry.archetype || entry.subclassId
+      const subclassData = Object.values(subclasses).find((s: any) => s.id === subclassId)
+      if (subclassData && subclassData.features) {
+        const subclassFeatures = subclassData.features.filter((f: any) => f.level === currentClassLevel)
+        for (const feature of subclassFeatures) {
+          // Champion Fighter
+          if (feature.rulesKey === 'improved_critical') {
+            state.critRange = 19
+          } else if (feature.rulesKey === 'superior_critical') {
+            state.critRange = 18
+          }
+          // Battle Master
+          else if (feature.rulesKey === 'combat_superiority') {
+            state.superiorityDice = { count: 4, die: 8 }
+          } else if (feature.rulesKey === 'improved_combat_superiority') {
+            if (currentClassLevel >= 18) {
+              state.superiorityDice = { count: 6, die: 12 }
+            } else {
+              state.superiorityDice = { count: 5, die: 10 }
+            }
+          }
+          // Assassin Rogue
+          else if (feature.rulesKey === 'assassinate') {
+            state.hasAssassinate = true
+          }
+          // Barbarian Path of the Berserker
+          else if (feature.rulesKey === 'frenzy') {
+            state.hasFrenzy = true
+          }
+        }
       }
     }
     
