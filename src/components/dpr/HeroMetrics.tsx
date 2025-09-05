@@ -272,7 +272,7 @@ function getRatingColor(rating: DPRRating): string {
   switch (rating) {
     case 'excellent': return 'text-green-600 bg-green-500/10 border-green-500/20'
     case 'very-good': return 'text-blue-600 bg-blue-500/10 border-blue-500/20'
-    case 'good': return 'text-emerald-600 bg-emerald-500/10 border-emerald-500/20'
+    case 'good': return 'text-green-700 bg-green-100 border-green-300'
     case 'poor': return 'text-orange-600 bg-orange-500/10 border-orange-500/20'
     case 'needs-work': return 'text-red-600 bg-red-500/10 border-red-500/20'
     default: return 'text-gray-600 bg-gray-500/10 border-gray-500/20'
