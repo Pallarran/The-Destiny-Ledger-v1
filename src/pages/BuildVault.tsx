@@ -27,6 +27,13 @@ export function BuildVault() {
   const { loadFromBuildConfiguration, createNewBuild } = useCharacterBuilderStore()
   const navigate = useNavigate()
   
+  // Move useEffect before early return to fix Rules of Hooks violation
+  useEffect(() => {
+    if (vaultState?.clearSampleBuilds) {
+      vaultState.clearSampleBuilds()
+    }
+  }, [vaultState?.clearSampleBuilds])
+  
   if (!vaultState) {
     return (
       <div className="space-y-6">
@@ -65,10 +72,6 @@ export function BuildVault() {
   }
   builds = Array.isArray(builds) ? builds : []
 
-  // Clean up any remaining sample builds on component load
-  useEffect(() => {
-    clearSampleBuilds()
-  }, [clearSampleBuilds])
 
   const handleLoadBuild = (buildId: string) => {
     console.log('handleLoadBuild called with ID:', buildId)
@@ -175,7 +178,7 @@ export function BuildVault() {
             } else {
               alert(`✗ ${result.message}`)
             }
-          } catch (error) {
+          } catch (_error) {
             alert('Failed to read file')
           }
         }

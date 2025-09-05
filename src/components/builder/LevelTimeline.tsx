@@ -16,20 +16,20 @@ export function LevelTimeline() {
   const { currentBuild, addLevel, removeLevel } = useCharacterBuilderStore()
   const [selectedClass, setSelectedClass] = useState('')
   
+  // Move useEffect before early return to fix Rules of Hooks violation
+  useEffect(() => {
+    if (currentBuild) {
+      const { validateCurrentStep } = useCharacterBuilderStore.getState()
+      validateCurrentStep()
+    }
+  }, [currentBuild])
+  
   if (!currentBuild) {
     return <div className="text-center text-muted">Loading class progression...</div>
   }
   
   const levels = [...(currentBuild.enhancedLevelTimeline || [])].sort((a, b) => a.level - b.level)
   const nextLevel = levels.length > 0 ? Math.max(...levels.map(l => l.level)) + 1 : 1
-  
-  // Trigger validation when levels change
-  useEffect(() => {
-    if (currentBuild) {
-      const { validateCurrentStep } = useCharacterBuilderStore.getState()
-      validateCurrentStep()
-    }
-  }, [currentBuild, levels])
 
   const handleAddLevel = () => {
     if (selectedClass && nextLevel <= 20) {

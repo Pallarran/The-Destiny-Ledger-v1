@@ -786,7 +786,7 @@ export function Compare() {
                                 targetAC: 15, rounds: 3, round0Buffs: false, greedyResourceUse: true, autoGWMSS: true
                               })
                               hitChance = result.hitChance
-                            } catch (e) {
+                            } catch (_e) {
                               console.warn('Hit chance calculation failed')
                             }
                           }

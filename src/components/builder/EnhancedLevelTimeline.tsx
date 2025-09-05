@@ -2003,6 +2003,14 @@ export function EnhancedLevelTimeline() {
   const { currentBuild, addLevel, removeLevel, selectFeat, selectASI, updateLevel, setSkillProficiencies } = useCharacterBuilderStore()
   const [selectedClass, setSelectedClass] = useState('')
   
+  // Move useEffect before early return to fix Rules of Hooks violation
+  useEffect(() => {
+    if (currentBuild) {
+      const { validateCurrentStep } = useCharacterBuilderStore.getState()
+      validateCurrentStep()
+    }
+  }, [currentBuild])
+  
   if (!currentBuild) {
     return <div className="text-center text-muted">Loading class progression...</div>
   }
@@ -2018,15 +2026,6 @@ export function EnhancedLevelTimeline() {
       setSelectedClass('')
     }
   }
-
-
-  // Trigger validation when levels change
-  useEffect(() => {
-    if (currentBuild) {
-      const { validateCurrentStep } = useCharacterBuilderStore.getState()
-      validateCurrentStep()
-    }
-  }, [currentBuild, levels])
 
   return (
     <div className="space-y-6">
