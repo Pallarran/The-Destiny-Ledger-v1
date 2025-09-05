@@ -631,18 +631,17 @@ export function Compare() {
           {/* Radar Chart */}
           <div className="lg:col-span-5">
             <ChartFrame title="Role Capabilities">
-              <ResponsiveContainer width="100%" height={320}>
-                <RadarChart data={radarData} margin={{ top: 40, right: 60, bottom: 40, left: 60 }}>
+              <ResponsiveContainer width="100%" height={300}>
+                <RadarChart data={radarData} margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
                   <PolarGrid stroke="var(--border)" />
                   <PolarAngleAxis 
                     dataKey="axis" 
-                    tick={{ fontSize: 12, fill: 'var(--foreground)' }}
-                    radius={110}
+                    tick={{ fontSize: 11, fill: 'var(--foreground)' }}
                   />
                   <PolarRadiusAxis 
                     angle={90} 
-                    domain={[20, 100]}
-                    tickCount={5}
+                    domain={[0, 100]}
+                    tickCount={6}
                     tick={{ fontSize: 10, fill: 'var(--muted)' }}
                   />
                   {selectedBuilds.map((build, index) => (
