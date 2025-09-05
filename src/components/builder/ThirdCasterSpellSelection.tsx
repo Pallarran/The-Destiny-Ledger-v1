@@ -7,6 +7,7 @@ import { useCharacterBuilderStore } from '../../stores/characterBuilderStore'
 interface ThirdCasterSpellSelectionProps {
   subclassId: 'eldritch_knight' | 'arcane_trickster'
   level: number
+  classLevel: number // The actual class level for spell progression
   selectedSpells: string[]
   onSpellsChange: (spells: string[]) => void
   spellsKnown?: number
@@ -30,6 +31,7 @@ const SPELL_SCHOOLS: Record<string, { color: string; icon: string }> = {
 export const ThirdCasterSpellSelection: React.FC<ThirdCasterSpellSelectionProps> = ({
   subclassId,
   level,
+  classLevel,
   selectedSpells,
   onSpellsChange,
   spellsKnown,
@@ -105,7 +107,7 @@ export const ThirdCasterSpellSelection: React.FC<ThirdCasterSpellSelectionProps>
     }
   }
   
-  const unrestrictedPicks = getUnrestrictedPicks(level)
+  const unrestrictedPicks = getUnrestrictedPicks(classLevel)
   
   // Filter spells by selected level and search query
   const filteredSpells = useMemo(() => {
@@ -202,7 +204,7 @@ export const ThirdCasterSpellSelection: React.FC<ThirdCasterSpellSelectionProps>
   
   // Calculate max spell level available (third caster progression)
   // Level 3-6: 1st, Level 7-12: 2nd, Level 13-18: 3rd, Level 19-20: 4th
-  const maxSpellLevel = level >= 19 ? 4 : level >= 13 ? 3 : level >= 7 ? 2 : 1
+  const maxSpellLevel = classLevel >= 19 ? 4 : classLevel >= 13 ? 3 : classLevel >= 7 ? 2 : 1
   
   const subclassName = subclassId === 'eldritch_knight' ? 'Eldritch Knight' : 'Arcane Trickster'
   const schoolNames = allowedSchools.join(' & ')

@@ -543,7 +543,7 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
   // 1b. Maneuver Choice (for Battle Master Fighter)
   let maneuverFeature = null
   if (entry.subclassId === 'battle_master') {
-    const progression = getManeuverProgression(entry.level)
+    const progression = getManeuverProgression(classLevel)
     if (progression) {
       // Look for explicit Battle Master features at this level
       const subclass = Object.values(subclasses).find((sub: Subclass) => sub.id === entry.subclassId)
@@ -564,7 +564,7 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
     }
   }
   if (maneuverFeature) {
-    const progression = getManeuverProgression(entry.level)
+    const progression = getManeuverProgression(classLevel)
     if (progression) {
       const currentManeuvers = entry.maneuverChoices || []
       
@@ -589,7 +589,7 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
     )
     
     if (metamagicFeature) {
-      const progression = getMetamagicProgression(entry.level)
+      const progression = getMetamagicProgression(classLevel)
       if (progression) {
         const currentMetamagic = entry.metamagicChoices || []
         
@@ -614,8 +614,8 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
       f.id === 'eldritch_invocations' || f.id.includes('invocation')
     )
     
-    if (eldritchInvocationFeature || entry.level >= 2) {
-      const invocationCount = getInvocationProgression(entry.level)
+    if (eldritchInvocationFeature || classLevel >= 2) {
+      const invocationCount = getInvocationProgression(classLevel)
       if (invocationCount > 0) {
         const currentInvocations = entry.eldritchInvocationChoices || []
         
@@ -635,7 +635,7 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
 
   // 1e. Mystic Arcanum Choice (for Warlock)
   if (entry.classId === 'warlock') {
-    const availableArcanumLevels = getMysticArcanumAvailableAtLevel(entry.level)
+    const availableArcanumLevels = getMysticArcanumAvailableAtLevel(classLevel)
     
     for (const spellLevel of availableArcanumLevels) {
       const currentMysticArcanum = entry.mysticArcanumChoices || {}
@@ -677,7 +677,7 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
 
   // 1g. Ranger Features (Favored Enemy & Natural Explorer)
   if (entry.classId === 'ranger') {
-    const rangerFeatures = getRangerFeaturesAtLevel(entry.level)
+    const rangerFeatures = getRangerFeaturesAtLevel(classLevel)
     
     // Favored Enemy selection
     if (rangerFeatures.favoredEnemy) {
@@ -1000,7 +1000,8 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
         newSpellsToLearn: newSpellsToLearn,
         spellsKnown: spellProgression.spellsKnown,
         cantripsKnown: spellProgression.cantripsKnown,
-        subclassId: subclassId
+        subclassId: subclassId,
+        classLevel: classLevel // Add class level for spell progression
       })
     }
   }
@@ -1729,6 +1730,7 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
             <ThirdCasterSpellSelection
               subclassId={section.subclassId}
               level={entry.level}
+              classLevel={section.classLevel}
               selectedSpells={section.selectedSpells || []}
               onSpellsChange={(spells) => {
                 updateLevel(entry.level, { spellChoices: spells })
