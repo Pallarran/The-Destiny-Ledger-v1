@@ -58,7 +58,6 @@ export function BuildVault() {
     exportBuilds,
     exportBuild,
     importBuilds,
-    clearSampleBuilds,
     builds: rawBuilds = []
   } = vaultState
   
