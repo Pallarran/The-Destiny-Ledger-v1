@@ -344,6 +344,42 @@ export function classFeatureToModifiers(featureId: string, level?: number): Modi
       } as ExtraAttackModifier)
       break
       
+    case 'extra_attack_1':
+      modifiers.push({
+        id: 'extra_attack_fighter_1',
+        name: 'Extra Attack',
+        description: 'Make 1 additional attack',
+        source: 'Fighter 5',
+        type: 'extraAttack',
+        condition: 'always',
+        value: 1
+      } as ExtraAttackModifier)
+      break
+      
+    case 'extra_attack_2':
+      modifiers.push({
+        id: 'extra_attack_fighter_2', 
+        name: 'Extra Attack (2)',
+        description: 'Make 2 additional attacks',
+        source: 'Fighter 11',
+        type: 'extraAttack',
+        condition: 'always',
+        value: 2
+      } as ExtraAttackModifier)
+      break
+      
+    case 'extra_attack_3':
+      modifiers.push({
+        id: 'extra_attack_fighter_3',
+        name: 'Extra Attack (3)',
+        description: 'Make 3 additional attacks',
+        source: 'Fighter 20', 
+        type: 'extraAttack',
+        condition: 'always',
+        value: 3
+      } as ExtraAttackModifier)
+      break
+      
     case 'rage':
       modifiers.push({
         id: 'rage_damage',
