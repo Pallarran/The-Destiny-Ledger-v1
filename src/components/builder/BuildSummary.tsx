@@ -248,7 +248,21 @@ export function BuildSummary() {
   
   // Calculate saving throw bonuses
   const savingThrows = ['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA'].map(ability => {
-    const isProficient = mainClassData?.savingThrowProficiencies?.includes(ability as keyof typeof abilityScores) || false
+    // Check class proficiencies
+    let isProficient = mainClassData?.savingThrowProficiencies?.includes(ability as keyof typeof abilityScores) || false
+    
+    // Check for Resilient feat proficiency
+    if (!isProficient) {
+      // Check if character has Resilient feat with this ability selected
+      const hasResilientWithAbility = timeline.some(entry => 
+        entry.asiOrFeat === 'feat' && 
+        entry.featId === 'resilient' && 
+        entry.abilityIncreases && 
+        entry.abilityIncreases[ability as keyof typeof abilityScores] === 1
+      )
+      isProficient = hasResilientWithAbility
+    }
+    
     const abilityMod = getAbilityModifier(abilityScores[ability as keyof typeof abilityScores])
     const bonus = abilityMod + (isProficient ? proficiencyBonus : 0)
     return {
