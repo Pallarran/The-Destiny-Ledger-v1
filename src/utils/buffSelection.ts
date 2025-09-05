@@ -36,111 +36,89 @@ const BUFF_PRIORITIES: Record<string, number> = {
 }
 
 /**
- * Get available spells for a build based on class levels and spell lists
+ * Get available spells for a build based on actually selected spells
  */
 function getAvailableSpells(build: BuildConfiguration): Set<string> {
   const availableSpells = new Set<string>()
   
-  if (!build.levelTimeline) return availableSpells
-  
-  // Track class levels
-  const classLevels: Record<string, number> = {}
-  for (const level of build.levelTimeline) {
-    classLevels[level.classId] = (classLevels[level.classId] || 0) + 1
+  // First check if build has canonical spell list
+  if (build.canonicalBuild?.spells) {
+    for (const spellEntry of build.canonicalBuild.spells) {
+      // Only include spells that are known or prepared
+      if (spellEntry.known || spellEntry.prepared) {
+        availableSpells.add(spellEntry.spell)
+      }
+    }
   }
   
-  // Check each class for spell access
-  for (const [classId, levels] of Object.entries(classLevels)) {
-    const classData = getClass(classId)
-    if (!classData) continue
-    
-    // Classes with spell access and their associated buffs
-    const spellAccessByClass: Record<string, { minLevel: number, spells: string[] }[]> = {
-      'cleric': [
-        { minLevel: 1, spells: ['bless', 'divine_favor', 'shield_of_faith'] },
-        { minLevel: 3, spells: ['magic_weapon'] },
-        { minLevel: 5, spells: ['crusaders_mantle'] },
-        { minLevel: 9, spells: ['holy_weapon'] }
-      ],
-      'paladin': [
-        { minLevel: 2, spells: ['bless', 'divine_favor'] },
-        { minLevel: 5, spells: ['magic_weapon'] },
-        { minLevel: 9, spells: ['crusaders_mantle'] },
-        { minLevel: 17, spells: ['holy_weapon'] }
-      ],
-      'ranger': [
-        { minLevel: 2, spells: ['hunters_mark'] },
-        { minLevel: 5, spells: ['magic_weapon'] },
-        { minLevel: 9, spells: ['flame_arrows'] },
-        { minLevel: 13, spells: ['greater_magic_weapon'] }
-      ],
-      'warlock': [
-        { minLevel: 1, spells: ['hex'] },
-        { minLevel: 3, spells: ['blur', 'mirror_image'] },
-        { minLevel: 5, spells: ['elemental_weapon'] }
-      ],
-      'wizard': [
-        { minLevel: 1, spells: ['magic_weapon'] },
-        { minLevel: 3, spells: ['blur', 'enlarge_reduce', 'mirror_image'] },
-        { minLevel: 5, spells: ['haste', 'elemental_weapon', 'flame_arrows'] },
-        { minLevel: 7, spells: ['greater_magic_weapon'] }
-      ],
-      'sorcerer': [
-        { minLevel: 1, spells: ['magic_weapon'] },
-        { minLevel: 3, spells: ['blur', 'enlarge_reduce', 'mirror_image'] },
-        { minLevel: 5, spells: ['haste', 'elemental_weapon', 'flame_arrows'] },
-        { minLevel: 7, spells: ['greater_magic_weapon'] }
-      ],
-      'bard': [
-        { minLevel: 3, spells: ['blur', 'enlarge_reduce', 'mirror_image'] },
-        { minLevel: 5, spells: ['haste'] },
-        { minLevel: 7, spells: ['greater_magic_weapon'] }
-      ],
-      'artificer': [
-        { minLevel: 1, spells: ['bless'] },
-        { minLevel: 5, spells: ['magic_weapon', 'blur', 'enlarge_reduce'] },
-        { minLevel: 9, spells: ['haste', 'elemental_weapon'] }
-      ],
-      // Subclass-specific (Eldritch Knight)
-      'fighter': [
-        { minLevel: 3, spells: ['shield_of_faith'] }, // EK gets wizard spells
-        { minLevel: 7, spells: ['blur', 'enlarge_reduce', 'magic_weapon'] },
-        { minLevel: 13, spells: ['haste', 'elemental_weapon'] },
-        { minLevel: 19, spells: ['greater_magic_weapon'] }
-      ],
-      // Arcane Trickster
-      'rogue': [
-        { minLevel: 3, spells: ['blur'] },
-        { minLevel: 7, spells: ['mirror_image'] },
-        { minLevel: 13, spells: ['haste'] }
-      ]
-    }
-    
-    const classSpells = spellAccessByClass[classId]
-    if (classSpells) {
-      for (const { minLevel, spells } of classSpells) {
-        if (levels >= minLevel) {
-          spells.forEach(spell => availableSpells.add(spell))
+  // Also check spellChoices in levelTimeline
+  if (build.levelTimeline) {
+    for (const level of build.levelTimeline) {
+      if (level.spellChoices) {
+        for (const spellId of level.spellChoices) {
+          availableSpells.add(spellId)
         }
       }
     }
   }
   
-  // Add spells from feats
-  if (build.levelTimeline.some(l => l.featId === 'fey_touched')) {
-    availableSpells.add('bless')
-    availableSpells.add('hex')
+  // Add spells from feats that grant specific spells
+  if (build.levelTimeline) {
+    for (const level of build.levelTimeline) {
+      // Fey Touched grants Misty Step + 1st level enchantment/divination
+      if (level.featId === 'fey_touched') {
+        // Common choices for Fey Touched
+        availableSpells.add('bless') // Common divination choice
+        availableSpells.add('hex') // Common enchantment choice
+      }
+      
+      // Shadow Touched grants Invisibility + 1st level illusion/necromancy
+      if (level.featId === 'shadow_touched') {
+        availableSpells.add('hex') // Necromancy spell
+      }
+      
+      // Magic Initiate - check if they selected specific spells
+      // Without more info, we can't assume which spells they took
+    }
   }
   
-  if (build.levelTimeline.some(l => l.featId === 'shadow_touched')) {
-    availableSpells.add('hex')
-  }
-  
-  if (build.levelTimeline.some(l => l.featId === 'magic_initiate')) {
-    // Could be any 1st level spell - add common ones
-    availableSpells.add('bless')
-    availableSpells.add('hex')
-    availableSpells.add('hunters_mark')
+  // If no spells are explicitly selected but the build has spellcasting classes,
+  // we can make educated guesses about common buff spells they might have
+  // but ONLY if we have no other spell data
+  if (availableSpells.size === 0 && build.levelTimeline) {
+    const classLevels: Record<string, number> = {}
+    for (const level of build.levelTimeline) {
+      classLevels[level.classId] = (classLevels[level.classId] || 0) + 1
+    }
+    
+    // Only add the most common/obvious choices for each class
+    // These are spells that are almost always taken
+    const commonSpellsByClass: Record<string, { minLevel: number, spell: string }[]> = {
+      'ranger': [
+        { minLevel: 2, spell: 'hunters_mark' } // Almost every ranger takes this
+      ],
+      'warlock': [
+        { minLevel: 1, spell: 'hex' } // Almost every warlock takes this
+      ],
+      'paladin': [
+        { minLevel: 2, spell: 'bless' } // Very common paladin spell
+      ],
+      'cleric': [
+        { minLevel: 1, spell: 'bless' } // Core cleric spell
+      ]
+    }
+    
+    for (const [classId, levels] of Object.entries(classLevels)) {
+      const commonSpells = commonSpellsByClass[classId]
+      if (commonSpells) {
+        for (const { minLevel, spell } of commonSpells) {
+          if (levels >= minLevel) {
+            console.log(`No spell list found - assuming ${classId} has ${spell}`)
+            availableSpells.add(spell)
+          }
+        }
+      }
+    }
   }
   
   return availableSpells
