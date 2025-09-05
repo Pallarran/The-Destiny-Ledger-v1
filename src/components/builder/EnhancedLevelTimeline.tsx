@@ -800,11 +800,18 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
   // 3e. Spell Selection (for spellcasting classes)
   const fullCasters = ['wizard', 'cleric', 'bard', 'sorcerer', 'druid']
   const halfCasters = ['paladin', 'ranger', 'artificer']
-  const isSpellcaster = fullCasters.includes(entry.classId) || halfCasters.includes(entry.classId)
+  const isSpellcaster = fullCasters.includes(entry.classId) || halfCasters.includes(entry.classId) ||
+    (entry.classId === 'fighter' && entry.subclassId === 'eldritch_knight') ||
+    (entry.classId === 'rogue' && entry.subclassId === 'arcane_trickster')
   
   if (isSpellcaster && classLevel > 0) {
-    // Get spell progression from rules
-    const classProgression = spellsKnownProgression[entry.classId as keyof typeof spellsKnownProgression]
+    // Get spell progression from rules - use subclass progression for third-casters
+    const progressionKey = (entry.classId === 'fighter' && entry.subclassId === 'eldritch_knight') 
+      ? 'eldritch_knight'
+      : (entry.classId === 'rogue' && entry.subclassId === 'arcane_trickster')
+      ? 'arcane_trickster' 
+      : entry.classId
+    const classProgression = spellsKnownProgression[progressionKey as keyof typeof spellsKnownProgression]
     const spellProgression = classProgression ? {
       cantripsKnown: classProgression.cantrips[classLevel - 1] || 0,
       spellsKnown: classProgression.spellsKnown[classLevel - 1] || 0

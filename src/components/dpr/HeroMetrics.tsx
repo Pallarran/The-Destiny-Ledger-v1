@@ -389,7 +389,7 @@ export function HeroMetrics({ build, result, config }: HeroMetricsProps) {
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <div className="text-xs font-medium text-muted uppercase tracking-wider">Normal Attack</div>
-            <div className={`px-2 py-0.5 rounded text-[10px] font-medium flex items-center gap-1 ${getRatingColor(metrics.normalRating)}`}>
+            <div className={`px-2 py-0.5 rounded text-[10px] font-medium flex items-center gap-1 border ${getRatingColor(metrics.normalRating)}`}>
               {React.createElement(getRatingIcon(metrics.normalRating), { className: "w-3 h-3" })}
               <span className="capitalize">{metrics.normalRating.replace('-', ' ')}</span>
               <span className="opacity-75">({metrics.normalPercentage.toFixed(0)}%)</span>
@@ -445,7 +445,7 @@ export function HeroMetrics({ build, result, config }: HeroMetricsProps) {
                   </Badge>
                 )}
               </div>
-              <div className={`px-2 py-0.5 rounded text-[10px] font-medium flex items-center gap-1 ${getRatingColor(metrics.powerRating)}`}>
+              <div className={`px-2 py-0.5 rounded text-[10px] font-medium flex items-center gap-1 border ${getRatingColor(metrics.powerRating)}`}>
                 {React.createElement(getRatingIcon(metrics.powerRating), { className: "w-3 h-3" })}
                 <span className="capitalize">{metrics.powerRating.replace('-', ' ')}</span>
                 <span className="opacity-75">({metrics.powerPercentage?.toFixed(0)}%)</span>
