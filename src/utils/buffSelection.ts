@@ -1,7 +1,6 @@
 import { buffs } from '../rules/srd/buffs'
 import type { BuildConfiguration } from '../stores/types'
 import type { Buff } from '../rules/types'
-import { getClass } from '../rules/loaders'
 
 interface BuffPriority {
   buffId: string
@@ -191,7 +190,7 @@ export function autoSelectOptimalBuffs(
  * Get a description of why certain buffs were selected
  */
 export function explainBuffSelection(
-  build: BuildConfiguration,
+  _build: BuildConfiguration,
   selectedBuffs: { activeBuffs: string[], round0Buffs: string[] }
 ): string {
   const explanations: string[] = []
