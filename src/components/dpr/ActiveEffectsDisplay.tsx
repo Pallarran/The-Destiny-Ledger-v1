@@ -1,8 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card'
 import { Badge } from '../ui/badge'
-import { Sparkles, Plus, Target, Sword, Eye, Clock, Zap, Shield } from 'lucide-react'
+import { Sparkles, Plus, Target, Sword, Eye, Clock } from 'lucide-react'
 import { getBuff } from '../../rules/loaders'
-import { buildToCombatState } from '../../engine/simulator'
 import type { BuildConfiguration } from '../../stores/types'
 
 interface ActiveEffectsDisplayProps {
@@ -68,259 +67,8 @@ function extractActiveEffects(build: BuildConfiguration): ProcessedEffect[] {
       })
     }
   }
-
-  // Extract computed effects from combat state
-  const combatState = buildToCombatState(build)
-  
-  // Extra Attacks
-  if (combatState.extraAttacks > 0) {
-    processedEffects.push({
-      id: 'extra_attacks',
-      name: 'Extra Attack',
-      description: `Make ${combatState.extraAttacks} additional attack${combatState.extraAttacks > 1 ? 's' : ''} when you take the Attack action`,
-      isRound0: false,
-      concentration: false,
-      duration: 'Passive',
-      actionCost: 'passive',
-      source: 'class',
-      effects: {
-        additionalAttacks: combatState.extraAttacks
-      }
-    })
-  }
-  
-  // Action Surge
-  if (combatState.actionSurge) {
-    processedEffects.push({
-      id: 'action_surge',
-      name: 'Action Surge',
-      description: 'Gain one additional action on your turn',
-      isRound0: false,
-      concentration: false,
-      duration: '1 use per rest',
-      actionCost: 'passive',
-      source: 'class',
-      effects: {
-        additionalAttacks: combatState.extraAttacks + 1 // Effectively doubles attacks
-      }
-    })
-  }
-  
-  // Sneak Attack
-  if (combatState.sneakAttackDice > 0) {
-    processedEffects.push({
-      id: 'sneak_attack',
-      name: 'Sneak Attack',
-      description: `Deal an extra ${combatState.sneakAttackDice}d6 damage when you have advantage or an ally is nearby`,
-      isRound0: false,
-      concentration: false,
-      duration: 'Passive',
-      actionCost: 'passive',
-      source: 'class',
-      effects: {
-        onHitDamage: [{ count: combatState.sneakAttackDice, die: 6, bonus: 0, type: 'sneak' }]
-      }
-    })
-  }
-  
-  // Critical Range
-  if (combatState.critRange && combatState.critRange < 20) {
-    processedEffects.push({
-      id: 'improved_critical',
-      name: combatState.critRange === 18 ? 'Superior Critical' : 'Improved Critical',
-      description: `Critical hits on ${combatState.critRange}-20`,
-      isRound0: false,
-      concentration: false,
-      duration: 'Passive',
-      actionCost: 'passive',
-      source: 'class',
-      effects: {}
-    })
-  }
-  
-  // Fighting Styles
-  for (const style of combatState.fightingStyles) {
-    let styleName = ''
-    let styleDesc = ''
-    let styleEffects: Record<string, number> = {}
-    
-    switch (style) {
-      case 'archery':
-        styleName = 'Archery Fighting Style'
-        styleDesc = '+2 bonus to ranged weapon attack rolls'
-        styleEffects = { attackBonus: 2 }
-        break
-      case 'dueling':
-        styleName = 'Dueling Fighting Style'
-        styleDesc = '+2 damage when wielding a one-handed weapon with no other weapon'
-        styleEffects = { damageBonus: 2 }
-        break
-      case 'gwf':
-        styleName = 'Great Weapon Fighting'
-        styleDesc = 'Reroll 1s and 2s on weapon damage dice'
-        styleEffects = {}
-        break
-      case 'defense':
-        styleName = 'Defense Fighting Style'
-        styleDesc = '+1 AC while wearing armor'
-        styleEffects = {}
-        break
-      case 'two-weapon':
-        styleName = 'Two-Weapon Fighting'
-        styleDesc = 'Add ability modifier to off-hand attacks'
-        styleEffects = {}
-        break
-    }
-    
-    if (styleName) {
-      processedEffects.push({
-        id: `fighting_style_${style}`,
-        name: styleName,
-        description: styleDesc,
-        isRound0: false,
-        concentration: false,
-        duration: 'Passive',
-        actionCost: 'passive',
-        source: 'fighting-style',
-        effects: styleEffects
-      })
-    }
-  }
-  
-  // Feat Effects
-  if (combatState.hasGWM) {
-    processedEffects.push({
-      id: 'great_weapon_master',
-      name: 'Great Weapon Master',
-      description: 'Take -5 penalty to attack for +10 damage with heavy weapons',
-      isRound0: false,
-      concentration: false,
-      duration: 'Passive',
-      actionCost: 'passive',
-      source: 'feat',
-      effects: {}
-    })
-  }
-  
-  if (combatState.hasSharpshooter) {
-    processedEffects.push({
-      id: 'sharpshooter',
-      name: 'Sharpshooter',
-      description: 'Take -5 penalty to attack for +10 damage with ranged weapons',
-      isRound0: false,
-      concentration: false,
-      duration: 'Passive',
-      actionCost: 'passive',
-      source: 'feat',
-      effects: {}
-    })
-  }
-  
-  if (combatState.hasCrossbowExpert) {
-    processedEffects.push({
-      id: 'crossbow_expert',
-      name: 'Crossbow Expert',
-      description: 'Ignore loading property and make bonus action attacks with hand crossbows',
-      isRound0: false,
-      concentration: false,
-      duration: 'Passive',
-      actionCost: 'passive',
-      source: 'feat',
-      effects: {}
-    })
-  }
-  
-  if (combatState.hasPolearmMaster) {
-    processedEffects.push({
-      id: 'polearm_master',
-      name: 'Polearm Master',
-      description: 'Make bonus action attacks with polearms and opportunity attacks when enemies enter reach',
-      isRound0: false,
-      concentration: false,
-      duration: 'Passive',
-      actionCost: 'passive',
-      source: 'feat',
-      effects: {}
-    })
-  }
-  
-  // Other Class Features
-  if (combatState.hasRage) {
-    processedEffects.push({
-      id: 'rage',
-      name: 'Rage',
-      description: 'Advantage on STR checks, +2 damage on STR melee attacks, resistance to physical damage',
-      isRound0: false,
-      concentration: false,
-      duration: '1 minute',
-      actionCost: 'bonus action',
-      source: 'class',
-      effects: {
-        damageBonus: 2,
-        advantage: true
-      }
-    })
-  }
-  
-  if (combatState.hasMartialArts) {
-    processedEffects.push({
-      id: 'martial_arts',
-      name: 'Martial Arts',
-      description: 'Use DEX for unarmed strikes, make bonus action unarmed strikes',
-      isRound0: false,
-      concentration: false,
-      duration: 'Passive',
-      actionCost: 'passive',
-      source: 'class',
-      effects: {}
-    })
-  }
-  
-  if (combatState.hasAssassinate) {
-    processedEffects.push({
-      id: 'assassinate',
-      name: 'Assassinate',
-      description: 'Advantage on attacks against creatures that haven\'t acted yet, critical hits on surprised creatures',
-      isRound0: false,
-      concentration: false,
-      duration: 'Passive',
-      actionCost: 'passive',
-      source: 'class',
-      effects: {
-        advantage: true
-      }
-    })
-  }
-  
-  if (combatState.hasFrenzy) {
-    processedEffects.push({
-      id: 'frenzy',
-      name: 'Frenzy',
-      description: 'Make bonus action attacks while raging',
-      isRound0: false,
-      concentration: false,
-      duration: 'While raging',
-      actionCost: 'bonus action',
-      source: 'class',
-      effects: {
-        additionalAttacks: 1
-      }
-    })
-  }
-  
-  if (combatState.superiorityDice) {
-    processedEffects.push({
-      id: 'combat_superiority',
-      name: 'Combat Superiority',
-      description: `${combatState.superiorityDice.count}d${combatState.superiorityDice.die} superiority dice for combat maneuvers`,
-      isRound0: false,
-      concentration: false,
-      duration: 'Short rest',
-      actionCost: 'varies',
-      source: 'class',
-      effects: {}
-    })
-  }
+  // Only include temporary effects like Rage that are activated in combat
+  // Permanent class features should be in BuildFeaturesPanel
 
   return processedEffects
 }
@@ -415,19 +163,13 @@ export function ActiveEffectsDisplay({ build }: ActiveEffectsDisplayProps) {
   // Group effects by type
   const ongoingEffects = effects.filter(e => !e.isRound0)
   const round0Effects = effects.filter(e => e.isRound0)
-  
-  // Further group ongoing effects by source
-  const buffEffects = ongoingEffects.filter(e => e.source === 'buff')
-  const classEffects = ongoingEffects.filter(e => e.source === 'class')  
-  const fightingStyleEffects = ongoingEffects.filter(e => e.source === 'fighting-style')
-  const featEffects = ongoingEffects.filter(e => e.source === 'feat')
 
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Sparkles className="w-5 h-5" />
-          Active Effects
+          Active Buffs & Spells
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -480,147 +222,15 @@ export function ActiveEffectsDisplay({ build }: ActiveEffectsDisplayProps) {
           </div>
         )}
 
-        {/* Class Features */}
-        {classEffects.length > 0 && (
-          <div>
-            <h4 className="text-sm font-medium text-foreground mb-2 flex items-center gap-1">
-              <Zap className="w-3 h-3" />
-              Class Features
-            </h4>
-            <div className="space-y-2">
-              {classEffects.map((effect, index) => {
-                const Icon = getEffectIcon(effect)
-                const color = getEffectColor(effect)
-                const summary = formatEffectSummary(effect)
-                
-                return (
-                  <div key={`class-${index}`} className="flex items-start gap-3 p-2 bg-amber-500/5 rounded border border-amber-500/20">
-                    <Icon className={`w-4 h-4 mt-0.5 ${color}`} />
-                    
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h5 className="font-medium text-sm text-foreground">{effect.name}</h5>
-                      </div>
-                      
-                      {summary.length > 0 && (
-                        <div className="flex flex-wrap gap-1 mb-1">
-                          {summary.map((s, i) => (
-                            <span key={i} className="text-xs bg-amber-600/10 text-amber-700 px-1.5 py-0.5 rounded">
-                              {s}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                      
-                      <div className="flex items-center justify-between text-xs text-muted">
-                        <span>{effect.duration}</span>
-                        <span className="capitalize">{effect.actionCost}</span>
-                      </div>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* Fighting Styles */}
-        {fightingStyleEffects.length > 0 && (
-          <div>
-            <h4 className="text-sm font-medium text-foreground mb-2 flex items-center gap-1">
-              <Shield className="w-3 h-3" />
-              Fighting Styles
-            </h4>
-            <div className="space-y-2">
-              {fightingStyleEffects.map((effect, index) => {
-                const Icon = getEffectIcon(effect)
-                const color = getEffectColor(effect)
-                const summary = formatEffectSummary(effect)
-                
-                return (
-                  <div key={`fighting-${index}`} className="flex items-start gap-3 p-2 bg-cyan-500/5 rounded border border-cyan-500/20">
-                    <Icon className={`w-4 h-4 mt-0.5 ${color}`} />
-                    
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h5 className="font-medium text-sm text-foreground">{effect.name}</h5>
-                      </div>
-                      
-                      {summary.length > 0 && (
-                        <div className="flex flex-wrap gap-1 mb-1">
-                          {summary.map((s, i) => (
-                            <span key={i} className="text-xs bg-cyan-600/10 text-cyan-700 px-1.5 py-0.5 rounded">
-                              {s}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                      
-                      <div className="flex items-center justify-between text-xs text-muted">
-                        <span>{effect.duration}</span>
-                        <span className="capitalize">{effect.actionCost}</span>
-                      </div>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* Feat Effects */}
-        {featEffects.length > 0 && (
-          <div>
-            <h4 className="text-sm font-medium text-foreground mb-2 flex items-center gap-1">
-              <Target className="w-3 h-3" />
-              Feats
-            </h4>
-            <div className="space-y-2">
-              {featEffects.map((effect, index) => {
-                const Icon = getEffectIcon(effect)
-                const color = getEffectColor(effect)
-                const summary = formatEffectSummary(effect)
-                
-                return (
-                  <div key={`feat-${index}`} className="flex items-start gap-3 p-2 bg-red-500/5 rounded border border-red-500/20">
-                    <Icon className={`w-4 h-4 mt-0.5 ${color}`} />
-                    
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h5 className="font-medium text-sm text-foreground">{effect.name}</h5>
-                      </div>
-                      
-                      {summary.length > 0 && (
-                        <div className="flex flex-wrap gap-1 mb-1">
-                          {summary.map((s, i) => (
-                            <span key={i} className="text-xs bg-red-600/10 text-red-700 px-1.5 py-0.5 rounded">
-                              {s}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                      
-                      <div className="flex items-center justify-between text-xs text-muted">
-                        <span>{effect.duration}</span>
-                        <span className="capitalize">{effect.actionCost}</span>
-                      </div>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          </div>
-        )}
-
         {/* Active Buffs/Spells */}
-        {buffEffects.length > 0 && (
+        {ongoingEffects.length > 0 && (
           <div>
             <h4 className="text-sm font-medium text-foreground mb-2 flex items-center gap-1">
               <Sparkles className="w-3 h-3" />
               Active Buffs
             </h4>
             <div className="space-y-2">
-              {buffEffects.map((effect, index) => {
+              {ongoingEffects.map((effect, index) => {
                 const Icon = getEffectIcon(effect)
                 const color = getEffectColor(effect)
                 const summary = formatEffectSummary(effect)
