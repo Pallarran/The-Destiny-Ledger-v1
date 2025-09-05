@@ -36,6 +36,7 @@ export const SpellSelection: React.FC<SpellSelectionProps> = ({
   spellsKnown,
   cantripsKnown,
   subclassId,
+  previousSpells = [],
   newCantripsToLearn = 0,
   newSpellsToLearn = 0
 }) => {
@@ -129,11 +130,11 @@ export const SpellSelection: React.FC<SpellSelectionProps> = ({
   // For limits, only count class progression spells, not racial spells
   const selectedCantrips = selectedSpells.filter(id => {
     const spell = availableSpells.find((s: Spell) => s.id === id)
-    return spell?.level === 0
+    return spell?.level === 0 && !racialSpells.includes(id)
   })
   const selectedLeveledSpells = selectedSpells.filter(id => {
     const spell = availableSpells.find((s: Spell) => s.id === id)
-    return spell && spell.level > 0
+    return spell && spell.level > 0 && !racialSpells.includes(id)
   })
   
   
@@ -273,7 +274,8 @@ export const SpellSelection: React.FC<SpellSelectionProps> = ({
         ) : (
           filteredSpells.map((spell) => {
             const isSelected = selectedSpells.includes(spell.id)
-            const isAlreadyKnown = globalKnownSpells.includes(spell.id) && !isSelected
+            const isPreviouslyKnown = previousSpells.includes(spell.id) && !isSelected
+            const isAlreadyKnown = (globalKnownSpells.includes(spell.id) || isPreviouslyKnown) && !isSelected
             const isRacialSpell = racialSpells.includes(spell.id)
             const isExpanded = expandedSpell === spell.id
             const schoolInfo = SPELL_SCHOOLS[spell.school]
@@ -332,9 +334,9 @@ export const SpellSelection: React.FC<SpellSelectionProps> = ({
                             Concentration
                           </span>
                         )}
-                        {isAlreadyKnown && (
+                        {isAlreadyKnown && !isRacialSpell && (
                           <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">
-                            Known
+                            {isPreviouslyKnown ? 'Known (Previous Level)' : 'Known'}
                           </span>
                         )}
                         {isRacialSpell && (

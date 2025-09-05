@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react'
 import { BookOpen, Search, X, Check, Info, AlertCircle } from 'lucide-react'
 import { getSpellsByClass, type Spell } from '../../rules/srd/spells'
 import { useSettingsStore } from '../../stores/settingsStore'
+import { useCharacterBuilderStore } from '../../stores/characterBuilderStore'
 
 interface ThirdCasterSpellSelectionProps {
   subclassId: 'eldritch_knight' | 'arcane_trickster'
@@ -38,9 +39,13 @@ export const ThirdCasterSpellSelection: React.FC<ThirdCasterSpellSelectionProps>
   newSpellsToLearn = 0
 }) => {
   const { allowUnrestrictedThirdCasterSpells } = useSettingsStore()
+  const { getRacialSpells } = useCharacterBuilderStore()
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedLevel, setSelectedLevel] = useState<number | 'cantrip'>(1)
   const [expandedSpell, setExpandedSpell] = useState<string | null>(null)
+  
+  // Get racial spells to exclude from limits and mark appropriately
+  const racialSpells = getRacialSpells()
   
   // Get the base class for spell list (wizard for EK, wizard for AT)
   const baseSpellClass = subclassId === 'eldritch_knight' ? 'wizard' : 'wizard'
@@ -63,8 +68,8 @@ export const ThirdCasterSpellSelection: React.FC<ThirdCasterSpellSelectionProps>
   const availableSpells = useMemo(() => {
     let spells = getSpellsByClass(baseSpellClass)
     
-    // Filter out spells already known from previous levels
-    spells = spells.filter((spell: Spell) => !previousSpells.includes(spell.id))
+    // DON'T filter out previously known spells - show them as checked instead
+    // This allows users to see what they've already learned
     
     // Filter by school restrictions for leveled spells
     spells = spells.filter((spell: Spell) => {
@@ -76,7 +81,7 @@ export const ThirdCasterSpellSelection: React.FC<ThirdCasterSpellSelectionProps>
     })
     
     return spells
-  }, [baseSpellClass, allowedSchools, previousSpells])
+  }, [baseSpellClass, allowedSchools])
   
   // Calculate unrestricted spell picks (spells that can be from any school)
   const getUnrestrictedPicks = (totalLevel: number) => {
@@ -128,19 +133,20 @@ export const ThirdCasterSpellSelection: React.FC<ThirdCasterSpellSelectionProps>
   }, [availableSpells, selectedLevel, searchQuery])
   
   // Separate selected spells into categories
+  // Exclude racial spells from limits counting  
   const selectedCantrips = selectedSpells.filter(id => {
     const spell = availableSpells.find((s: Spell) => s.id === id)
-    return spell?.level === 0
+    return spell?.level === 0 && !racialSpells.includes(id)
   })
   
   const selectedLeveledSpells = selectedSpells.filter(id => {
     const spell = availableSpells.find((s: Spell) => s.id === id)
-    return spell && spell.level > 0
+    return spell && spell.level > 0 && !racialSpells.includes(id)
   })
   
   const selectedUnrestrictedSpells = selectedLeveledSpells.filter(id => {
     const spell = availableSpells.find((s: Spell) => s.id === id)
-    return spell && !allowedSchools.includes(spell.school)
+    return spell && !allowedSchools.includes(spell.school) && !racialSpells.includes(id)
   })
   
   const limits = {
@@ -178,6 +184,11 @@ export const ThirdCasterSpellSelection: React.FC<ThirdCasterSpellSelectionProps>
   const canSelectSpell = (spell: Spell) => {
     const isSelected = selectedSpells.includes(spell.id)
     if (isSelected) return true
+    
+    // Can't select if it's already known from previous levels or racial
+    const isPreviouslyKnown = previousSpells.includes(spell.id)
+    const isRacialSpell = racialSpells?.includes(spell.id) || false
+    if (isPreviouslyKnown || isRacialSpell) return false
     
     const isCantrip = spell.level === 0
     const isRestricted = allowedSchools.includes(spell.school)
@@ -325,6 +336,9 @@ export const ThirdCasterSpellSelection: React.FC<ThirdCasterSpellSelectionProps>
         ) : (
           filteredSpells.map((spell) => {
             const isSelected = selectedSpells.includes(spell.id)
+            const isPreviouslyKnown = previousSpells.includes(spell.id) && !isSelected
+            const isRacialSpell = racialSpells?.includes(spell.id) || false
+            const isAlreadyKnown = isPreviouslyKnown || isRacialSpell
             const isExpanded = expandedSpell === spell.id
             const schoolInfo = SPELL_SCHOOLS[spell.school]
             const canSelect = canSelectSpell(spell)
@@ -336,6 +350,10 @@ export const ThirdCasterSpellSelection: React.FC<ThirdCasterSpellSelectionProps>
                 className={`border rounded-lg transition-all ${
                   isSelected
                     ? 'border-purple-500 bg-purple-50'
+                    : isAlreadyKnown
+                    ? isRacialSpell
+                      ? 'border-blue-300 bg-blue-50'
+                      : 'border-green-300 bg-green-50'
                     : canSelect
                     ? 'border-gray-200 hover:border-gray-300'
                     : 'border-gray-200 opacity-50'
@@ -349,9 +367,13 @@ export const ThirdCasterSpellSelection: React.FC<ThirdCasterSpellSelectionProps>
                     <div className={`mt-0.5 w-5 h-5 rounded border-2 flex items-center justify-center ${
                       isSelected
                         ? 'bg-purple-600 border-purple-600'
+                        : isAlreadyKnown
+                        ? isRacialSpell
+                          ? 'bg-blue-600 border-blue-600'
+                          : 'bg-green-600 border-green-600'
                         : 'border-gray-300'
                     }`}>
-                      {isSelected && <Check className="w-3 h-3 text-white" />}
+                      {(isSelected || isAlreadyKnown) && <Check className="w-3 h-3 text-white" />}
                     </div>
                     
                     <div className="flex-1">
@@ -373,6 +395,16 @@ export const ThirdCasterSpellSelection: React.FC<ThirdCasterSpellSelectionProps>
                         {spell.tags.includes('concentration') && (
                           <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-700">
                             Concentration
+                          </span>
+                        )}
+                        {isAlreadyKnown && !isRacialSpell && (
+                          <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                            {isPreviouslyKnown ? 'Known (Previous Level)' : 'Known'}
+                          </span>
+                        )}
+                        {isRacialSpell && (
+                          <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
+                            Known (Racial)
                           </span>
                         )}
                       </div>
