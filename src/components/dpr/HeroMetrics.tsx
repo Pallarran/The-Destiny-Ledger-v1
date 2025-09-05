@@ -422,7 +422,7 @@ export function HeroMetrics({ build, result, config }: HeroMetricsProps) {
                 </div>
               </div>
               <div className="text-center">
-                <div className="text-xs text-muted mb-1">Avg DPR</div>
+                <div className="text-xs text-muted mb-1">DPR vs AC 15</div>
                 <div className="font-semibold text-foreground">{metrics.normalAttack.avgDPR.toFixed(1)}</div>
               </div>
             </div>
@@ -468,7 +468,7 @@ export function HeroMetrics({ build, result, config }: HeroMetricsProps) {
                   </div>
                 </div>
                 <div className="text-center">
-                  <div className="text-xs text-muted mb-1">Avg DPR</div>
+                  <div className="text-xs text-muted mb-1">DPR vs AC 15</div>
                   <div className="font-semibold text-foreground">{metrics.powerAttack.avgDPR.toFixed(1)}</div>
                 </div>
               </div>
