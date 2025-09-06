@@ -5,9 +5,11 @@ import { useCharacterBuilderStore } from '../../stores/characterBuilderStore'
 import { useState } from 'react'
 import type { DowntimeTrainingSession } from '../../types/downtimeTraining'
 import type { AbilityScore, AbilityScoreArray } from '../../rules/types'
-import { feats } from '../../rules/srd/feats'
+import { loadFeats } from '../../rules/loaders'
 import { getAllSkills } from '../../rules/srd/skills'
 import { weapons } from '../../rules/srd/weapons'
+import { ContentFilter, useContentFilter } from '../ui/content-filter'
+import { ContentWithHomebrew, isFromHomebrewStore } from '../ui/homebrew-badge'
 
 export function DowntimeTrainingSelection() {
   const { currentBuild, addTrainingSession, removeTrainingSession, updateTrainingSession } = useCharacterBuilderStore()
@@ -134,7 +136,7 @@ export function DowntimeTrainingSelection() {
                         <span className="font-medium text-blue-600">Feats:</span>{' '}
                         <span className="text-muted">
                           {session.featsTrained.map(featId => {
-                            const feat = feats[featId]
+                            const feat = loadFeats()[featId]
                             return feat ? feat.name : featId
                           }).join(', ')}
                         </span>
@@ -397,10 +399,17 @@ function TrainingSessionEditor({ session, onSave, onCancel }: TrainingSessionEdi
   const knownSkills = getAllKnownSkills()
 
   // Feat helper functions
-  const availableFeats = Object.values(feats).filter(feat => 
+  const allFeats = loadFeats()
+  const allAvailableFeats = Object.values(allFeats).filter(feat => 
     !featsTrained.includes(feat.id) &&
     !knownFeats.includes(feat.id) &&
     feat.name.toLowerCase().includes(featSearchTerm.toLowerCase())
+  )
+  
+  // Content filtering for feats
+  const { filter: featFilter, setFilter: setFeatFilter, filteredItems: availableFeats, counts: featCounts } = useContentFilter(
+    allAvailableFeats, 
+    (id) => isFromHomebrewStore(id, 'feat')
   )
 
   const addFeatTrained = (featId: string) => {
@@ -667,7 +676,7 @@ function TrainingSessionEditor({ session, onSave, onCancel }: TrainingSessionEdi
               <label className="text-xs font-medium block mb-2">Selected Feats</label>
               <div className="flex flex-wrap gap-2">
                 {featsTrained.map(featId => {
-                  const feat = feats[featId]
+                  const feat = allFeats[featId]
                   return feat ? (
                     <div key={featId} className="flex items-center gap-1 bg-accent/10 px-2 py-1 rounded">
                       <span className="text-sm">{feat.name}</span>
@@ -700,6 +709,15 @@ function TrainingSessionEditor({ session, onSave, onCancel }: TrainingSessionEdi
                 />
               </div>
             </div>
+            
+            <ContentFilter
+              currentFilter={featFilter}
+              onFilterChange={setFeatFilter}
+              homebrewCount={featCounts.homebrew}
+              srdCount={featCounts.srd}
+              totalCount={featCounts.total}
+              variant="compact"
+            />
 
             {availableFeats.length > 0 ? (
               <div className="max-h-48 overflow-y-auto space-y-2 border rounded p-2">
@@ -708,10 +726,14 @@ function TrainingSessionEditor({ session, onSave, onCancel }: TrainingSessionEdi
                   return (
                     <div key={feat.id} className="flex items-start justify-between p-2 hover:bg-accent/5 rounded">
                       <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <h4 className={`text-sm font-medium ${isGloballyKnown ? 'text-muted-foreground' : ''}`}>{feat.name}</h4>
+                        <ContentWithHomebrew 
+                          name={feat.name}
+                          isHomebrew={isFromHomebrewStore(feat.id, 'feat')}
+                          badgeVariant="small"
+                          className={`text-sm font-medium ${isGloballyKnown ? 'text-muted-foreground' : ''}`}
+                        >
                           {isGloballyKnown && <span className="text-xs text-muted-foreground">(Known)</span>}
-                        </div>
+                        </ContentWithHomebrew>
                         <p className={`text-xs line-clamp-2 ${isGloballyKnown ? 'text-muted-foreground' : 'text-muted'}`}>{feat.description}</p>
                       </div>
                       <Button

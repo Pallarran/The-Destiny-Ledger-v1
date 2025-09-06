@@ -4,7 +4,7 @@ import { FeatCardWithDelta } from './FeatCardWithDelta'
 import { useContextualFields, useContextualDescriptions } from '../../hooks/useContextualFields'
 import { useCharacterBuilderStore } from '../../stores/characterBuilderStore'
 import { Sword, Target, Zap, Crown } from 'lucide-react'
-import { feats } from '../../rules/srd/feats'
+import { loadFeats } from '../../rules/loaders'
 import type { BuildConfiguration } from '../../stores/types'
 
 interface ContextualFeatSelectionProps {
@@ -36,6 +36,9 @@ export function ContextualFeatSelection({
   const activeBuild = build || currentBuild
   const contextualFields = useContextualFields(activeBuild)
   const descriptions = useContextualDescriptions(activeBuild)
+  
+  // Get all feats (including homebrew)
+  const allFeats = loadFeats()
   
   if (!activeBuild) {
     return (
@@ -74,7 +77,7 @@ export function ContextualFeatSelection({
     }
   }
   
-  const renderFeatCard = (featId: keyof typeof feats, feat: typeof feats[keyof typeof feats]) => {
+  const renderFeatCard = (featId: string, feat: any) => {
     const Icon = FEAT_ICONS[featId as keyof typeof FEAT_ICONS] || Crown
     const colorClass = FEAT_COLORS[featId as keyof typeof FEAT_COLORS] || 'text-gray-600 bg-gray-500/10 border-gray-500/20'
     const isSelected = isFeatSelected(featId)
@@ -109,7 +112,7 @@ export function ContextualFeatSelection({
           description={descriptions.gwm}
           expandable={false}
         >
-          {renderFeatCard('great_weapon_master', feats.great_weapon_master)}
+          {renderFeatCard('great_weapon_master', allFeats.great_weapon_master)}
         </ContextualReveal>
         
         <ContextualReveal
@@ -118,7 +121,7 @@ export function ContextualFeatSelection({
           description={descriptions.sharpshooter}
           expandable={false}
         >
-          {renderFeatCard('sharpshooter', feats.sharpshooter)}
+          {renderFeatCard('sharpshooter', allFeats.sharpshooter)}
         </ContextualReveal>
         
         {/* Weapon-Specific Feats */}
@@ -128,7 +131,7 @@ export function ContextualFeatSelection({
           description={descriptions.crossbow_expert}
           expandable={false}
         >
-          {renderFeatCard('crossbow_expert', feats.crossbow_expert)}
+          {renderFeatCard('crossbow_expert', allFeats.crossbow_expert)}
         </ContextualReveal>
         
         <ContextualReveal
@@ -137,7 +140,7 @@ export function ContextualFeatSelection({
           description={descriptions.polearm_master}
           expandable={false}
         >
-          {renderFeatCard('polearm_master', feats.polearm_master)}
+          {renderFeatCard('polearm_master', allFeats.polearm_master)}
         </ContextualReveal>
         
         {/* Show message when no contextual feats are available */}

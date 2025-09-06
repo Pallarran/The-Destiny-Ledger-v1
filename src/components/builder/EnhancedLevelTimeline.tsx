@@ -5,7 +5,7 @@ import { Badge } from '../ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select'
 import { ClassIcon } from '../ui/class-icon'
 import { useCharacterBuilderStore } from '../../stores/characterBuilderStore'
-import { feats } from '../../rules/srd/feats'
+import { loadFeats } from '../../rules/loaders'
 import { getClass, loadClasses, loadSubclasses } from '../../rules/loaders'
 import { getProficiencyBonus } from '../../rules/srd/skills'
 import { Plus, Sword, ChevronRight, AlertTriangle, CheckCircle, Clock, Heart, TrendingUp, Sparkles, Trash2, Crown, Target, TreePine, Star } from 'lucide-react'
@@ -337,6 +337,9 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
   
   // Get known feats to prevent duplicates
   const knownFeats = getAllKnownFeats()
+  
+  // Get all feats (including homebrew)
+  const allFeats = loadFeats()
   
   // Get class features for this level
   const classFeatures = classData?.features?.[classLevel] || []
@@ -1869,7 +1872,7 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
                   <Select 
                     value={section.selectedFeat || ""} 
                     onValueChange={(featId) => {
-                      const selectedFeat = Object.values(feats).find((f: Feat) => f.id === featId)
+                      const selectedFeat = Object.values(allFeats).find((f: Feat) => f.id === featId)
                       
                       // If feat has ability score increase options, we need to handle that
                       if (selectedFeat?.abilityScoreIncrease) {
@@ -1890,16 +1893,20 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
                       <SelectValue placeholder="Select a feat..." />
                     </SelectTrigger>
                     <SelectContent className="max-h-80">
-                      {Object.values(feats).sort((a: Feat, b: Feat) => a.name.localeCompare(b.name)).map((feat: Feat) => {
+                      {Object.values(allFeats).sort((a: Feat, b: Feat) => a.name.localeCompare(b.name)).map((feat: Feat) => {
                         const isKnown = knownFeats.includes(feat.id)
                         return (
                           <SelectItem key={feat.id} value={feat.id} disabled={isKnown}>
                             <div className="flex flex-col gap-1">
                               <div className="font-medium">
-                                <div className="flex items-center gap-2">
-                                  <span className={isKnown ? "text-muted-foreground" : ""}>{feat.name}</span>
+                                <ContentWithHomebrew 
+                                  name={feat.name}
+                                  isHomebrew={isFromHomebrewStore(feat.id, 'feat')}
+                                  badgeVariant="small"
+                                  className={`flex items-center gap-2 ${isKnown ? "text-muted-foreground" : ""}`}
+                                >
                                   {isKnown && <span className="text-xs text-muted-foreground">(Known)</span>}
-                                </div>
+                                </ContentWithHomebrew>
                                 {feat.abilityScoreIncrease && (
                                   <span className={`ml-2 text-xs px-1 rounded ${isKnown ? 'bg-muted text-muted-foreground' : 'bg-accent/10 text-accent'}`}>
                                     +1 Ability Score
@@ -1918,7 +1925,7 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
                   
                   {/* Half-feat ability score selection */}
                   {section.selectedFeat && (() => {
-                    const selectedFeat = Object.values(feats).find((f: Feat) => f.id === section.selectedFeat)
+                    const selectedFeat = Object.values(allFeats).find((f: Feat) => f.id === section.selectedFeat)
                     if (!selectedFeat?.abilityScoreIncrease) return null
                     
                     return (
