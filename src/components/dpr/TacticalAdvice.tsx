@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card'
 import { Crosshair, Shield, TrendingUp, Zap } from 'lucide-react'
 import { buildToCombatState, getWeaponConfig } from '../../engine/simulator'
 import { calculateBuildDPR } from '../../engine/calculations'
+import { getDynamicTargetAC } from '../../utils/dprThresholds'
 import type { BuildConfiguration, DPRResult } from '../../stores/types'
 
 interface TacticalAdviceProps {
@@ -34,34 +35,41 @@ function generateTacticalAdvice(
   
   if (!weaponConfig) return advice
 
-  // Power Attack targeting advice
+  // Get character level for dynamic AC
+  const characterLevel = Math.max(...(build.levelTimeline?.map(l => l.level) || [1]))
+  const targetAC = getDynamicTargetAC(characterLevel)
+
+  // Power Attack targeting advice - adjust AC thresholds based on level
   if (combatState.hasGWM || combatState.hasSharpshooter) {
-    const lowAC = calculateBuildDPR(combatState, weaponConfig, {
-      targetAC: 12, rounds: 3, round0Buffs: config.round0BuffsEnabled,
+    const lowAC = Math.max(10, targetAC - 3) // Low AC relative to level
+    const highAC = targetAC + 3 // High AC relative to level
+    
+    const lowACNormal = calculateBuildDPR(combatState, weaponConfig, {
+      targetAC: lowAC, rounds: 3, round0Buffs: config.round0BuffsEnabled,
       greedyResourceUse: config.greedyResourceUse, autoGWMSS: false
     })
     const lowACPA = calculateBuildDPR(combatState, weaponConfig, {
-      targetAC: 12, rounds: 3, round0Buffs: config.round0BuffsEnabled,
+      targetAC: lowAC, rounds: 3, round0Buffs: config.round0BuffsEnabled,
       greedyResourceUse: config.greedyResourceUse, autoGWMSS: true
     })
-    const highAC = calculateBuildDPR(combatState, weaponConfig, {
-      targetAC: 18, rounds: 3, round0Buffs: config.round0BuffsEnabled,
+    const highACNormal = calculateBuildDPR(combatState, weaponConfig, {
+      targetAC: highAC, rounds: 3, round0Buffs: config.round0BuffsEnabled,
       greedyResourceUse: config.greedyResourceUse, autoGWMSS: false
     })
     const highACPA = calculateBuildDPR(combatState, weaponConfig, {
-      targetAC: 18, rounds: 3, round0Buffs: config.round0BuffsEnabled,
+      targetAC: highAC, rounds: 3, round0Buffs: config.round0BuffsEnabled,
       greedyResourceUse: config.greedyResourceUse, autoGWMSS: true
     })
 
-    if (lowACPA.expectedDPR > lowAC.expectedDPR && highACPA.expectedDPR < highAC.expectedDPR) {
+    if (lowACPA.expectedDPR > lowACNormal.expectedDPR && highACPA.expectedDPR < highACNormal.expectedDPR) {
       advice.push({
         category: 'targeting',
         title: 'Smart Power Attack Targeting',
-        advice: 'Use power attacks against low-AC enemies (AC 12-15), switch to normal attacks against heavily armored foes (AC 16+).',
+        advice: `Use power attacks against low-AC enemies (AC ${lowAC}-${targetAC}), switch to normal attacks against heavily armored foes (AC ${targetAC + 1}+).`,
         priority: 'high',
         situational: 'Check enemy AC before committing'
       })
-    } else if (lowACPA.expectedDPR > lowAC.expectedDPR) {
+    } else if (lowACPA.expectedDPR > lowACNormal.expectedDPR) {
       advice.push({
         category: 'targeting',
         title: 'Power Attacks Beneficial',
@@ -78,9 +86,9 @@ function generateTacticalAdvice(
     }
   }
 
-  // Advantage seeking advice
-  const normalDPR = result.normalCurve.find(p => p.ac === 15)?.dpr || 0
-  const advantageDPR = result.advantageCurve.find(p => p.ac === 15)?.dpr || 0
+  // Advantage seeking advice - use dynamic AC
+  const normalDPR = result.normalCurve.find(p => p.ac === targetAC)?.dpr || 0
+  const advantageDPR = result.advantageCurve.find(p => p.ac === targetAC)?.dpr || 0
   const advantageValue = advantageDPR - normalDPR
 
   if (advantageValue > normalDPR * 0.25) {

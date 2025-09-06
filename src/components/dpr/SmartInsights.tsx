@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card'
 import { Lightbulb, TrendingUp, AlertTriangle, CheckCircle, Info } from 'lucide-react'
 import { buildToCombatState, getWeaponConfig } from '../../engine/simulator'
 import { calculateBuildDPR } from '../../engine/calculations'
-import { getTreantmonkBaseline, describeDPR } from '../../utils/dprThresholds'
+import { getTreantmonkBaseline, describeDPR, getDynamicTargetAC } from '../../utils/dprThresholds'
 import type { BuildConfiguration, DPRResult } from '../../stores/types'
 import type { SimulationConfig } from '../../engine/types'
 
@@ -35,21 +35,22 @@ function generateInsights(
   
   if (!weaponConfig) return insights
 
-  // Calculate some reference points
+  // Get character level for scaling baselines and dynamic AC
+  const characterLevel = Math.max(...(build.levelTimeline?.map(l => l.level) || [1]))
+  const targetAC = getDynamicTargetAC(characterLevel)
+  
+  // Calculate some reference points using dynamic AC
   const simConfig: SimulationConfig = {
-    targetAC: 15,
+    targetAC: targetAC,
     rounds: 3,
     round0Buffs: config.round0BuffsEnabled,
     greedyResourceUse: config.greedyResourceUse,
     autoGWMSS: config.autoGWMSS
   }
   
-  const ac15Result = calculateBuildDPR(combatState, weaponConfig, simConfig)
+  const acResult = calculateBuildDPR(combatState, weaponConfig, simConfig)
   const avgDPR = result.averageDPR
-  const hitChance = ac15Result.hitChance
-  
-  // Get character level for scaling baselines
-  const characterLevel = Math.max(...(build.levelTimeline?.map(l => l.level) || [1]))
+  const hitChance = acResult.hitChance
   
   // Use Treantmonk's baseline system
   const baseline = getTreantmonkBaseline(characterLevel)
@@ -98,14 +99,14 @@ function generateInsights(
     insights.push({
       type: 'weakness',
       title: 'Accuracy Concerns',
-      description: `With only ${Math.round(hitChance * 100)}% hit chance vs AC 15, you'll miss frequently. Focus on improving attack bonuses before adding damage.`,
+      description: `With only ${Math.round(hitChance * 100)}% hit chance vs AC ${targetAC}, you'll miss frequently. Focus on improving attack bonuses before adding damage.`,
       priority: 'high'
     })
   } else if (hitChance > 0.8) {
     insights.push({
       type: 'strength',
       title: 'Excellent Accuracy',
-      description: `Your ${Math.round(hitChance * 100)}% hit chance vs AC 15 means you rarely miss. This consistent accuracy amplifies your damage output.`,
+      description: `Your ${Math.round(hitChance * 100)}% hit chance vs AC ${targetAC} means you rarely miss. This consistent accuracy amplifies your damage output.`,
       priority: 'medium'
     })
   }
@@ -119,14 +120,14 @@ function generateInsights(
       insights.push({
         type: 'strength',
         title: 'Power Attacks Excel',
-        description: `Your power attacks add ${(withPA.expectedDPR - withoutPA.expectedDPR).toFixed(1)} DPR vs AC 15. Use them against most enemies for optimal damage.`,
+        description: `Your power attacks add ${(withPA.expectedDPR - withoutPA.expectedDPR).toFixed(1)} DPR vs AC ${targetAC}. Use them against most enemies for optimal damage.`,
         priority: 'medium'
       })
     } else if (withPA.expectedDPR < withoutPA.expectedDPR * 0.9) {
       insights.push({
         type: 'tip',
         title: 'Power Attacks Risky',
-        description: `Power attacks reduce your DPR by ${(withoutPA.expectedDPR - withPA.expectedDPR).toFixed(1)} vs AC 15. Only use against low-AC enemies (AC 12-14).`,
+        description: `Power attacks reduce your DPR by ${(withoutPA.expectedDPR - withPA.expectedDPR).toFixed(1)} vs AC ${targetAC}. Only use against low-AC enemies (AC ${Math.max(10, targetAC - 3)}-${targetAC - 1}).`,
         priority: 'medium'
       })
     }
@@ -181,15 +182,15 @@ function generateInsights(
   }
 
   // Advantage curve analysis
-  const normalDPR = result.normalCurve.find(p => p.ac === 15)?.dpr || 0
-  const advantageDPR = result.advantageCurve.find(p => p.ac === 15)?.dpr || 0
+  const normalDPR = result.normalCurve.find(p => p.ac === targetAC)?.dpr || 0
+  const advantageDPR = result.advantageCurve.find(p => p.ac === targetAC)?.dpr || 0
   const advantageGain = advantageDPR - normalDPR
   
   if (advantageGain > avgDPR * 0.3) {
     insights.push({
       type: 'opportunity',
       title: 'High Advantage Value',
-      description: `Advantage adds ${advantageGain.toFixed(1)} DPR (${Math.round(advantageGain/normalDPR*100)}% increase) vs AC 15. Prioritize sources of advantage.`,
+      description: `Advantage adds ${advantageGain.toFixed(1)} DPR (${Math.round(advantageGain/normalDPR*100)}% increase) vs AC ${targetAC}. Prioritize sources of advantage.`,
       priority: 'medium'
     })
   }
