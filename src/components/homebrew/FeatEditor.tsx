@@ -26,6 +26,7 @@ import type {
   HomebrewFeat, 
   HomebrewFeatBenefit, 
   HomebrewPrerequisite,
+  HomebrewMechanic,
   ValidationResult
 } from '../../types/homebrew'
 import type { AbilityScore } from '../../rules/types'
@@ -79,6 +80,29 @@ const COMMON_SKILLS = [
   'Stealth', 'Survival'
 ]
 
+// Common mechanic types
+const MECHANIC_TYPES = [
+  { id: 'passive', name: 'Passive Effect' },
+  { id: 'active', name: 'Active Ability' },
+  { id: 'reaction', name: 'Reaction' },
+  { id: 'resource', name: 'Resource-Based' },
+  { id: 'modification', name: 'Stat/Rule Modification' }
+] as const
+
+// Common effect types
+const EFFECT_TYPES = [
+  { id: 'damage', name: 'Damage Bonus' },
+  { id: 'healing', name: 'Healing Bonus' },
+  { id: 'condition', name: 'Apply Condition' },
+  { id: 'ability_check', name: 'Ability Check Bonus' },
+  { id: 'saving_throw', name: 'Saving Throw Bonus' },
+  { id: 'ac_bonus', name: 'AC Bonus' },
+  { id: 'attack_bonus', name: 'Attack Bonus' },
+  { id: 'damage_bonus', name: 'Damage Roll Bonus' },
+  { id: 'skill_proficiency', name: 'Skill Proficiency' },
+  { id: 'advantage', name: 'Advantage on Rolls' }
+] as const
+
 export function FeatEditor({ initialFeat, onSave, onCancel }: FeatEditorProps) {
   const [featData, setFeatData] = useState<HomebrewFeat>(() => {
     if (initialFeat) return initialFeat
@@ -113,7 +137,16 @@ export function FeatEditor({ initialFeat, onSave, onCancel }: FeatEditorProps) {
   }, [featData])
 
   const handleBasicChange = (field: keyof HomebrewFeat, value: any) => {
-    setFeatData(prev => ({ ...prev, [field]: value, updatedAt: new Date() }))
+    setFeatData(prev => {
+      const updated = { ...prev, [field]: value, updatedAt: new Date() }
+      
+      // Auto-generate ID when name changes
+      if (field === 'name' && value) {
+        updated.id = value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
+      }
+      
+      return updated
+    })
   }
 
   const handleAbilityScoreIncreaseToggle = (enabled: boolean) => {
@@ -218,6 +251,64 @@ export function FeatEditor({ initialFeat, onSave, onCancel }: FeatEditorProps) {
       const benefits = [...prev.benefits]
       benefits[index] = { ...benefits[index], [field]: value }
       return { ...prev, benefits, updatedAt: new Date() }
+    })
+  }
+
+  const addMechanic = () => {
+    const newMechanic: HomebrewMechanic = {
+      type: 'passive',
+      effect: {
+        type: 'skill_proficiency',
+        target: 'self'
+      }
+    }
+    
+    setFeatData(prev => ({
+      ...prev,
+      mechanics: [...prev.mechanics, newMechanic],
+      updatedAt: new Date()
+    }))
+  }
+
+  const removeMechanic = (index: number) => {
+    setFeatData(prev => ({
+      ...prev,
+      mechanics: prev.mechanics.filter((_, i) => i !== index),
+      updatedAt: new Date()
+    }))
+  }
+
+  const handleMechanicChange = (index: number, field: string, value: any) => {
+    setFeatData(prev => {
+      const mechanics = [...prev.mechanics]
+      if (field.includes('.')) {
+        const [parent, child] = field.split('.')
+        const currentMechanic = mechanics[index]
+        
+        if (parent === 'effect') {
+          mechanics[index] = {
+            ...currentMechanic,
+            effect: {
+              ...currentMechanic.effect,
+              [child]: value
+            }
+          }
+        } else if (parent === 'amount') {
+          mechanics[index] = {
+            ...currentMechanic,
+            effect: {
+              ...currentMechanic.effect,
+              amount: {
+                ...currentMechanic.effect.amount,
+                [child]: value
+              }
+            }
+          }
+        }
+      } else {
+        mechanics[index] = { ...mechanics[index], [field]: value }
+      }
+      return { ...prev, mechanics, updatedAt: new Date() }
     })
   }
 
@@ -392,7 +483,7 @@ export function FeatEditor({ initialFeat, onSave, onCancel }: FeatEditorProps) {
       {/* Editor Sections */}
       <Panel>
         <Tabs value={activeSection} onValueChange={setActiveSection}>
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="basic" className="gap-2">
               <BookOpen className="w-4 h-4" />
               Basic Info
@@ -404,6 +495,10 @@ export function FeatEditor({ initialFeat, onSave, onCancel }: FeatEditorProps) {
             <TabsTrigger value="benefits" className="gap-2">
               <Star className="w-4 h-4" />
               Benefits
+            </TabsTrigger>
+            <TabsTrigger value="mechanics" className="gap-2">
+              <Zap className="w-4 h-4" />
+              Mechanics
             </TabsTrigger>
             <TabsTrigger value="advanced" className="gap-2">
               <Zap className="w-4 h-4" />
@@ -431,13 +526,30 @@ export function FeatEditor({ initialFeat, onSave, onCancel }: FeatEditorProps) {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-panel mb-2">Tags</label>
+                <div className="flex items-center gap-2 mb-2">
+                  <label className="block text-sm font-medium text-panel">Feat ID</label>
+                  {getValidationIcon('id')}
+                </div>
                 <Input
-                  value={featData.tags.join(', ')}
-                  onChange={(e) => handleBasicChange('tags', e.target.value.split(',').map(t => t.trim()).filter(t => t))}
-                  placeholder="combat, magic, utility (comma-separated)"
+                  value={featData.id}
+                  onChange={(e) => handleBasicChange('id', e.target.value)}
+                  placeholder="auto-generated-from-name"
+                  className={getFieldErrors('id').length > 0 ? 'border-red-500' : ''}
                 />
+                {getFieldErrors('id').map((error, i) => (
+                  <p key={i} className="text-sm text-red-600 mt-1">{error.message}</p>
+                ))}
+                <p className="text-xs text-muted mt-1">Unique identifier (auto-generated from name)</p>
               </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-panel mb-2">Tags</label>
+              <Input
+                value={featData.tags.join(', ')}
+                onChange={(e) => handleBasicChange('tags', e.target.value.split(',').map(t => t.trim()).filter(t => t))}
+                placeholder="combat, magic, utility (comma-separated)"
+              />
             </div>
 
             <div>
@@ -723,6 +835,136 @@ export function FeatEditor({ initialFeat, onSave, onCancel }: FeatEditorProps) {
                           rows={3}
                         />
                       </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+
+          {/* Mechanics */}
+          <TabsContent value="mechanics" className="space-y-6 mt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-semibold text-panel">Feat Mechanics</h3>
+                <p className="text-sm text-muted">Define specific mechanical effects this feat provides</p>
+              </div>
+              <Button onClick={addMechanic} size="sm" className="gap-2">
+                <Plus className="w-4 h-4" />
+                Add Mechanic
+              </Button>
+            </div>
+
+            {featData.mechanics.length === 0 ? (
+              <div className="text-center py-12 text-muted">
+                <Zap className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                <p>No mechanics defined yet.</p>
+                <p className="text-sm">Click "Add Mechanic" to define how this feat works mechanically!</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {featData.mechanics.map((mechanic, index) => (
+                  <Card key={index}>
+                    <CardHeader className="pb-3">
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="text-base">Mechanic {index + 1}</CardTitle>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeMechanic(index)}
+                          className="text-destructive hover:text-destructive"
+                        >
+                          <X className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-panel mb-2">Mechanic Type</label>
+                          <Select
+                            value={mechanic.type}
+                            onValueChange={(value) => handleMechanicChange(index, 'type', value)}
+                          >
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {MECHANIC_TYPES.map((type) => (
+                                <SelectItem key={type.id} value={type.id}>
+                                  {type.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-panel mb-2">Effect Type</label>
+                          <Select
+                            value={mechanic.effect.type}
+                            onValueChange={(value) => handleMechanicChange(index, 'effect.type', value)}
+                          >
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {EFFECT_TYPES.map((type) => (
+                                <SelectItem key={type.id} value={type.id}>
+                                  {type.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+
+                      {/* Skill Proficiency specific fields */}
+                      {mechanic.effect.type === 'skill_proficiency' && (
+                        <div>
+                          <label className="block text-sm font-medium text-panel mb-2">Skill</label>
+                          <Select
+                            value={String(mechanic.effect.target || '')}
+                            onValueChange={(value) => handleMechanicChange(index, 'effect.target', value)}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select skill..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {COMMON_SKILLS.map((skill) => (
+                                <SelectItem key={skill} value={skill}>
+                                  {skill}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      )}
+
+                      {/* Trigger condition for non-passive mechanics */}
+                      {mechanic.type !== 'passive' && (
+                        <div>
+                          <label className="block text-sm font-medium text-panel mb-2">Trigger</label>
+                          <Input
+                            value={mechanic.trigger || ''}
+                            onChange={(e) => handleMechanicChange(index, 'trigger', e.target.value)}
+                            placeholder="When this effect triggers..."
+                          />
+                        </div>
+                      )}
+
+                      {/* Bonus amount for numeric effects */}
+                      {['attack_bonus', 'damage_bonus', 'ac_bonus', 'saving_throw_bonus', 'ability_check'].includes(mechanic.effect.type) && (
+                        <div>
+                          <label className="block text-sm font-medium text-panel mb-2">Bonus Amount</label>
+                          <Input
+                            type="number"
+                            value={mechanic.effect.amount?.modifier || ''}
+                            onChange={(e) => handleMechanicChange(index, 'effect.amount.modifier', parseInt(e.target.value) || 0)}
+                            placeholder="0"
+                          />
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
                 ))}

@@ -176,7 +176,7 @@ export interface HomebrewMechanic {
 }
 
 export interface HomebrewEffect {
-  type: 'damage' | 'healing' | 'condition' | 'ability_check' | 'saving_throw' | 'ac_bonus' | 'attack_bonus' | 'damage_bonus'
+  type: 'damage' | 'healing' | 'condition' | 'ability_check' | 'saving_throw' | 'ac_bonus' | 'attack_bonus' | 'damage_bonus' | 'skill_proficiency' | 'advantage'
   amount?: {
     dice?: { count: number; sides: number }
     modifier?: number
