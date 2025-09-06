@@ -271,9 +271,10 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
         }
       })
       
-      // Ensure ability scores are recalculated when navigating
-      // This preserves racial bonuses and other modifiers
-      get().recalculateAllAbilityScores()
+      // Ensure training totals and ability scores are recalculated when navigating
+      // This preserves racial bonuses, training bonuses, and other modifiers
+      // Note: recomputeTrainingTotals() internally calls recalculateAllAbilityScores()
+      get().recomputeTrainingTotals()
     },
     
     nextStep: () => {
@@ -432,10 +433,8 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
       })
       
       // Ensure downtime training totals are computed after loading (outside of set callback)
+      // Note: recomputeTrainingTotals() internally calls recalculateAllAbilityScores()
       get().recomputeTrainingTotals()
-      
-      // Recalculate all ability scores to ensure racial bonuses are applied
-      get().recalculateAllAbilityScores()
     },
     
     exportToBuildConfiguration: (): BuildConfiguration | null => {
@@ -756,6 +755,8 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
           
           console.log('Recalculated all ability scores:', finalScores)
           console.log('Base scores:', state.currentBuild.baseAbilityScores)
+          console.log('Racial bonuses:', state.currentBuild.racialBonuses)
+          console.log('Training bonuses:', state.currentBuild.downtimeTraining?.abilityTraining)
           console.log('ASI/Half-feat entries found:', (state.currentBuild.enhancedLevelTimeline || []).filter(e => e.abilityIncreases).map(e => ({ 
             level: e.level, 
             type: e.asiOrFeat, 
