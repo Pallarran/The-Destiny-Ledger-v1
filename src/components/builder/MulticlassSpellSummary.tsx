@@ -85,7 +85,7 @@ export const MulticlassSpellInfo: React.FC<MulticlassSpellSummaryProps> = ({ cur
       </button>
       
       {showDetails && (
-        <div className="absolute top-full left-0 mt-2 w-96 max-w-screen-sm bg-white border border-gray-200 rounded-lg shadow-lg z-50 p-4 space-y-4">
+        <div className="absolute top-full left-0 mt-2 w-96 max-w-screen-sm bg-white border border-gray-200 rounded-lg shadow-lg z-[9999] p-4 space-y-4">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <Sparkles className="w-5 h-5 text-purple-600" />
