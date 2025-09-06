@@ -9,21 +9,45 @@ export interface DPRThresholds {
 }
 
 /**
- * Get Treantmonk's baseline damage for a given level
- * These baselines already factor in hit chance and crit chance
+ * Get dynamic target AC based on character level
+ * Level 1-4: AC 13
+ * Level 5-10: AC 15
+ * Level 11-16: AC 17
+ * Level 17-20: AC 19
  */
-export function getTreantmonkBaseline(level: number): number {
-  if (level === 1) return 5.85
-  if (level >= 2 && level <= 3) return 7.65
-  if (level === 4) return 8.25
-  if (level >= 5 && level <= 7) return 16.5
-  if (level >= 8 && level <= 10) return 17.7
-  if (level >= 11 && level <= 12) return 26.55
-  if (level >= 13 && level <= 16) return 26.55
-  if (level >= 17 && level <= 20) return 35.4
+export function getDynamicTargetAC(level: number): number {
+  if (level >= 1 && level <= 4) return 13
+  if (level >= 5 && level <= 10) return 15
+  if (level >= 11 && level <= 16) return 17
+  if (level >= 17 && level <= 20) return 19
   
   // Fallback for invalid levels
-  return 5.85
+  return 15
+}
+
+/**
+ * Get Treantmonk's baseline damage for a given level
+ * These baselines already factor in hit chance and crit chance
+ * Updated values:
+ * Level 1-3: 9
+ * Level 4: 10.4
+ * Level 5-7: 19
+ * Level 8: 21.9
+ * Level 9-12: 23.9
+ * Level 13-16: 25.1
+ * Level 17-20: 32.6
+ */
+export function getTreantmonkBaseline(level: number): number {
+  if (level >= 1 && level <= 3) return 9
+  if (level === 4) return 10.4
+  if (level >= 5 && level <= 7) return 19
+  if (level === 8) return 21.9
+  if (level >= 9 && level <= 12) return 23.9
+  if (level >= 13 && level <= 16) return 25.1
+  if (level >= 17 && level <= 20) return 32.6
+  
+  // Fallback for invalid levels
+  return 9
 }
 
 /**

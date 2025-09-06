@@ -4,7 +4,7 @@ import { Badge } from '../ui/badge'
 import { Star, TrendingUp, CheckCircle, AlertCircle, XCircle, Info } from 'lucide-react'
 import { buildToCombatState, getWeaponConfig } from '../../engine/simulator'
 import { calculateBuildDPR } from '../../engine/calculations'
-import { getBuildRating, getTreantmonkBaseline, type DPRRating } from '../../utils/dprThresholds'
+import { getBuildRating, getTreantmonkBaseline, getDynamicTargetAC, type DPRRating } from '../../utils/dprThresholds'
 import type { BuildConfiguration, DPRResult } from '../../stores/types'
 import type { SimulationConfig } from '../../engine/types'
 
@@ -22,8 +22,9 @@ interface AttackMetrics {
   hitBonus: number
   damageDice: string
   damageBonus: number
-  hitChanceVsAC15: number
+  hitChanceVsTargetAC: number
   avgDPR: number
+  targetAC: number
   hitBreakdown?: {
     proficiencyBonus: number
     abilityModifier: number
@@ -134,25 +135,29 @@ function calculateHeroMetrics(
     additionalDamage.push({ source: 'Frostbrand', dice: '1d6' })
   }
 
-  // Calculate normal attack metrics vs AC 15
+  // Get character level for scaling baselines and dynamic AC
+  const characterLevel = Math.max(...(build.levelTimeline?.map(l => l.level) || [1]))
+  const targetAC = getDynamicTargetAC(characterLevel)
+
+  // Calculate normal attack metrics vs dynamic AC based on level
   const normalSimConfig: SimulationConfig = {
-    targetAC: 15,
+    targetAC: targetAC,
     rounds: 3,
     round0Buffs: config.round0BuffsEnabled,
     greedyResourceUse: config.greedyResourceUse,
     autoGWMSS: false // Force normal attacks
   }
   
-  const normalAC15Result = calculateBuildDPR(combatState, weaponConfig, normalSimConfig)
+  const normalACResult = calculateBuildDPR(combatState, weaponConfig, normalSimConfig)
   
   // Calculate power attack metrics if applicable
-  let powerAC15Result = null
+  let powerACResult = null
   let powerHitBonus = hitBonus
   let powerDamageBonus = damageBonus
   
   if (combatState.hasGWM || combatState.hasSharpshooter) {
     const powerSimConfig: SimulationConfig = {
-      targetAC: 15,
+      targetAC: targetAC,
       rounds: 3,
       round0Buffs: config.round0BuffsEnabled,
       greedyResourceUse: config.greedyResourceUse,
@@ -160,7 +165,7 @@ function calculateHeroMetrics(
       forceGWMSS: true // Force power attacks
     }
     
-    powerAC15Result = calculateBuildDPR(combatState, weaponConfig, powerSimConfig)
+    powerACResult = calculateBuildDPR(combatState, weaponConfig, powerSimConfig)
     powerHitBonus = hitBonus - 5 // -5 to hit for power attacks
     powerDamageBonus = damageBonus + 10 // +10 damage for power attacks
   }
@@ -194,35 +199,34 @@ function calculateHeroMetrics(
     }
   }
 
-  // Get character level for scaling baselines
-  const characterLevel = Math.max(...(build.levelTimeline?.map(l => l.level) || [1]))
+  // Get baseline for this level
   const baseline = getTreantmonkBaseline(characterLevel)
   
   // Calculate ratings for both attack types
-  const normalRating = getBuildRating(normalAC15Result.expectedDPR, normalAC15Result.hitChance, characterLevel)
-  const normalPercentage = (normalAC15Result.expectedDPR / baseline) * 100
+  const normalRating = getBuildRating(normalACResult.expectedDPR, normalACResult.hitChance, characterLevel)
+  const normalPercentage = (normalACResult.expectedDPR / baseline) * 100
   
   let powerRating: DPRRating | undefined
   let powerPercentage: number | undefined
-  if (powerAC15Result) {
-    powerRating = getBuildRating(powerAC15Result.expectedDPR, powerAC15Result.hitChance, characterLevel)
-    powerPercentage = (powerAC15Result.expectedDPR / baseline) * 100
+  if (powerACResult) {
+    powerRating = getBuildRating(powerACResult.expectedDPR, powerACResult.hitChance, characterLevel)
+    powerPercentage = (powerACResult.expectedDPR / baseline) * 100
   }
   
   // Overall build rating based on best available DPR
-  const bestDPR = powerAC15Result && powerAC15Result.expectedDPR > normalAC15Result.expectedDPR 
-    ? powerAC15Result.expectedDPR 
-    : normalAC15Result.expectedDPR
-  const bestHitChance = powerAC15Result && powerAC15Result.expectedDPR > normalAC15Result.expectedDPR
-    ? powerAC15Result.hitChance
-    : normalAC15Result.hitChance
+  const bestDPR = powerACResult && powerACResult.expectedDPR > normalACResult.expectedDPR 
+    ? powerACResult.expectedDPR 
+    : normalACResult.expectedDPR
+  const bestHitChance = powerACResult && powerACResult.expectedDPR > normalACResult.expectedDPR
+    ? powerACResult.hitChance
+    : normalACResult.hitChance
   const buildRating = getBuildRating(bestDPR, bestHitChance, characterLevel)
 
   // Identify key strength
   let keyStrength = 'Consistent damage'
   if (combatState.sneakAttackDice > 0) keyStrength = 'Burst damage'
   else if (combatState.extraAttacks >= 2) keyStrength = 'Multiple attacks'
-  else if (normalAC15Result.hitChance > 0.8) keyStrength = 'High accuracy'
+  else if (normalACResult.hitChance > 0.8) keyStrength = 'High accuracy'
   else if (combatState.hasGWM || combatState.hasSharpshooter) keyStrength = 'Power attacks'
 
   return {
@@ -240,8 +244,9 @@ function calculateHeroMetrics(
       hitBonus,
       damageDice,
       damageBonus,
-      hitChanceVsAC15: normalAC15Result.hitChance,
-      avgDPR: normalAC15Result.expectedDPR,
+      hitChanceVsTargetAC: normalACResult.hitChance,
+      avgDPR: normalACResult.expectedDPR,
+      targetAC,
       hitBreakdown: {
         proficiencyBonus: combatState.proficiencyBonus,
         abilityModifier: combatState.abilityModifier,
@@ -256,12 +261,13 @@ function calculateHeroMetrics(
         otherBonuses: otherDamageBonuses
       }
     },
-    powerAttack: powerAC15Result ? {
+    powerAttack: powerACResult ? {
       hitBonus: powerHitBonus,
       damageDice,
       damageBonus: powerDamageBonus,
-      hitChanceVsAC15: powerAC15Result.hitChance,
-      avgDPR: powerAC15Result.expectedDPR
+      hitChanceVsTargetAC: powerACResult.hitChance,
+      avgDPR: powerACResult.expectedDPR,
+      targetAC
     } : undefined,
     powerAttackAdvice,
     hasPowerAttack: combatState.hasGWM || combatState.hasSharpshooter
@@ -422,13 +428,13 @@ export function HeroMetrics({ build, result, config }: HeroMetricsProps) {
                 </div>
               </div>
               <div className="text-center">
-                <div className="text-xs text-muted mb-1">DPR vs AC 15</div>
+                <div className="text-xs text-muted mb-1">DPR vs AC {metrics.normalAttack.targetAC}</div>
                 <div className="font-semibold text-foreground">{metrics.normalAttack.avgDPR.toFixed(1)}</div>
               </div>
             </div>
             <div className="mt-2 pt-2 border-t border-border/10 text-center">
-              <span className="text-xs text-muted">Hit vs AC 15: </span>
-              <span className="text-xs font-medium text-accent">{Math.round(metrics.normalAttack.hitChanceVsAC15 * 100)}%</span>
+              <span className="text-xs text-muted">Hit vs AC {metrics.normalAttack.targetAC}: </span>
+              <span className="text-xs font-medium text-accent">{Math.round(metrics.normalAttack.hitChanceVsTargetAC * 100)}%</span>
             </div>
           </div>
         </div>
@@ -468,13 +474,13 @@ export function HeroMetrics({ build, result, config }: HeroMetricsProps) {
                   </div>
                 </div>
                 <div className="text-center">
-                  <div className="text-xs text-muted mb-1">DPR vs AC 15</div>
+                  <div className="text-xs text-muted mb-1">DPR vs AC {metrics.powerAttack.targetAC}</div>
                   <div className="font-semibold text-foreground">{metrics.powerAttack.avgDPR.toFixed(1)}</div>
                 </div>
               </div>
               <div className="mt-2 pt-2 border-t border-border/10 text-center">
-                <span className="text-xs text-muted">Hit vs AC 15: </span>
-                <span className="text-xs font-medium text-purple">{Math.round(metrics.powerAttack.hitChanceVsAC15 * 100)}%</span>
+                <span className="text-xs text-muted">Hit vs AC {metrics.powerAttack.targetAC}: </span>
+                <span className="text-xs font-medium text-purple">{Math.round(metrics.powerAttack.hitChanceVsTargetAC * 100)}%</span>
               </div>
             </div>
           </div>
