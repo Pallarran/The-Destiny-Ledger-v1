@@ -6,6 +6,10 @@ interface DPRDelta {
   value: number
   isCalculating: boolean
   error?: string
+  additionalMetrics?: {
+    hitChanceDelta: number
+    critChanceDelta: number
+  }
 }
 
 export function useDPRDelta() {
@@ -59,9 +63,19 @@ export function useDPRDelta() {
       
       const delta = modifiedPoint.dpr - basePoint.dpr
       
+      // Also calculate additional metrics from the first normal curve point (more detailed data)
+      const additionalMetrics = {
+        hitChanceDelta: 0, // For now - would need more detailed DPR result structure
+        critChanceDelta: 0  // For now - would need more detailed DPR result structure
+      }
+      
         setDeltas(prev => ({
           ...prev,
-          [deltaId]: { value: delta, isCalculating: false }
+          [deltaId]: { 
+            value: delta, 
+            isCalculating: false,
+            additionalMetrics 
+          }
         }))
         
         // Cleanup timeout reference

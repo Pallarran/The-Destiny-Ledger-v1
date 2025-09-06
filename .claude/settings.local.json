@@ -57,7 +57,8 @@
       "Read(/C:\\Users\\vince\\Code\\The-Destiny-Ledger-v1\\src\\pages/**)",
       "Read(/C:\\Users\\vince\\Code\\The-Destiny-Ledger-v1\\src\\pages/**)",
       "Read(/C:\\Users\\vince\\Code\\The-Destiny-Ledger-v1\\src\\pages/**)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(npm test:*)"
     ],
     "deny": [],
     "ask": []

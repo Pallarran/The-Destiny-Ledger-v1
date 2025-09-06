@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card'
 import { Badge } from '../ui/badge'
+import { Button } from '../ui/button'
 import { useCharacterBuilderStore } from '../../stores/characterBuilderStore'
 import { getRace, getClass } from '../../rules/loaders'
 import type { ClassDefinition } from '../../rules/types'
@@ -14,7 +15,9 @@ import {
   Brain,
   Sparkles,
   User,
-  Award
+  Award,
+  Download,
+  Printer
 } from 'lucide-react'
 
 // Spell slot progression tables
@@ -447,15 +450,178 @@ export function BuildSummary() {
   // Calculate spell slots
   const spellSlotData = calculateTotalSpellSlots(timeline)
   
+  // Export functionality
+  const exportAsJSON = () => {
+    const exportData = {
+      character: {
+        name: currentBuild.name,
+        level: totalLevel,
+        race: currentBuild.race ? getRace(currentBuild.race)?.name : 'Unknown',
+        subrace: currentBuild.subrace,
+        background: currentBuild.background,
+        class: Object.entries(classBreakdown).map(([className, levels]) => `${className} ${levels}`).join(' / ')
+      },
+      abilityScores: {
+        ...abilityScores,
+        modifiers: Object.entries(abilityScores).reduce((acc, [ability, score]) => {
+          acc[ability] = getAbilityModifier(score)
+          return acc
+        }, {} as Record<string, number>)
+      },
+      combatStats: {
+        armorClass: actualAC,
+        hitPoints: totalHP,
+        initiative: initiative,
+        proficiencyBonus: proficiencyBonus
+      },
+      savingThrows: savingThrows.reduce((acc, save) => {
+        acc[save.ability] = {
+          bonus: save.bonus,
+          isProficient: save.isProficient
+        }
+        return acc
+      }, {} as Record<string, any>),
+      skills: skillBonuses.reduce((acc, skill) => {
+        acc[skill.name] = {
+          bonus: skill.bonus,
+          isProficient: skill.isProficient,
+          hasExpertise: skill.hasExpertise,
+          ability: skill.ability
+        }
+        return acc
+      }, {} as Record<string, any>),
+      spellSlots: spellSlotData,
+      exportedAt: new Date().toISOString()
+    }
+
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `${currentBuild.name || 'character'}-sheet-${new Date().toISOString().split('T')[0]}.json`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  }
+
+  const printCharacterSheet = () => {
+    // Add print-specific styles to the page
+    const style = document.createElement('style')
+    style.textContent = `
+      @media print {
+        /* Hide everything except the character sheet */
+        body * {
+          visibility: hidden;
+        }
+        
+        .character-sheet-container,
+        .character-sheet-container * {
+          visibility: visible;
+        }
+        
+        .character-sheet-container {
+          position: absolute;
+          left: 0;
+          top: 0;
+          width: 100%;
+        }
+        
+        /* Hide non-essential elements for print */
+        .print-hide {
+          display: none !important;
+        }
+        
+        /* Optimize layout for print */
+        .character-sheet-container {
+          font-size: 11px;
+        }
+        
+        .grid {
+          break-inside: avoid;
+        }
+        
+        /* Ensure proper page breaks */
+        .character-sheet-section {
+          break-inside: avoid;
+          page-break-inside: avoid;
+        }
+        
+        /* Compact spacing for print */
+        .space-y-6 > * + * {
+          margin-top: 1rem !important;
+        }
+        
+        .space-y-2 > * + * {
+          margin-top: 0.5rem !important;
+        }
+        
+        /* Remove shadows and optimize colors */
+        .bg-panel\\/5 {
+          background-color: #f8f9fa !important;
+          border: 1px solid #e9ecef !important;
+        }
+        
+        .text-accent {
+          color: #000 !important;
+          font-weight: bold !important;
+        }
+        
+        .text-emerald {
+          color: #000 !important;
+        }
+      }
+    `
+    document.head.appendChild(style)
+    
+    // Print the page
+    window.print()
+    
+    // Clean up the style after printing
+    setTimeout(() => {
+      document.head.removeChild(style)
+    }, 1000)
+  }
+  
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-xl font-bold text-panel mb-2">Character Sheet</h2>
-        <p className="text-muted">Complete overview of {currentBuild.name || 'your character'}</p>
+    <div className="character-sheet-container space-y-6">
+      {/* Header with export controls */}
+      <div className="flex items-start justify-between print-hide">
+        <div>
+          <h2 className="text-xl font-bold text-panel mb-2">Character Sheet</h2>
+          <p className="text-muted">Complete overview of {currentBuild.name || 'your character'}</p>
+        </div>
+        <div className="flex items-center gap-2 ml-4">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={exportAsJSON}
+            className="gap-2"
+          >
+            <Download className="w-4 h-4" />
+            Export JSON
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={printCharacterSheet}
+            className="gap-2"
+          >
+            <Printer className="w-4 h-4" />
+            Print Sheet
+          </Button>
+        </div>
+      </div>
+      
+      {/* Print-only header */}
+      <div className="hidden print:block">
+        <h1 className="text-2xl font-bold text-center mb-6">
+          D&D 5e Character Sheet
+        </h1>
       </div>
       
       {/* Core Identity */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className="character-sheet-section grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Character Info */}
         <Card>
           <CardHeader className="pb-3">
@@ -541,6 +707,7 @@ export function BuildSummary() {
       </div>
       
       {/* Ability Scores */}
+      <div className="character-sheet-section">
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -564,8 +731,10 @@ export function BuildSummary() {
           </div>
         </CardContent>
       </Card>
+      </div>
       
       {/* Saving Throws */}
+      <div className="character-sheet-section">
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -595,8 +764,10 @@ export function BuildSummary() {
           </div>
         </CardContent>
       </Card>
+      </div>
       
       {/* Skills */}
+      <div className="character-sheet-section">
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -657,8 +828,10 @@ export function BuildSummary() {
           </div>
         </CardContent>
       </Card>
+      </div>
 
       {/* Feats */}
+      <div className="character-sheet-section">
       {(() => {
         // Use canonical build to get all feats
         const allFeats: Array<{ feat: string, source: string }> = []
@@ -788,8 +961,10 @@ export function BuildSummary() {
           </Card>
         )
       })()}
+      </div>
 
       {/* Spell Slots */}
+      <div className="character-sheet-section">
       {(spellSlotData.spellSlots || spellSlotData.warlockSlots) && (
         <Card>
           <CardHeader>
@@ -840,6 +1015,7 @@ export function BuildSummary() {
           </CardContent>
         </Card>
       )}
+      </div>
       
     </div>
   )

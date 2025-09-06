@@ -162,6 +162,12 @@ export interface BuildConfiguration {
   
   // Migration fields toward canonical build
   canonicalBuild?: CanonicalBuild
+  
+  // Metadata for UI state and calculations
+  metadata?: {
+    simulatedFeats?: string[] // Temporary feats for Delta Pills calculations
+    simulatedBuffs?: string[] // Temporary buffs for Delta Pills calculations
+  }
 }
 
 export interface DPRConfiguration {

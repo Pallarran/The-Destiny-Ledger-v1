@@ -6,9 +6,13 @@ interface DeltaPillProps {
   className?: string
   showIcon?: boolean
   precision?: number
+  additionalMetrics?: {
+    hitChanceDelta?: number
+    critChanceDelta?: number
+  }
 }
 
-export function DeltaPill({ value, className, showIcon = true, precision = 1 }: DeltaPillProps) {
+export function DeltaPill({ value, className, showIcon = true, precision = 1, additionalMetrics }: DeltaPillProps) {
   const isPositive = value > 0.05 // Small threshold to avoid floating point noise
   const isNegative = value < -0.05
   const isNeutral = !isPositive && !isNegative
@@ -31,8 +35,20 @@ export function DeltaPill({ value, className, showIcon = true, precision = 1 }: 
     icon = showIcon ? <Minus className="w-3 h-3" /> : null
   }
   
+  const hasAdditionalMetrics = additionalMetrics && (
+    additionalMetrics.hitChanceDelta !== undefined || additionalMetrics.critChanceDelta !== undefined
+  )
+  
   return (
-    <span className={cn(baseClasses, colorClasses, className)}>
+    <span 
+      className={cn(baseClasses, colorClasses, className)}
+      title={hasAdditionalMetrics ? 
+        `DPR: ${isPositive ? '+' : isNegative ? '−' : '±'}${formattedValue}` + 
+        (additionalMetrics?.hitChanceDelta ? ` | Hit: ${additionalMetrics.hitChanceDelta > 0 ? '+' : ''}${(additionalMetrics.hitChanceDelta * 100).toFixed(1)}%` : '') +
+        (additionalMetrics?.critChanceDelta ? ` | Crit: ${additionalMetrics.critChanceDelta > 0 ? '+' : ''}${(additionalMetrics.critChanceDelta * 100).toFixed(1)}%` : '')
+        : undefined
+      }
+    >
       {icon}
       <span>
         {isPositive && '+'}

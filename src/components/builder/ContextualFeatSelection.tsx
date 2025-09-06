@@ -1,7 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card'
-import { Badge } from '../ui/badge'
-import { Switch } from '../ui/switch'
 import { ContextualReveal, ContextualSection } from '../ui/contextual-reveal'
+import { FeatCardWithDelta } from './FeatCardWithDelta'
 import { useContextualFields, useContextualDescriptions } from '../../hooks/useContextualFields'
 import { useCharacterBuilderStore } from '../../stores/characterBuilderStore'
 import { Sword, Target, Zap, Crown } from 'lucide-react'
@@ -81,44 +80,16 @@ export function ContextualFeatSelection({
     const isSelected = isFeatSelected(featId)
     
     return (
-      <Card key={featId} className={`transition-all ${isSelected ? 'ring-2 ring-accent' : 'hover:shadow-md'}`}>
-        <CardContent className="p-4">
-          <div className="flex items-start justify-between">
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-2">
-                <Icon className="w-4 h-4" />
-                <h4 className="font-medium">{feat.name}</h4>
-                <Badge variant="outline" className={`text-xs ${colorClass}`}>
-                  Combat Feat
-                </Badge>
-              </div>
-              
-              <p className="text-sm text-muted-foreground mb-3">{feat.description}</p>
-              
-              <div className="space-y-2">
-                {feat.features.map((feature, idx) => (
-                  <div key={idx} className="p-2 bg-muted/20 rounded text-xs">
-                    <div className="font-medium">{feature.name}</div>
-                    <div className="text-muted-foreground">{feature.description}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-            
-            <div className="ml-4 flex flex-col items-center gap-2">
-              <Switch
-                checked={isSelected}
-                onCheckedChange={() => handleFeatToggle(featId)}
-              />
-              {isSelected && (
-                <Badge variant="secondary" className="text-xs">
-                  Selected
-                </Badge>
-              )}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      <FeatCardWithDelta
+        key={featId}
+        feat={feat}
+        featId={featId}
+        build={activeBuild}
+        isSelected={isSelected}
+        onToggle={() => handleFeatToggle(featId)}
+        icon={Icon}
+        colorClass={colorClass}
+      />
     )
   }
   

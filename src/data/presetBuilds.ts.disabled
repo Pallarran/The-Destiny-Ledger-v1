@@ -1,0 +1,440 @@
+import type { BuildConfiguration } from '../stores/types'
+
+export interface PresetBuild {
+  id: string
+  name: string
+  description: string
+  level: number
+  archetype: string
+  expectedDPRRange: [number, number] // Min-max DPR at AC 15
+  tags: string[]
+  build: BuildConfiguration
+}
+
+// Canonical preset builds for validation and user examples  
+// Note: Simplified for initial implementation - full builds will be completed iteratively
+export const PRESET_BUILDS: PresetBuild[] = [
+  {
+    id: 'champion-fighter-5-gwm',
+    name: 'Champion Fighter 5 (GWM)',
+    description: 'Great Weapon Master Champion Fighter - the DPR baseline',
+    level: 5,
+    archetype: 'melee-damage',
+    expectedDPRRange: [18, 22],
+    tags: ['fighter', 'champion', 'gwm', 'baseline', 'melee'],
+    build: {
+      id: 'preset-champion-fighter-5',
+      name: 'Champion Fighter 5 (GWM)',
+      createdAt: new Date('2025-01-01'),
+      updatedAt: new Date('2025-01-01'),
+      notes: 'Baseline GWM Champion Fighter build for DPR validation',
+      tags: ['preset', 'validation', 'fighter'],
+      
+      // Character basics
+      race: 'variant_human',
+      abilityScores: { STR: 15, DEX: 13, CON: 14, INT: 10, WIS: 12, CHA: 8 },
+      
+      // Level progression
+      levelTimeline: [
+        { level: 1, classId: 'fighter', features: ['fighting-style-gwf'], fightingStyle: 'great_weapon_fighting' },
+        { level: 2, classId: 'fighter', features: ['action-surge'] },
+        { level: 3, classId: 'fighter', features: ['improved-critical'], archetype: 'champion' },
+        { level: 4, classId: 'fighter', features: [], asiOrFeat: 'asi', abilityIncreases: { STR: 2 } },
+        { level: 5, classId: 'fighter', features: ['extra-attack'] }
+      ],
+      
+      // Equipment
+      mainHandWeapon: 'greatsword',
+      armor: 'chain_mail',
+      hasShield: false,
+      weaponEnhancementBonus: 0,
+      
+      // Key feat from Variant Human
+      variantHumanFeat: 'great_weapon_master',
+      variantHumanSkill: 'athletics',
+      variantHumanAbilities: ['STR', 'CON'],
+      
+      // Active effects
+      activeBuffs: [],
+      round0Buffs: []
+    }
+  },
+  
+  {
+    id: 'archer-fighter-5-ss',
+    name: 'Archer Fighter 5 (Sharpshooter)',
+    description: 'Archery Fighter with Sharpshooter - ranged DPR baseline',
+    level: 5,
+    archetype: 'ranged-damage',
+    expectedDPRRange: [16, 20],
+    tags: ['fighter', 'archery', 'sharpshooter', 'ranged'],
+    build: {
+      id: 'preset-archer-fighter-5',
+      name: 'Archer Fighter 5 (Sharpshooter)',
+      createdAt: new Date('2025-01-01'),
+      updatedAt: new Date('2025-01-01'),
+      notes: 'Baseline Sharpshooter Archer Fighter build for ranged DPR validation',
+      tags: ['preset', 'validation', 'fighter'],
+      
+      race: 'variant_human',
+      abilityScores: { STR: 13, DEX: 15, CON: 14, INT: 10, WIS: 12, CHA: 8 },
+      
+      levelTimeline: [
+        { level: 1, classId: 'fighter', features: ['fighting-style-archery'], fightingStyle: 'archery' },
+        { level: 2, classId: 'fighter', features: ['action-surge'] },
+        { level: 3, classId: 'fighter', archetype: 'champion', features: ['improved-critical'] },
+        { level: 4, classId: 'fighter', asiOrFeat: 'asi', abilityImprovements: [{ ability: 'DEX', value: 2 }] },
+        { level: 5, classId: 'fighter', features: ['extra-attack'] }
+      ],
+      
+      rangedWeapon: 'longbow',
+      armor: 'studded_leather',
+      hasShield: false,
+      weaponEnhancementBonus: 0,
+      
+      variantHumanFeat: 'sharpshooter',
+      variantHumanSkill: 'perception',
+      variantHumanAbilities: ['DEX', 'CON'],
+      
+      activeBuffs: [],
+      round0Buffs: []
+    }
+  },
+
+  {
+    id: 'hexblade-5-baseline',
+    name: 'Hexblade Warlock 5',
+    description: 'Eldritch Blast + Agonizing Blast + Hex - spell DPR baseline',
+    level: 5,
+    archetype: 'spell-damage',
+    expectedDPRRange: [20, 24],
+    tags: ['warlock', 'hexblade', 'eldritch-blast', 'hex'],
+    build: {
+      id: 'preset-hexblade-5',
+      name: 'Hexblade Warlock 5',
+      createdAt: new Date('2025-01-01'),
+      updatedAt: new Date('2025-01-01'),
+      notes: 'Baseline Hexblade Warlock with Eldritch Blast for spell DPR validation',
+      tags: ['preset', 'validation', 'warlock'],
+      
+      race: 'variant_human',
+      abilityScores: { STR: 8, DEX: 14, CON: 15, INT: 10, WIS: 12, CHA: 15 },
+      
+      levelTimeline: [
+        { level: 1, classId: 'warlock', archetype: 'hexblade', spellChoices: ['eldritch_blast', 'hex'] },
+        { level: 2, classId: 'warlock', eldritchInvocations: ['agonizing_blast'] },
+        { level: 3, classId: 'warlock', spellChoices: ['shield'] },
+        { level: 4, classId: 'warlock', asiOrFeat: 'asi', abilityImprovements: [{ ability: 'CHA', value: 2 }] },
+        { level: 5, classId: 'warlock', eldritchInvocations: ['thirsting_blade'] }
+      ],
+      
+      mainHandWeapon: 'longsword',
+      armor: 'studded_leather',
+      hasShield: false,
+      weaponEnhancementBonus: 0,
+      
+      variantHumanFeat: 'fey_touched',
+      variantHumanSkill: 'arcana',
+      variantHumanAbilities: ['CHA', 'CON'],
+      
+      activeBuffs: ['hex'],
+      round0Buffs: []
+    }
+  },
+
+  {
+    id: 'paladin-5-smite',
+    name: 'Paladin 5 (Divine Smite)',
+    description: 'Greatsword Paladin with Divine Smite resource budgeting',
+    level: 5,
+    archetype: 'burst-damage',
+    expectedDPRRange: [15, 19],
+    tags: ['paladin', 'smite', 'melee', 'burst'],
+    build: {
+      id: 'preset-paladin-5',
+      name: 'Paladin 5 (Divine Smite)',
+      createdAt: new Date('2025-01-01'),
+      updatedAt: new Date('2025-01-01'),
+      notes: 'Baseline Paladin with Divine Smite for burst damage validation',
+      tags: ['preset', 'validation', 'paladin'],
+      
+      race: 'dragonborn',
+      abilityScores: { STR: 15, DEX: 10, CON: 14, INT: 8, WIS: 12, CHA: 13 },
+      
+      levelTimeline: [
+        { level: 1, classId: 'paladin', features: ['lay-on-hands'] },
+        { level: 2, classId: 'paladin', features: ['fighting-style-gwf', 'divine-smite'], fightingStyle: 'great_weapon_fighting' },
+        { level: 3, classId: 'paladin', archetype: 'devotion', spellChoices: ['bless', 'cure_wounds'] },
+        { level: 4, classId: 'paladin', asiOrFeat: 'asi', abilityImprovements: [{ ability: 'STR', value: 2 }] },
+        { level: 5, classId: 'paladin', features: ['extra-attack'] }
+      ],
+      
+      mainHandWeapon: 'greatsword',
+      armor: 'chain_mail',
+      hasShield: false,
+      weaponEnhancementBonus: 0,
+      
+      activeBuffs: [],
+      round0Buffs: ['bless']
+    }
+  },
+
+  {
+    id: 'rogue-5-sneak-attack',
+    name: 'Rogue 5 (Sneak Attack)',
+    description: 'Assassin Rogue with optimized Sneak Attack',
+    level: 5,
+    archetype: 'precision-damage',
+    expectedDPRRange: [14, 18],
+    tags: ['rogue', 'assassin', 'sneak-attack', 'finesse'],
+    build: {
+      id: 'preset-rogue-5',
+      name: 'Rogue 5 (Sneak Attack)',
+      createdAt: new Date('2025-01-01'),
+      updatedAt: new Date('2025-01-01'),
+      notes: 'Baseline Assassin Rogue with Sneak Attack for precision damage validation',
+      tags: ['preset', 'validation', 'rogue'],
+      
+      race: 'half_elf',
+      abilityScores: { STR: 8, DEX: 15, CON: 14, INT: 12, WIS: 13, CHA: 10 },
+      
+      levelTimeline: [
+        { level: 1, classId: 'rogue', features: ['sneak-attack-1d6'] },
+        { level: 2, classId: 'rogue', features: ['cunning-action'] },
+        { level: 3, classId: 'rogue', archetype: 'assassin', features: ['assassinate', 'sneak-attack-2d6'] },
+        { level: 4, classId: 'rogue', asiOrFeat: 'asi', abilityImprovements: [{ ability: 'DEX', value: 2 }] },
+        { level: 5, classId: 'rogue', features: ['sneak-attack-3d6'] }
+      ],
+      
+      mainHandWeapon: 'rapier',
+      armor: 'studded_leather',
+      hasShield: false,
+      weaponEnhancementBonus: 0,
+      
+      halfElfSkills: ['stealth', 'perception'],
+      halfElfAbilities: ['DEX', 'CON'],
+      
+      activeBuffs: [],
+      round0Buffs: []
+    }
+  },
+
+  {
+    id: 'barbarian-5-reckless',
+    name: 'Barbarian 5 (Reckless Attack)',
+    description: 'Berserker Barbarian with Reckless Attack dynamics',
+    level: 5,
+    archetype: 'advantage-damage',
+    expectedDPRRange: [16, 20],
+    tags: ['barbarian', 'berserker', 'reckless-attack', 'rage'],
+    build: {
+      id: 'preset-barbarian-5',
+      name: 'Barbarian 5 (Reckless Attack)',
+      createdAt: new Date('2025-01-01'),
+      updatedAt: new Date('2025-01-01'),
+      notes: 'Baseline Berserker Barbarian with Reckless Attack for advantage damage validation',
+      tags: ['preset', 'validation', 'barbarian'],
+      
+      race: 'half_orc',
+      abilityScores: { STR: 15, DEX: 14, CON: 15, INT: 8, WIS: 12, CHA: 10 },
+      
+      levelTimeline: [
+        { level: 1, classId: 'barbarian', features: ['rage', 'unarmored-defense'] },
+        { level: 2, classId: 'barbarian', features: ['reckless-attack'] },
+        { level: 3, classId: 'barbarian', archetype: 'berserker', features: ['frenzy'] },
+        { level: 4, classId: 'barbarian', asiOrFeat: 'asi', abilityImprovements: [{ ability: 'STR', value: 2 }] },
+        { level: 5, classId: 'barbarian', features: ['extra-attack'] }
+      ],
+      
+      mainHandWeapon: 'greataxe',
+      hasShield: false,
+      weaponEnhancementBonus: 0,
+      
+      activeBuffs: ['barbarian_rage'],
+      round0Buffs: []
+    }
+  },
+
+  {
+    id: 'battlemaster-5-maneuvers',
+    name: 'Battlemaster Fighter 5',
+    description: 'Battlemaster with Superiority dice rider damage',
+    level: 5,
+    archetype: 'tactical-damage',
+    expectedDPRRange: [17, 21],
+    tags: ['fighter', 'battlemaster', 'maneuvers', 'tactical'],
+    build: {
+      id: 'preset-battlemaster-5',
+      name: 'Battlemaster Fighter 5',
+      createdAt: new Date('2025-01-01'),
+      updatedAt: new Date('2025-01-01'),
+      notes: 'Baseline Battlemaster Fighter with maneuvers for tactical damage validation',
+      tags: ['preset', 'validation', 'fighter'],
+      
+      race: 'variant_human',
+      abilityScores: { STR: 15, DEX: 13, CON: 14, INT: 12, WIS: 10, CHA: 8 },
+      
+      levelTimeline: [
+        { level: 1, classId: 'fighter', features: ['fighting-style-gwf'], fightingStyle: 'great_weapon_fighting' },
+        { level: 2, classId: 'fighter', features: ['action-surge'] },
+        { level: 3, classId: 'fighter', archetype: 'battle_master', features: ['combat-superiority'] },
+        { level: 4, classId: 'fighter', asiOrFeat: 'asi', abilityImprovements: [{ ability: 'STR', value: 2 }] },
+        { level: 5, classId: 'fighter', features: ['extra-attack'] }
+      ],
+      
+      mainHandWeapon: 'greatsword',
+      armor: 'chain_mail',
+      hasShield: false,
+      weaponEnhancementBonus: 0,
+      
+      variantHumanFeat: 'great_weapon_master',
+      variantHumanSkill: 'athletics',
+      variantHumanAbilities: ['STR', 'CON'],
+      
+      activeBuffs: [],
+      round0Buffs: []
+    }
+  },
+
+  {
+    id: 'ranger-5-hunters-mark',
+    name: 'Hunter Ranger 5',
+    description: 'Hunter Ranger with Colossus Slayer and Hunter\'s Mark',
+    level: 5,
+    archetype: 'sustained-damage',
+    expectedDPRRange: [15, 19],
+    tags: ['ranger', 'hunter', 'hunters-mark', 'colossus-slayer'],
+    build: {
+      id: 'preset-ranger-5',
+      name: 'Hunter Ranger 5',
+      createdAt: new Date('2025-01-01'),
+      updatedAt: new Date('2025-01-01'),
+      notes: 'Baseline Hunter Ranger with Hunter\'s Mark for sustained damage validation',
+      tags: ['preset', 'validation', 'ranger'],
+      
+      race: 'wood_elf',
+      abilityScores: { STR: 12, DEX: 15, CON: 14, INT: 10, WIS: 13, CHA: 8 },
+      
+      levelTimeline: [
+        { level: 1, classId: 'ranger', features: ['favored-enemy'], spellChoices: ['hunters_mark'] },
+        { level: 2, classId: 'ranger', features: ['fighting-style-archery'], fightingStyle: 'archery' },
+        { level: 3, classId: 'ranger', archetype: 'hunter', features: ['colossus-slayer'] },
+        { level: 4, classId: 'ranger', asiOrFeat: 'asi', abilityImprovements: [{ ability: 'DEX', value: 2 }] },
+        { level: 5, classId: 'ranger', features: ['extra-attack'] }
+      ],
+      
+      rangedWeapon: 'longbow',
+      armor: 'studded_leather',
+      hasShield: false,
+      weaponEnhancementBonus: 0,
+      
+      activeBuffs: ['hunters_mark'],
+      round0Buffs: []
+    }
+  },
+
+  {
+    id: 'eldritch-knight-11',
+    name: 'Eldritch Knight 11',
+    description: 'EK with War Magic cantrip + bonus action weapon attack',
+    level: 11,
+    archetype: 'gish-damage',
+    expectedDPRRange: [22, 26],
+    tags: ['fighter', 'eldritch-knight', 'war-magic', 'gish'],
+    build: {
+      id: 'preset-eldritch-knight-11',
+      name: 'Eldritch Knight 11',
+      createdAt: new Date('2025-01-01'),
+      updatedAt: new Date('2025-01-01'),
+      notes: 'Level 11 Eldritch Knight with War Magic for gish damage validation',
+      tags: ['preset', 'validation', 'fighter'],
+      
+      race: 'variant_human',
+      abilityScores: { STR: 15, DEX: 13, CON: 14, INT: 13, WIS: 10, CHA: 8 },
+      
+      levelTimeline: [
+        { level: 1, classId: 'fighter', features: ['fighting-style-gwf'], fightingStyle: 'great_weapon_fighting' },
+        { level: 2, classId: 'fighter', features: ['action-surge'] },
+        { level: 3, classId: 'fighter', archetype: 'eldritch_knight', spellChoices: ['fire_bolt', 'shield'] },
+        { level: 4, classId: 'fighter', asiOrFeat: 'asi', abilityImprovements: [{ ability: 'STR', value: 2 }] },
+        { level: 5, classId: 'fighter', features: ['extra-attack'] },
+        { level: 6, classId: 'fighter', asiOrFeat: 'asi', abilityImprovements: [{ ability: 'STR', value: 2 }] },
+        { level: 7, classId: 'fighter', features: ['war-magic'] },
+        { level: 8, classId: 'fighter', asiOrFeat: 'asi', abilityImprovements: [{ ability: 'INT', value: 2 }] },
+        { level: 9, classId: 'fighter', features: ['indomitable'] },
+        { level: 10, classId: 'fighter', features: ['eldritch-strike'] },
+        { level: 11, classId: 'fighter', features: ['extra-attack-2'] }
+      ],
+      
+      mainHandWeapon: 'greatsword',
+      armor: 'plate',
+      hasShield: false,
+      weaponEnhancementBonus: 0,
+      
+      variantHumanFeat: 'great_weapon_master',
+      variantHumanSkill: 'arcana',
+      variantHumanAbilities: ['STR', 'CON'],
+      
+      activeBuffs: [],
+      round0Buffs: []
+    }
+  },
+
+  {
+    id: 'sorlock-5-7',
+    name: 'Sorlock 5/7 (Sorcerer/Warlock)',
+    description: 'Sorcerer 5/Warlock 2 multiclass with Eldritch Blast + Pact slots',
+    level: 7,
+    archetype: 'multiclass-caster',
+    expectedDPRRange: [18, 22],
+    tags: ['sorcerer', 'warlock', 'sorlock', 'multiclass', 'eldritch-blast'],
+    build: {
+      id: 'preset-sorlock-5-7',
+      name: 'Sorlock 5/7',
+      createdAt: new Date('2025-01-01'),
+      updatedAt: new Date('2025-01-01'),
+      notes: 'Sorlock multiclass build for advanced spellcasting DPR validation',
+      tags: ['preset', 'validation', 'multiclass'],
+      
+      race: 'variant_human',
+      abilityScores: { STR: 8, DEX: 14, CON: 15, INT: 10, WIS: 12, CHA: 15 },
+      
+      levelTimeline: [
+        { level: 1, classId: 'sorcerer', spellChoices: ['fire_bolt', 'mage_armor'] },
+        { level: 2, classId: 'sorcerer', features: ['font-of-magic'] },
+        { level: 3, classId: 'sorcerer', spellChoices: ['mirror_image'] },
+        { level: 4, classId: 'sorcerer', asiOrFeat: 'asi', abilityImprovements: [{ ability: 'CHA', value: 2 }] },
+        { level: 5, classId: 'sorcerer', spellChoices: ['counterspell'] },
+        { level: 6, classId: 'warlock', archetype: 'hexblade', spellChoices: ['eldritch_blast', 'hex'] },
+        { level: 7, classId: 'warlock', eldritchInvocations: ['agonizing_blast'] }
+      ],
+      
+      mainHandWeapon: 'rapier',
+      armor: 'studded_leather',
+      hasShield: false,
+      weaponEnhancementBonus: 0,
+      
+      variantHumanFeat: 'metamagic_adept',
+      variantHumanSkill: 'arcana',
+      variantHumanAbilities: ['CHA', 'CON'],
+      
+      activeBuffs: ['hex'],
+      round0Buffs: ['mage_armor']
+    }
+  }
+]
+
+// Helper function to get preset by ID
+export function getPresetBuild(id: string): PresetBuild | undefined {
+  return PRESET_BUILDS.find(preset => preset.id === id)
+}
+
+// Helper function to get presets by archetype
+export function getPresetsByArchetype(archetype: string): PresetBuild[] {
+  return PRESET_BUILDS.filter(preset => preset.archetype === archetype)
+}
+
+// Helper function to get presets by tag
+export function getPresetsByTag(tag: string): PresetBuild[] {
+  return PRESET_BUILDS.filter(preset => preset.tags.includes(tag))
+}

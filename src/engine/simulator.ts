@@ -238,6 +238,19 @@ export function buildToCombatState(build: BuildConfiguration, level?: number): C
     }
   }
   
+  // Apply simulated feats from metadata (for Delta Pills)
+  if (build.metadata?.simulatedFeats) {
+    for (const featId of build.metadata.simulatedFeats) {
+      const feat = getFeat(featId)
+      if (feat) {
+        if (feat.id === 'great_weapon_master') state.hasGWM = true
+        if (feat.id === 'sharpshooter') state.hasSharpshooter = true
+        if (feat.id === 'crossbow_expert') state.hasCrossbowExpert = true
+        if (feat.id === 'polearm_master') state.hasPolearmMaster = true
+      }
+    }
+  }
+  
   return state
 }
 
