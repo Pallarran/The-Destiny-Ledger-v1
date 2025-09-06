@@ -381,7 +381,7 @@ export function Compare() {
     return selectedBuildIds
       .map(id => vaultBuilds.find(b => b.id === id))
       .filter((build): build is BuildConfiguration => !!build)
-      .slice(0, 3) // Limit to 3 builds for readability
+      .slice(0, 6) // Limit to 6 builds for comparison
       .map((build, index) => ({
         ...build,
         color: COMPARISON_COLORS[index % COMPARISON_COLORS.length],
@@ -592,7 +592,7 @@ export function Compare() {
                 size="sm" 
                 variant="outline" 
                 onClick={() => setShowBuildSelector(!showBuildSelector)}
-                disabled={selectedBuilds.length >= 3}
+                disabled={selectedBuilds.length >= 6}
               >
                 <Plus className="w-4 h-4 mr-1" />
                 Add Build
