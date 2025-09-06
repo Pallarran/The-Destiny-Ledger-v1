@@ -33,18 +33,22 @@ export function getDynamicTargetAC(level: number): number {
  * Level 4: 10.4
  * Level 5-7: 19
  * Level 8: 21.9
- * Level 9-12: 23.9
- * Level 13-16: 25.1
- * Level 17-20: 32.6
+ * Level 9-10: 23.9
+ * Level 11-12: 34.5
+ * Level 13-16: 37.6
+ * Level 17-19: 39.4
+ * Level 20: 52.5
  */
 export function getTreantmonkBaseline(level: number): number {
   if (level >= 1 && level <= 3) return 9
   if (level === 4) return 10.4
   if (level >= 5 && level <= 7) return 19
   if (level === 8) return 21.9
-  if (level >= 9 && level <= 12) return 23.9
-  if (level >= 13 && level <= 16) return 25.1
-  if (level >= 17 && level <= 20) return 32.6
+  if (level >= 9 && level <= 10) return 23.9
+  if (level >= 11 && level <= 12) return 34.5
+  if (level >= 13 && level <= 16) return 37.6
+  if (level >= 17 && level <= 19) return 39.4
+  if (level === 20) return 52.5
   
   // Fallback for invalid levels
   return 9
