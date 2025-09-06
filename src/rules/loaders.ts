@@ -7,6 +7,8 @@ import type {
   Buff 
 } from './types'
 import type { Race } from './srd/races'
+import type { Spell } from './srd/spells'
+import type { MagicItem } from './types'
 
 import { classes } from './srd/classes'
 import { subclasses } from './srd/subclasses'
@@ -14,18 +16,45 @@ import { weapons, weaponEnhancements } from './srd/weapons'
 import { feats } from './srd/feats'
 import { races } from './srd/races'
 import { buffs } from './srd/buffs'
+import { allSpells } from './srd/spells'
+import { magicItems } from './srd/magicItems'
+import { getIntegratedHomebrewContent } from '../engine/homebrewLoader'
 
-// Data loaders with proper typing
+// Data loaders with homebrew integration
 export const loadClasses = (): Record<string, ClassDefinition> => {
-  return classes
+  const homebrewContent = getIntegratedHomebrewContent()
+  const merged = { ...classes }
+  
+  // Add homebrew classes
+  homebrewContent.classes.forEach(homebrewClass => {
+    merged[homebrewClass.id] = homebrewClass
+  })
+  
+  return merged
 }
 
 export const loadSubclasses = (): Record<string, SubclassDefinition> => {
-  return subclasses as unknown as Record<string, SubclassDefinition>
+  const homebrewContent = getIntegratedHomebrewContent()
+  const merged = { ...subclasses as unknown as Record<string, SubclassDefinition> }
+  
+  // Add homebrew subclasses
+  homebrewContent.subclasses.forEach(homebrewSubclass => {
+    merged[homebrewSubclass.id] = homebrewSubclass
+  })
+  
+  return merged
 }
 
 export const loadFeats = (): Record<string, Feat> => {
-  return feats
+  const homebrewContent = getIntegratedHomebrewContent()
+  const merged = { ...feats }
+  
+  // Add homebrew feats
+  homebrewContent.feats.forEach(homebrewFeat => {
+    merged[homebrewFeat.id] = homebrewFeat
+  })
+  
+  return merged
 }
 
 export const loadWeapons = (): Record<string, Weapon> => {
@@ -34,6 +63,30 @@ export const loadWeapons = (): Record<string, Weapon> => {
 
 export const loadWeaponEnhancements = (): Record<string, WeaponEnhancement> => {
   return weaponEnhancements
+}
+
+export const loadSpells = (): Record<string, Spell> => {
+  const homebrewContent = getIntegratedHomebrewContent()
+  const merged = { ...allSpells }
+  
+  // Add homebrew spells
+  homebrewContent.spells.forEach(homebrewSpell => {
+    merged[homebrewSpell.id] = homebrewSpell
+  })
+  
+  return merged
+}
+
+export const loadMagicItems = (): Record<string, MagicItem> => {
+  const homebrewContent = getIntegratedHomebrewContent()
+  const merged = { ...magicItems }
+  
+  // Add homebrew magic items
+  homebrewContent.magicItems.forEach(homebrewItem => {
+    merged[homebrewItem.id] = homebrewItem
+  })
+  
+  return merged
 }
 
 export const loadBuffs = (): Record<string, Buff> => {
@@ -69,6 +122,14 @@ export const getWeaponEnhancement = (enhancementId: string): WeaponEnhancement |
   return loadWeaponEnhancements()[enhancementId]
 }
 
+export const getSpell = (spellId: string): Spell | undefined => {
+  return loadSpells()[spellId]
+}
+
+export const getMagicItem = (itemId: string): MagicItem | undefined => {
+  return loadMagicItems()[itemId]
+}
+
 // Get all items of a type as arrays
 export const getAllClasses = (): ClassDefinition[] => {
   return Object.values(loadClasses())
@@ -96,6 +157,14 @@ export const getAllBuffs = (): Buff[] => {
 
 export const getAllRaces = (): Race[] => {
   return Object.values(loadRaces())
+}
+
+export const getAllSpells = (): Spell[] => {
+  return Object.values(loadSpells())
+}
+
+export const getAllMagicItems = (): MagicItem[] => {
+  return Object.values(loadMagicItems())
 }
 
 export const getRace = (raceId: string): Race | undefined => {
