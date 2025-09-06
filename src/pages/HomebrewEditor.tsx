@@ -1,5 +1,11 @@
 import { useState } from 'react'
 import { ClassEditor } from '../components/homebrew/ClassEditor'
+import { SubclassEditor } from '../components/homebrew/SubclassEditor'
+import { FeatEditor } from '../components/homebrew/FeatEditor'
+import { SpellEditor } from '../components/homebrew/SpellEditor'
+import { ItemEditor } from '../components/homebrew/ItemEditor'
+import { PackManager } from '../components/homebrew/PackManager'
+import { useRawHomebrew, useHomebrew } from '../hooks/useHomebrew'
 import { Panel } from '../components/ui/panel'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs'
 import { Button } from '../components/ui/button'
@@ -16,7 +22,8 @@ import {
   Download,
   Eye,
   Edit,
-  Trash2
+  Trash2,
+  Package
 } from 'lucide-react'
 
 // Homebrew content categories
@@ -30,35 +37,16 @@ const CONTENT_CATEGORIES = [
 
 type ContentCategory = typeof CONTENT_CATEGORIES[number]['id']
 
-// Mock homebrew content for UI development
-const mockHomebrewContent = {
-  classes: [
-    { id: 'artificer-extended', name: 'Artificer (Extended)', type: 'class', author: 'User', status: 'published' },
-    { id: 'mystic', name: 'Mystic', type: 'class', author: 'User', status: 'draft' }
-  ],
-  subclasses: [
-    { id: 'oath-of-redemption', name: 'Oath of Redemption', type: 'subclass', author: 'User', status: 'published' },
-    { id: 'school-of-chronurgy', name: 'School of Chronurgy', type: 'subclass', author: 'User', status: 'testing' }
-  ],
-  feats: [
-    { id: 'elemental-adept-extended', name: 'Elemental Adept (Extended)', type: 'feat', author: 'User', status: 'published' },
-    { id: 'metamagic-mastery', name: 'Metamagic Mastery', type: 'feat', author: 'User', status: 'draft' }
-  ],
-  spells: [
-    { id: 'time-stop-lesser', name: 'Lesser Time Stop', type: 'spell', author: 'User', status: 'published' },
-    { id: 'elemental-weapon-improved', name: 'Improved Elemental Weapon', type: 'spell', author: 'User', status: 'testing' }
-  ],
-  items: [
-    { id: 'staff-of-power-enhanced', name: 'Enhanced Staff of Power', type: 'item', author: 'User', status: 'published' },
-    { id: 'ring-of-spell-storing-major', name: 'Major Ring of Spell Storing', type: 'item', author: 'User', status: 'draft' }
-  ]
-}
 
 export function HomebrewEditor() {
   const [activeCategory, setActiveCategory] = useState<ContentCategory>('classes')
   const [selectedContent, setSelectedContent] = useState<string | null>(null)
   const [isEditing, setIsEditing] = useState(false)
   const [editingItem, setEditingItem] = useState<any>(null)
+  const [showPackManager, setShowPackManager] = useState(false)
+  
+  const rawHomebrew = useRawHomebrew()
+  const { addClass, addSubclass, addFeat, addSpell, addMagicItem } = useHomebrew()
 
   const getStatusBadge = (status: string) => {
     const variants = {
@@ -83,7 +71,24 @@ export function HomebrewEditor() {
     )
   }
 
-  const currentContent = mockHomebrewContent[activeCategory] || []
+  const getCurrentContent = () => {
+    switch (activeCategory) {
+      case 'classes':
+        return rawHomebrew.classes.map(c => ({ id: c.id, name: c.name, type: 'class', author: c.author, status: c.status }))
+      case 'subclasses':
+        return rawHomebrew.subclasses.map(s => ({ id: s.id, name: s.name, type: 'subclass', author: s.author, status: s.status }))
+      case 'feats':
+        return rawHomebrew.feats.map(f => ({ id: f.id, name: f.name, type: 'feat', author: f.author, status: f.status }))
+      case 'spells':
+        return rawHomebrew.spells.map(s => ({ id: s.id, name: s.name, type: 'spell', author: s.author, status: s.status }))
+      case 'items':
+        return rawHomebrew.magicItems.map(i => ({ id: i.id, name: i.name, type: 'item', author: i.author, status: i.status }))
+      default:
+        return []
+    }
+  }
+  
+  const currentContent = getCurrentContent()
 
   const handleCreateNew = () => {
     setEditingItem(null)
@@ -91,15 +96,69 @@ export function HomebrewEditor() {
   }
 
   const handleEdit = (item: any) => {
-    setEditingItem(item)
+    // Get the full homebrew item from the store
+    let fullItem
+    switch (activeCategory) {
+      case 'classes':
+        fullItem = rawHomebrew.classes.find(c => c.id === item.id)
+        break
+      case 'subclasses':
+        fullItem = rawHomebrew.subclasses.find(s => s.id === item.id)
+        break
+      case 'feats':
+        fullItem = rawHomebrew.feats.find(f => f.id === item.id)
+        break
+      case 'spells':
+        fullItem = rawHomebrew.spells.find(s => s.id === item.id)
+        break
+      case 'items':
+        fullItem = rawHomebrew.magicItems.find(i => i.id === item.id)
+        break
+      default:
+        fullItem = item
+    }
+    
+    setEditingItem(fullItem)
     setIsEditing(true)
   }
 
-  const handleSave = (data: any) => {
-    console.log('Saving:', data)
-    // TODO: Implement actual save logic
-    setIsEditing(false)
-    setEditingItem(null)
+  const handleSave = async (data: any) => {
+    try {
+      let result
+      
+      switch (activeCategory) {
+        case 'classes':
+          result = await addClass(data)
+          break
+        case 'subclasses':
+          result = await addSubclass(data)
+          break
+        case 'feats':
+          result = await addFeat(data)
+          break
+        case 'spells':
+          result = await addSpell(data)
+          break
+        case 'items':
+          result = await addMagicItem(data)
+          break
+        default:
+          console.warn('Unknown category:', activeCategory)
+          return
+      }
+
+      if (result.valid) {
+        setIsEditing(false)
+        setEditingItem(null)
+        setSelectedContent(data.id)
+      } else {
+        console.warn('Validation failed:', result.errors)
+        alert(`Failed to save: ${result.errors.map(e => e.message).join(', ')}`)
+      }
+    } catch (error) {
+      console.error('Save error:', error)
+      alert('Failed to save content')
+    }
   }
 
   const handleCancel = () => {
@@ -118,6 +177,52 @@ export function HomebrewEditor() {
     )
   }
 
+  if (isEditing && activeCategory === 'subclasses') {
+    return (
+      <SubclassEditor
+        initialSubclass={editingItem}
+        onSave={handleSave}
+        onCancel={handleCancel}
+      />
+    )
+  }
+
+  if (isEditing && activeCategory === 'feats') {
+    return (
+      <FeatEditor
+        initialFeat={editingItem}
+        onSave={handleSave}
+        onCancel={handleCancel}
+      />
+    )
+  }
+
+  if (isEditing && activeCategory === 'spells') {
+    return (
+      <SpellEditor
+        initialSpell={editingItem}
+        onSave={handleSave}
+        onCancel={handleCancel}
+      />
+    )
+  }
+
+  if (isEditing && activeCategory === 'items') {
+    return (
+      <ItemEditor
+        initialItem={editingItem}
+        onSave={handleSave}
+        onCancel={handleCancel}
+      />
+    )
+  }
+
+  if (showPackManager) {
+    return (
+      <PackManager onClose={() => setShowPackManager(false)} />
+    )
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -132,13 +237,14 @@ export function HomebrewEditor() {
           </div>
           
           <div className="flex items-center gap-2 ml-6">
-            <Button variant="outline" size="sm" className="gap-2">
-              <Import className="w-4 h-4" />
-              Import Pack
-            </Button>
-            <Button variant="outline" size="sm" className="gap-2">
-              <Download className="w-4 h-4" />
-              Export All
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="gap-2"
+              onClick={() => setShowPackManager(true)}
+            >
+              <Package className="w-4 h-4" />
+              Pack Manager
             </Button>
           </div>
         </div>
