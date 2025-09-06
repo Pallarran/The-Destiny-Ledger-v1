@@ -104,7 +104,7 @@ export function useDPRDelta() {
     }
     
     setDeltas(prev => {
-      const { [deltaId]: _removed, ...rest } = prev
+      const { [deltaId]: _, ...rest } = prev
       return rest
     })
   }, [])

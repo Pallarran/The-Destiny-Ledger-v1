@@ -480,7 +480,7 @@ export function BuildSummary() {
           isProficient: save.isProficient
         }
         return acc
-      }, {} as Record<string, any>),
+      }, {} as Record<string, { bonus: number; isProficient: boolean }>),
       skills: skillBonuses.reduce((acc, skill) => {
         acc[skill.name] = {
           bonus: skill.bonus,
@@ -489,7 +489,7 @@ export function BuildSummary() {
           ability: skill.ability
         }
         return acc
-      }, {} as Record<string, any>),
+      }, {} as Record<string, { bonus: number; isProficient: boolean; hasExpertise: boolean; ability: string }>),
       spellSlots: spellSlotData,
       exportedAt: new Date().toISOString()
     }
