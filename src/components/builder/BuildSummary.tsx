@@ -405,7 +405,39 @@ export function BuildSummary() {
   }
   
   const actualAC = calculateAC()
-  const initiative = dexMod
+  
+  // Calculate initiative with bonuses from feats and class features
+  const calculateInitiative = (): number => {
+    let initiativeBonus = dexMod // Base DEX modifier
+    
+    // Check for Alert feat (+5 initiative)
+    const hasAlert = timeline.some(entry => entry.featId === 'alert')
+    if (hasAlert) {
+      initiativeBonus += 5
+    }
+    
+    // Check for Swashbuckler's Rakish Audacity (add CHA modifier)
+    const hasRakishAudacity = timeline.some(entry => 
+      entry.subclassId === 'swashbuckler' && entry.level >= 3
+    )
+    if (hasRakishAudacity) {
+      const chaMod = getAbilityModifier(abilityScores.CHA)
+      initiativeBonus += chaMod
+    }
+    
+    // Check for Chronurgy Wizard's Temporal Awareness (add INT modifier)
+    const hasTemporalAwareness = timeline.some(entry => 
+      entry.subclassId === 'chronurgy_magic' && entry.level >= 2
+    )
+    if (hasTemporalAwareness) {
+      const intMod = getAbilityModifier(abilityScores.INT)
+      initiativeBonus += intMod
+    }
+    
+    return initiativeBonus
+  }
+  
+  const initiative = calculateInitiative()
   
   // Calculate HP (assuming average HP per level for now)
   const conMod = getAbilityModifier(abilityScores.CON)
@@ -470,7 +502,7 @@ export function BuildSummary() {
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-muted">Initiative</span>
-              <span className="font-bold">{formatModifier(initiative)}</span>
+              <span className="font-bold text-blue-600">{formatModifier(initiative)}</span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-muted">Hit Points</span>

@@ -305,15 +305,51 @@ const analyzeFeatureCapabilities = (build: BuildConfiguration) => {
   return capabilities
 }
 
+// Calculate initiative bonus for a build (similar to BuildSummary logic)
+const calculateInitiativeBonus = (build: BuildConfiguration): number => {
+  const abilityScores = build.abilityScores || {}
+  const timeline = build.levelTimeline || []
+  const dexMod = Math.floor(((abilityScores.DEX || 10) - 10) / 2)
+  
+  let initiativeBonus = dexMod // Base DEX modifier
+  
+  // Check for Alert feat (+5 initiative)
+  const hasAlert = timeline.some(entry => entry.featId === 'alert')
+  if (hasAlert) {
+    initiativeBonus += 5
+  }
+  
+  // Check for Swashbuckler's Rakish Audacity (add CHA modifier)
+  const hasRakishAudacity = timeline.some(entry => 
+    entry.subclassId === 'swashbuckler' && entry.level >= 3
+  )
+  if (hasRakishAudacity) {
+    const chaMod = Math.floor(((abilityScores.CHA || 10) - 10) / 2)
+    initiativeBonus += chaMod
+  }
+  
+  // Check for Chronurgy Wizard's Temporal Awareness (add INT modifier)
+  const hasTemporalAwareness = timeline.some(entry => 
+    entry.subclassId === 'chronurgy_magic' && entry.level >= 2
+  )
+  if (hasTemporalAwareness) {
+    const intMod = Math.floor(((abilityScores.INT || 10) - 10) / 2)
+    initiativeBonus += intMod
+  }
+  
+  return initiativeBonus
+}
+
 // Enhanced role score calculation
 const calculateRoleScores = (build: BuildConfiguration) => {
   const abilityScores = build.abilityScores || {}
+  const initiativeBonus = calculateInitiativeBonus(build)
   
   // Base ability score contributions (reduced weight)
   const baseScores = {
     social: Math.max(0, ((abilityScores.CHA || 10) - 10) * 2),
     defense: Math.max(0, ((abilityScores.CON || 10) - 10) * 2 + (build.armor ? 8 : 0) + (build.shield ? 6 : 0)), 
-    mobility: Math.max(0, ((abilityScores.DEX || 10) - 10) * 2),
+    mobility: Math.max(0, ((abilityScores.DEX || 10) - 10) * 2 + (initiativeBonus * 1.5)), // Include initiative bonus weighted at 1.5x
     support: Math.max(0, ((abilityScores.WIS || 10) - 10) * 1.5 + ((abilityScores.CHA || 10) - 10) * 1),
     exploration: Math.max(0, ((abilityScores.WIS || 10) - 10) * 1.5 + ((abilityScores.INT || 10) - 10) * 1.5),
     control: Math.max(0, ((abilityScores.INT || 10) - 10) * 2 + ((abilityScores.WIS || 10) - 10) * 1)
