@@ -18,7 +18,7 @@ import {
 } from '../types/character'
 import type { BuildConfiguration } from '../stores/types'
 import type { AbilityScore, AbilityScoreArray } from '../rules/types'
-import { getClass, getSubclass } from '../rules/loaders'
+import { getClass, getSubclass, getRace } from '../rules/loaders'
 
 interface CharacterBuilderStore extends CharacterBuilderState {
   // Navigation actions
@@ -270,6 +270,10 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
           updateNavigationState(state)
         }
       })
+      
+      // Ensure ability scores are recalculated when navigating
+      // This preserves racial bonuses and other modifiers
+      get().recalculateAllAbilityScores()
     },
     
     nextStep: () => {
@@ -590,12 +594,27 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
       set((state) => {
         if (state.currentBuild) {
           state.currentBuild.race = raceId
-          // Clear racial bonuses when race changes to force recalculation
-          state.currentBuild.racialBonuses = {}
+          
+          // Calculate and set racial bonuses based on race
+          try {
+            const raceData = getRace(raceId)
+            if (raceData?.abilityScoreIncrease) {
+              state.currentBuild.racialBonuses = { ...raceData.abilityScoreIncrease }
+            } else {
+              state.currentBuild.racialBonuses = {}
+            }
+          } catch (error) {
+            console.error('Error loading race data for', raceId, error)
+            state.currentBuild.racialBonuses = {}
+          }
+          
           state.isDirty = true
           validateStep(state, 'race-background')
         }
       })
+      
+      // Recalculate ability scores with new racial bonuses
+      get().recalculateAllAbilityScores()
     },
     
     setSubrace: (subraceId: string) => {
