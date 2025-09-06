@@ -599,7 +599,12 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
           try {
             const raceData = getRace(raceId)
             if (raceData?.abilityScoreIncrease) {
-              state.currentBuild.racialBonuses = { ...raceData.abilityScoreIncrease }
+              // Convert array of AbilityScoreIncrease to Partial<AbilityScoreArray>
+              const racialBonuses: Partial<AbilityScoreArray> = {}
+              raceData.abilityScoreIncrease.forEach(increase => {
+                racialBonuses[increase.ability as keyof AbilityScoreArray] = increase.bonus
+              })
+              state.currentBuild.racialBonuses = racialBonuses
             } else {
               state.currentBuild.racialBonuses = {}
             }

@@ -418,7 +418,7 @@ export function Compare() {
     setSelectedBuildIds(prev => 
       prev.includes(buildId) 
         ? prev.filter(id => id !== buildId)
-        : prev.length < 3 ? [...prev, buildId] : prev
+        : prev.length < 6 ? [...prev, buildId] : prev
     )
   }
 
@@ -487,7 +487,7 @@ export function Compare() {
           
           <div className="text-center py-12">
             <h3 className="text-xl font-semibold text-foreground mb-2">Select Builds to Compare</h3>
-            <p className="text-muted mb-6">Choose up to 3 builds from your vault to analyze and compare their capabilities.</p>
+            <p className="text-muted mb-6">Choose up to 6 builds from your vault to analyze and compare their capabilities.</p>
             
             <Button onClick={() => setShowBuildSelector(!showBuildSelector)}>
               <Plus className="w-4 h-4 mr-2" />
