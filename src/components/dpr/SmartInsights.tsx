@@ -49,47 +49,47 @@ function generateInsights(
   }
   
   const acResult = calculateBuildDPR(combatState, weaponConfig, simConfig)
-  const avgDPR = result.averageDPR
+  const dprVsTargetAC = acResult.expectedDPR // Use the DPR against the specific target AC
   const hitChance = acResult.hitChance
   
   // Use Treantmonk's baseline system
   const baseline = getTreantmonkBaseline(characterLevel)
-  const percentage = (avgDPR / baseline) * 100
+  const percentage = (dprVsTargetAC / baseline) * 100
 
   // Analyze DPR performance with Treantmonk's baselines
   if (percentage >= 200) {
     insights.push({
       type: 'strength',
       title: 'Excellent Damage Output',
-      description: `Your ${avgDPR.toFixed(1)} average DPR is ${describeDPR(avgDPR, characterLevel).toLowerCase()}. You're dealing exceptional damage that will dominate encounters.`,
+      description: `Your ${dprVsTargetAC.toFixed(1)} DPR vs AC ${targetAC} is ${describeDPR(dprVsTargetAC, characterLevel).toLowerCase()}. You're dealing exceptional damage that will dominate encounters.`,
       priority: 'high'
     })
   } else if (percentage >= 150) {
     insights.push({
       type: 'strength',
       title: 'Very Good Damage Output',
-      description: `Your ${avgDPR.toFixed(1)} average DPR is ${describeDPR(avgDPR, characterLevel).toLowerCase()}. You're significantly outperforming baseline expectations.`,
+      description: `Your ${dprVsTargetAC.toFixed(1)} DPR vs AC ${targetAC} is ${describeDPR(dprVsTargetAC, characterLevel).toLowerCase()}. You're significantly outperforming baseline expectations.`,
       priority: 'high'
     })
   } else if (percentage >= 100) {
     insights.push({
       type: 'strength',
       title: 'Good Damage Output',
-      description: `Your ${avgDPR.toFixed(1)} average DPR is ${describeDPR(avgDPR, characterLevel).toLowerCase()}. You're meeting or exceeding optimization standards.`,
+      description: `Your ${dprVsTargetAC.toFixed(1)} DPR vs AC ${targetAC} is ${describeDPR(dprVsTargetAC, characterLevel).toLowerCase()}. You're meeting or exceeding optimization standards.`,
       priority: 'medium'
     })
   } else if (percentage > 50) {
     insights.push({
       type: 'weakness',
       title: 'Poor Damage Output',
-      description: `At ${avgDPR.toFixed(1)} average DPR, you're ${describeDPR(avgDPR, characterLevel).toLowerCase()}. Consider improving your build to reach the ${baseline.toFixed(1)} DPR baseline.`,
+      description: `At ${dprVsTargetAC.toFixed(1)} DPR vs AC ${targetAC}, you're ${describeDPR(dprVsTargetAC, characterLevel).toLowerCase()}. Consider improving your build to reach the ${baseline.toFixed(1)} DPR baseline.`,
       priority: 'high'
     })
   } else {
     insights.push({
       type: 'weakness',
       title: 'Damage Output Needs Work',
-      description: `At ${avgDPR.toFixed(1)} average DPR, your damage ${describeDPR(avgDPR, characterLevel).toLowerCase()}. Major improvements needed to reach the ${baseline.toFixed(1)} DPR baseline.`,
+      description: `At ${dprVsTargetAC.toFixed(1)} DPR vs AC ${targetAC}, your damage ${describeDPR(dprVsTargetAC, characterLevel).toLowerCase()}. Major improvements needed to reach the ${baseline.toFixed(1)} DPR baseline.`,
       priority: 'high'
     })
   }
@@ -186,7 +186,7 @@ function generateInsights(
   const advantageDPR = result.advantageCurve.find(p => p.ac === targetAC)?.dpr || 0
   const advantageGain = advantageDPR - normalDPR
   
-  if (advantageGain > avgDPR * 0.3) {
+  if (advantageGain > dprVsTargetAC * 0.3) {
     insights.push({
       type: 'opportunity',
       title: 'High Advantage Value',
