@@ -16,6 +16,7 @@ const pageTitles: Record<string, string> = {
   '/compare': 'COMPARE BUILDS',
   '/explorer': 'LEVEL PATH EXPLORER',
   '/party': 'PARTY OPTIMIZER',
+  '/homebrew': 'HOMEBREW EDITOR',
   '/settings': 'SETTINGS'
 }
 

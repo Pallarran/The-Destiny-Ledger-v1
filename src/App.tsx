@@ -7,6 +7,7 @@ import { DprLab } from './pages/DprLab'
 import { Compare } from './pages/Compare'
 import { LevelPathExplorer } from './pages/LevelPathExplorer'
 import { PartyOptimizer } from './pages/PartyOptimizer'
+import { HomebrewEditor } from './pages/HomebrewEditor'
 import { Settings } from './pages/Settings'
 
 function App() {
@@ -25,6 +26,7 @@ function App() {
           <Route path="/compare" element={<Compare />} />
           <Route path="/explorer" element={<LevelPathExplorer />} />
           <Route path="/party" element={<PartyOptimizer />} />
+          <Route path="/homebrew" element={<HomebrewEditor />} />
           <Route path="/settings" element={<Settings />} />
         </Routes>
       </FantasyLayout>

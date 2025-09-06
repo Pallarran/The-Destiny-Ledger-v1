@@ -6,7 +6,8 @@ import {
   BarChart3, 
   GitCompare, 
   TrendingUp,
-  Users
+  Users,
+  Scroll
 } from 'lucide-react'
 
 const navigation = [
@@ -16,6 +17,7 @@ const navigation = [
   { name: 'Compare', href: '/compare', icon: GitCompare },
   { name: 'Level Path', href: '/explorer', icon: TrendingUp },
   { name: 'Party', href: '/party', icon: Users },
+  { name: 'Homebrew', href: '/homebrew', icon: Scroll },
 ]
 
 export function FantasySidebar() {
