@@ -5,23 +5,13 @@ import { Badge } from '../ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select'
 import { ClassIcon } from '../ui/class-icon'
 import { useCharacterBuilderStore } from '../../stores/characterBuilderStore'
-import { classes } from '../../rules/srd/classes'
 import { feats } from '../../rules/srd/feats'
-import { subclasses } from '../../rules/srd/subclasses'
-import { getClass } from '../../rules/loaders'
+import { getClass, loadClasses, loadSubclasses } from '../../rules/loaders'
 import { getProficiencyBonus } from '../../rules/srd/skills'
 import { Plus, Sword, ChevronRight, AlertTriangle, CheckCircle, Clock, Heart, TrendingUp, Sparkles, Trash2, Crown, Target, TreePine, Star } from 'lucide-react'
 import type { BuilderLevelEntry, CharacterBuilder } from '../../types/character'
 import type { ClassDefinition, Feature, Feat, AbilityScore } from '../../rules/types'
-import type { Subclass } from '../../rules/srd/subclasses'
 
-// Helper type for subclass features
-type SubclassFeature = {
-  level: number
-  name: string
-  description: string
-  rulesKey?: string
-}
 
 // Interface for level section data - flexible to handle various section types
 interface LevelSection {
@@ -48,6 +38,8 @@ interface LevelSection {
 import { ExpertiseSelection } from './ExpertiseSelection'
 import { ManeuverSelection } from './ManeuverSelection'
 import { MetamagicSelection } from './MetamagicSelection'
+import { ContentWithHomebrew, isFromHomebrewStore } from '../ui/homebrew-badge'
+import { ContentFilter, useContentFilter } from '../ui/content-filter'
 import { EldritchInvocationSelection } from './EldritchInvocationSelection'
 import { MysticArcanumSelection } from './MysticArcanumSelection'
 import { PactBoonSelection } from './PactBoonSelection'
@@ -546,10 +538,10 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
     const progression = getManeuverProgression(classLevel)
     if (progression) {
       // Look for explicit Battle Master features at this level
-      const subclass = Object.values(subclasses).find((sub: Subclass) => sub.id === entry.subclassId)
+      const subclass = Object.values(loadSubclasses()).find(sub => sub.id === entry.subclassId)
       if (subclass && subclass.features) {
-        const subclassFeatures = subclass.features.filter((f: SubclassFeature) => f.level === classLevel)
-        maneuverFeature = subclassFeatures.find((f: SubclassFeature) => 
+        const subclassFeatures = subclass.features[classLevel] || []
+        maneuverFeature = subclassFeatures.find(f => 
           f.name === 'Combat Superiority' || f.name === 'Improved Combat Superiority'
         )
       }
@@ -731,17 +723,17 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
   // 3. Archetype Choice (initial selection only)
   const hasArchetype = classFeatures.some((f: Feature) => f.rulesKey === 'archetype')
   if (hasArchetype) {
-    const availableSubclasses = Object.values(subclasses).filter((sub: Subclass) => sub.className === entry.classId)
+    const availableSubclasses = Object.values(loadSubclasses()).filter(sub => sub.parentClass === entry.classId)
     sections.push({
       id: 'archetype',
       title: `${classData?.name} Archetype`,
       type: 'choice',
       isComplete: !!entry.archetype,
       currentChoice: entry.archetype,
-      options: availableSubclasses.map((subclass: Subclass) => ({
+      options: availableSubclasses.map((subclass) => ({
         id: subclass.id,
         name: subclass.name,
-        description: subclass.description
+        description: `${subclass.name} subclass`
       })),
       onChoice: (archetypeId: string) => {
         updateLevel(entry.level, { archetype: archetypeId, subclassId: archetypeId })
@@ -767,12 +759,12 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
     
     if (selectedArchetype) {
       // Find the subclass data
-      const subclass = Object.values(subclasses).find((sub: Subclass) => sub.id === selectedArchetype)
+      const subclass = Object.values(loadSubclasses()).find(sub => sub.id === selectedArchetype)
       if (subclass && subclass.features) {
-        // Get features for this class level from the subclass (features is an array, not keyed by level)
-        const subclassFeatures = subclass.features.filter((f: SubclassFeature) => f.level === classLevel)
+        // Get features for this class level from the subclass (features is keyed by level)
+        const subclassFeatures = subclass.features[classLevel] || []
         if (subclassFeatures && subclassFeatures.length > 0) {
-          specificArchetypeFeatures.push(...subclassFeatures.map((f: SubclassFeature) => ({ 
+          specificArchetypeFeatures.push(...subclassFeatures.map(f => ({ 
             name: f.name, 
             description: f.description 
           })))
@@ -2019,7 +2011,15 @@ export function EnhancedLevelTimeline() {
   
   const levels = [...(currentBuild.enhancedLevelTimeline || [])].sort((a, b) => a.level - b.level)
   const nextLevel = levels.length > 0 ? Math.max(...levels.map(l => l.level)) + 1 : 1
-  const availableClasses = Object.values(classes).sort((a, b) => a.name.localeCompare(b.name))
+  const availableClasses = Object.values(loadClasses()).sort((a, b) => a.name.localeCompare(b.name))
+  
+  // Add content filtering for classes
+  const {
+    filter: classFilter,
+    setFilter: setClassFilter,
+    filteredItems: filteredClasses,
+    counts: classCounts
+  } = useContentFilter(availableClasses, (id) => isFromHomebrewStore(id, 'class'))
   
 
   const handleAddLevel = () => {
@@ -2048,19 +2048,36 @@ export function EnhancedLevelTimeline() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            <div>
-              <label className="text-sm font-medium mb-2 block">Choose Class:</label>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-medium">Choose Class:</label>
+                <ContentFilter
+                  currentFilter={classFilter}
+                  onFilterChange={setClassFilter}
+                  homebrewCount={classCounts.homebrew}
+                  srdCount={classCounts.srd}
+                  totalCount={classCounts.total}
+                  variant="compact"
+                />
+              </div>
               <Select value={selectedClass} onValueChange={setSelectedClass}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select a class..." />
                 </SelectTrigger>
                 <SelectContent>
-                  {availableClasses.map(cls => {
+                  {filteredClasses.map(cls => {
+                    const isHomebrew = isFromHomebrewStore(cls.id, 'class')
                     return (
                       <SelectItem key={cls.id} value={cls.id}>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 w-full">
                           <ClassIcon className={cls.id} size="sm" fallback={<Sword className="w-4 h-4" />} />
-                          <span>{cls.name}</span>
+                          <ContentWithHomebrew
+                            name={cls.name}
+                            isHomebrew={isHomebrew}
+                            badgeVariant="small"
+                            showHomebrewIcon={false}
+                            className="flex-1"
+                          />
                         </div>
                       </SelectItem>
                     )
