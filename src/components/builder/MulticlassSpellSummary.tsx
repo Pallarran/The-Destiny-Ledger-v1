@@ -74,10 +74,10 @@ export const MulticlassSpellInfo: React.FC<MulticlassSpellSummaryProps> = ({ cur
   if (totalCasterClasses <= 1) return null
 
   return (
-    <div className="relative">
+    <>
       <button
         onClick={() => setShowDetails(!showDetails)}
-        className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 transition-colors"
+        className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 transition-colors relative z-10"
         title="View multiclass spellcasting details"
       >
         <Info className="w-4 h-4" />
@@ -85,7 +85,14 @@ export const MulticlassSpellInfo: React.FC<MulticlassSpellSummaryProps> = ({ cur
       </button>
       
       {showDetails && (
-        <div className="absolute top-full left-0 mt-2 w-96 max-w-screen-sm bg-white border border-gray-200 rounded-lg shadow-lg z-[9999] p-4 space-y-4">
+        <>
+          {/* Backdrop to catch clicks outside */}
+          <div 
+            className="fixed inset-0 z-[9998]" 
+            onClick={() => setShowDetails(false)}
+          />
+          {/* Tooltip with fixed positioning */}
+          <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-96 max-w-[90vw] max-h-[80vh] overflow-y-auto bg-white border border-gray-200 rounded-lg shadow-2xl z-[9999] p-4 space-y-4">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <Sparkles className="w-5 h-5 text-purple-600" />
@@ -172,8 +179,9 @@ export const MulticlassSpellInfo: React.FC<MulticlassSpellSummaryProps> = ({ cur
             )}
           </div>
         </div>
+        </>
       )}
-    </div>
+    </>
   )
 }
 
