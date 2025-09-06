@@ -130,3 +130,98 @@ export type WeaponProperty =
   | 'two-handed'
   | 'versatile'
   | 'ammunition'
+
+// === ROUND SCRIPTS & ACTION ECONOMY ===
+
+export type ActionType = 'action' | 'bonus-action' | 'reaction' | 'free' | 'movement'
+
+export interface ActionOption {
+  id: string
+  name: string
+  type: ActionType
+  description: string
+  cost: ResourceCost[]
+  requirements?: ActionRequirement[]
+  effects: ActionEffect[]
+  conflicts?: string[] // IDs of actions that conflict with this one
+}
+
+export interface ResourceCost {
+  type: 'spell-slot' | 'superiority-die' | 'ki-point' | 'sorcery-point' | 'rage' | 'action-surge' | 'second-wind'
+  level?: number // For spell slots
+  amount: number
+}
+
+export interface ActionRequirement {
+  type: 'weapon-property' | 'spell-known' | 'feature' | 'min-level' | 'concentration-free'
+  value: string | number
+  comparison?: '=' | '>=' | '<=' | '>' | '<'
+}
+
+export interface ActionEffect {
+  type: 'attack' | 'damage-bonus' | 'attack-bonus' | 'advantage' | 'concentration' | 'movement' | 'condition'
+  target?: 'self' | 'enemy' | 'ally'
+  value?: number | string
+  duration?: 'instant' | 'round' | 'encounter' | 'until-concentration-ends'
+  stacks?: boolean
+}
+
+export interface RoundAction {
+  actionId: string
+  option: ActionOption
+  parameters?: Record<string, any> // For parameterized actions (target selection, spell level, etc.)
+}
+
+export interface RoundScript {
+  roundNumber: 1 | 2 | 3
+  actions: RoundAction[]
+  availableResources: ResourcePool
+  concentrationEffect?: string // ID of active concentration effect
+  notes?: string
+}
+
+export interface ResourcePool {
+  spellSlots: Record<number, number> // level -> count
+  superiorityDice: number
+  kiPoints: number
+  sorceryPoints: number
+  hasActionSurge: boolean
+  hasRage: boolean
+  hasSecondWind: boolean
+}
+
+export interface RoundScripts {
+  round1: RoundScript
+  round2: RoundScript
+  round3: RoundScript
+  initialResources: ResourcePool
+}
+
+export interface ActionEconomyValidation {
+  isValid: boolean
+  violations: ActionViolation[]
+  warnings: ActionWarning[]
+  resourceUsage: ResourceUsageBreakdown
+}
+
+export interface ActionViolation {
+  type: 'double-action' | 'double-bonus-action' | 'insufficient-resources' | 'concentration-conflict' | 'requirement-not-met'
+  roundNumber: 1 | 2 | 3
+  actionIds: string[]
+  message: string
+}
+
+export interface ActionWarning {
+  type: 'suboptimal-resource-use' | 'unused-action' | 'concentration-overlap'
+  roundNumber: 1 | 2 | 3
+  actionIds?: string[]
+  message: string
+  suggestion?: string
+}
+
+export interface ResourceUsageBreakdown {
+  spellSlotsUsed: Record<number, number>
+  superiorityDiceUsed: number
+  otherResourcesUsed: string[]
+  totalResourceValue: number // Estimated value of resources consumed
+}

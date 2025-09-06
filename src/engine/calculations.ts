@@ -4,7 +4,10 @@ import type {
   CombatState, 
   DPRCalculationResult,
   SimulationConfig,
-  WeaponConfig
+  WeaponConfig,
+  RoundScripts,
+  RoundScript,
+  ResourcePool
 } from './types'
 
 // Core probability calculations
@@ -373,4 +376,178 @@ export function calculateBuildDPR(
       total: totalDPR
     }
   }
+}
+
+/**
+ * Calculate DPR using Round Scripts for precise action economy modeling
+ */
+export function calculateRoundScriptsDPR(
+  state: CombatState,
+  weapon: WeaponConfig,
+  config: SimulationConfig,
+  roundScripts: RoundScripts
+): DPRCalculationResult {
+  const rounds = [roundScripts.round1, roundScripts.round2, roundScripts.round3]
+  const roundDPRs: number[] = []
+  let totalDPR = 0
+
+  // Calculate base attack parameters (similar to main function)
+  let attackBonus = state.proficiencyBonus + state.abilityModifier + weapon.enhancement
+  attackBonus += state.attackBonuses.reduce((sum, bonus) => sum + bonus, 0)
+  
+  // Apply fighting style bonuses
+  if (state.fightingStyles.includes('archery') && weapon.properties.includes('ammunition')) {
+    attackBonus += 2
+  }
+  
+  // Apply buff bonuses
+  if (state.hasBless) {
+    attackBonus += 2.5 // Average of d4
+  }
+  if (state.hasElementalWeapon) {
+    attackBonus += 1
+  }
+
+  // Create base damage roll
+  const baseDamage: DamageRoll = {
+    baseDice: [{
+      ...weapon.baseDamage,
+      rerollOnes: state.fightingStyles.includes('gwf') && weapon.properties.includes('two-handed'),
+      rerollTwos: state.fightingStyles.includes('gwf') && weapon.properties.includes('two-handed')
+    }],
+    bonusDamage: state.abilityModifier + weapon.enhancement,
+    additionalDice: []
+  }
+  
+  // Add base damage bonuses
+  baseDamage.bonusDamage += state.damageBonuses.reduce((sum, bonus) => sum + bonus, 0)
+  
+  // Apply fighting style damage bonuses
+  if (state.fightingStyles.includes('dueling') && !weapon.properties.includes('two-handed')) {
+    baseDamage.bonusDamage += 2
+  }
+
+  // Process each round using the planned actions
+  let currentResources = { ...roundScripts.initialResources }
+  
+  for (let roundIndex = 0; roundIndex < rounds.length; roundIndex++) {
+    const round = rounds[roundIndex]
+    const roundDPR = calculateRoundDPRFromActions(
+      round,
+      state,
+      attackBonus,
+      baseDamage,
+      config.targetAC,
+      currentResources
+    )
+    
+    roundDPRs.push(roundDPR)
+    totalDPR += roundDPR
+    
+    // Update resources for next round (basic implementation)
+    // In a full implementation, this would consume resources based on actions used
+    currentResources = { ...round.availableResources }
+  }
+
+  const averageDPR = totalDPR / 3
+
+  // Calculate advantage state for probability display
+  let advantageState: 'normal' | 'advantage' | 'disadvantage' = 'normal'
+  if (state.hasAdvantage && !state.hasDisadvantage) {
+    advantageState = 'advantage'
+  } else if (state.hasDisadvantage && !state.hasAdvantage) {
+    advantageState = 'disadvantage'
+  }
+
+  // Calculate display probabilities using base attack
+  const probs = calculateHitProbability(attackBonus, config.targetAC, advantageState)
+
+  return {
+    hitChance: probs.hit,
+    critChance: probs.crit,
+    missChance: probs.miss,
+    normalDamage: calculateDamageRoll(baseDamage),
+    critDamage: calculateDamageRoll(baseDamage) * 2,
+    expectedDamagePerAttack: calculateSingleAttackDPR(attackBonus, baseDamage, config.targetAC, advantageState),
+    attacksPerRound: 0, // Not applicable with Round Scripts
+    expectedDPR: averageDPR,
+    breakdown: {
+      round1: roundDPRs[0] || 0,
+      round2: roundDPRs[1] || 0,
+      round3: roundDPRs[2] || 0,
+      average: averageDPR,
+      total: totalDPR
+    }
+  }
+}
+
+/**
+ * Calculate DPR for a single round based on planned actions
+ */
+function calculateRoundDPRFromActions(
+  round: RoundScript,
+  state: CombatState,
+  baseAttackBonus: number,
+  baseDamage: DamageRoll,
+  targetAC: number,
+  _availableResources: ResourcePool
+): number {
+  let roundDPR = 0
+  let currentDamage = { ...baseDamage, additionalDice: [...(baseDamage.additionalDice || [])] }
+  let attackBonus = baseAttackBonus
+  let advantageState: 'normal' | 'advantage' | 'disadvantage' = 'normal'
+  
+  // Apply round-level advantages
+  if (state.hasAdvantage && !state.hasDisadvantage) {
+    advantageState = 'advantage'
+  } else if (state.hasDisadvantage && !state.hasAdvantage) {
+    advantageState = 'disadvantage'
+  }
+
+  // Process each action in the round
+  for (const roundAction of round.actions) {
+    const action = roundAction.option
+    
+    switch (action.type) {
+      case 'action':
+        if (action.id === 'attack') {
+          // Standard attack action - use Extra Attack if available
+          const numAttacks = 1 + state.extraAttacks
+          roundDPR += calculateSingleAttackDPR(attackBonus, currentDamage, targetAC, advantageState) * numAttacks
+        }
+        break
+        
+      case 'bonus-action':
+        if (action.id === 'hex' || action.id === 'hunters-mark') {
+          // Add damage bonus dice for subsequent attacks in this round
+          currentDamage.additionalDice?.push({ count: 1, die: 6, rerollOnes: false, rerollTwos: false })
+        } else if (action.id === 'two-weapon-fighting') {
+          // Off-hand attack
+          roundDPR += calculateSingleAttackDPR(attackBonus, currentDamage, targetAC, advantageState)
+        } else if (action.id.startsWith('cunning-action')) {
+          // Cunning actions don't directly contribute to DPR
+        }
+        break
+        
+      case 'free':
+        if (action.id === 'action-surge') {
+          // Action Surge gives additional attacks
+          const numAttacks = 1 + state.extraAttacks
+          roundDPR += calculateSingleAttackDPR(attackBonus, currentDamage, targetAC, advantageState) * numAttacks
+        } else if (action.id === 'reckless-attack') {
+          // Reckless Attack grants advantage
+          advantageState = 'advantage'
+        } else if (action.id === 'precision-attack') {
+          // Precision Attack adds to attack bonus (simplified)
+          attackBonus += 4.5 // Average of d8 superiority die
+        }
+        break
+        
+      default:
+        // Handle other action types as needed
+        break
+    }
+  }
+
+  return roundDPR
 }

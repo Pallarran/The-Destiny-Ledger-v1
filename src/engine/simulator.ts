@@ -1,5 +1,5 @@
-import { calculateBuildDPR } from './calculations'
-import type { CombatState, SimulationConfig, WeaponConfig } from './types'
+import { calculateBuildDPR, calculateRoundScriptsDPR } from './calculations'
+import type { CombatState, SimulationConfig, WeaponConfig, RoundScripts } from './types'
 import type { BuildConfiguration, DPRConfiguration, DPRResult } from '../stores/types'
 import { getClass, getFeat } from '../rules/loaders'
 import { weapons } from '../rules/srd/weapons'
@@ -381,5 +381,83 @@ export function generateDPRCurves(
     advantageCurve,
     disadvantageCurve,
     gwmSSBreakpoints
+  }
+}
+
+// Generate DPR curves using Round Scripts for action economy
+export function generateRoundScriptsDPRCurves(
+  build: BuildConfiguration,
+  config: DPRConfiguration,
+  roundScripts: RoundScripts
+): DPRResult {
+  const combatState = buildToCombatState(build)
+  
+  // Determine which weapon to use
+  const weaponId = build.rangedWeapon || build.mainHandWeapon || 'longsword'
+  const weaponConfig = getWeaponConfig(weaponId, build.weaponEnhancementBonus || 0, combatState)
+  
+  if (!weaponConfig) {
+    throw new Error(`Invalid weapon: ${weaponId}`)
+  }
+  
+  // Generate curves for each advantage state using Round Scripts
+  const normalCurve: Array<{ ac: number; dpr: number }> = []
+  const advantageCurve: Array<{ ac: number; dpr: number }> = []
+  const disadvantageCurve: Array<{ ac: number; dpr: number }> = []
+  
+  // Calculate for each AC value using Round Scripts
+  for (let ac = config.acMin; ac <= config.acMax; ac += config.acStep) {
+    const simConfig: SimulationConfig = {
+      targetAC: ac,
+      rounds: 3,
+      round0Buffs: config.round0BuffsEnabled,
+      greedyResourceUse: config.greedyResourceUse,
+      autoGWMSS: config.autoGWMSS
+    }
+    
+    // Normal
+    const normalResult = calculateRoundScriptsDPR(combatState, weaponConfig, simConfig, roundScripts)
+    normalCurve.push({ ac, dpr: normalResult.expectedDPR })
+    
+    // Advantage
+    const advState = { ...combatState, hasAdvantage: true, hasDisadvantage: false }
+    const advResult = calculateRoundScriptsDPR(advState, weaponConfig, simConfig, roundScripts)
+    advantageCurve.push({ ac, dpr: advResult.expectedDPR })
+    
+    // Disadvantage
+    const disState = { ...combatState, hasAdvantage: false, hasDisadvantage: true }
+    const disResult = calculateRoundScriptsDPR(disState, weaponConfig, simConfig, roundScripts)
+    disadvantageCurve.push({ ac, dpr: disResult.expectedDPR })
+  }
+  
+  // Get breakdown for AC 15 (typical) for summary stats using Round Scripts
+  const typicalAC = 15
+  const typicalConfig: SimulationConfig = {
+    targetAC: typicalAC,
+    rounds: 3,
+    round0Buffs: config.round0BuffsEnabled,
+    greedyResourceUse: config.greedyResourceUse,
+    autoGWMSS: config.autoGWMSS
+  }
+  const typicalResult = calculateRoundScriptsDPR(combatState, weaponConfig, typicalConfig, roundScripts)
+  
+  const totalDPR = typicalResult.breakdown.total
+  const averageDPR = typicalResult.breakdown.average
+  
+  return {
+    buildId: build.id,
+    config,
+    timestamp: new Date(),
+    totalDPR,
+    averageDPR,
+    roundBreakdown: [
+      typicalResult.breakdown.round1,
+      typicalResult.breakdown.round2,
+      typicalResult.breakdown.round3
+    ],
+    normalCurve,
+    advantageCurve,
+    disadvantageCurve,
+    gwmSSBreakpoints: [] // GWM/SS breakpoints not applicable with Round Scripts (actions are pre-planned)
   }
 }
