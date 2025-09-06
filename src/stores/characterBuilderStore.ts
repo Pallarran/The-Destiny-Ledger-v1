@@ -433,6 +433,9 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
       
       // Ensure downtime training totals are computed after loading (outside of set callback)
       get().recomputeTrainingTotals()
+      
+      // Recalculate all ability scores to ensure racial bonuses are applied
+      get().recalculateAllAbilityScores()
     },
     
     exportToBuildConfiguration: (): BuildConfiguration | null => {
@@ -682,6 +685,22 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
             INT: state.currentBuild.baseAbilityScores?.INT || 8,
             WIS: state.currentBuild.baseAbilityScores?.WIS || 8,
             CHA: state.currentBuild.baseAbilityScores?.CHA || 8
+          }
+          
+          // Ensure racial bonuses are calculated from race data if missing
+          if (state.currentBuild.race && (!state.currentBuild.racialBonuses || Object.keys(state.currentBuild.racialBonuses).length === 0)) {
+            try {
+              const raceData = getRace(state.currentBuild.race)
+              if (raceData?.abilityScoreIncrease) {
+                const racialBonuses: Partial<AbilityScoreArray> = {}
+                raceData.abilityScoreIncrease.forEach(increase => {
+                  racialBonuses[increase.ability as keyof AbilityScoreArray] = increase.bonus
+                })
+                state.currentBuild.racialBonuses = racialBonuses
+              }
+            } catch (error) {
+              console.error('Error loading race data for', state.currentBuild.race, error)
+            }
           }
           
           // Add racial bonuses (if any)
