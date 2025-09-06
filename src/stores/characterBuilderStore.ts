@@ -632,6 +632,9 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
           validateStep(state, 'race-background')
         }
       })
+      
+      // Recalculate ability scores to include subrace bonuses
+      get().recalculateAllAbilityScores()
     },
     
     setBackground: (backgroundId: string) => {
@@ -709,6 +712,22 @@ export const useCharacterBuilderStore = create<CharacterBuilderStore>()(
                 finalScores[ability as keyof AbilityScoreArray] += bonus
               }
             })
+          }
+          
+          // Add subrace bonuses (if any)
+          if (state.currentBuild.race && state.currentBuild.subrace) {
+            try {
+              const raceData = getRace(state.currentBuild.race)
+              const subraceId = state.currentBuild.subrace
+              const subrace = raceData?.subraces?.find(sub => sub.id === subraceId)
+              if (subrace?.abilityScoreIncrease) {
+                subrace.abilityScoreIncrease.forEach(increase => {
+                  finalScores[increase.ability as keyof AbilityScoreArray] += increase.bonus
+                })
+              }
+            } catch (error) {
+              console.error('Error loading subrace data for', state.currentBuild.race, state.currentBuild.subrace, error)
+            }
           }
           
           // Add racial choice bonuses
