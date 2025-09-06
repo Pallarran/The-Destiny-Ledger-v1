@@ -1,6 +1,7 @@
 import { Card, CardHeader, CardTitle, CardContent } from '../ui/card'
 import { Badge } from '../ui/badge'
 import { Button } from '../ui/button'
+import { FullLevelingSequence } from './FullLevelingSequence'
 import { 
   Trophy,
   Target,
@@ -9,7 +10,6 @@ import {
   Zap,
   Shield,
   Sparkles,
-  ChevronRight,
   Star,
   AlertCircle
 } from 'lucide-react'
@@ -178,44 +178,9 @@ export function LevelingPathResults({
                   </div>
                 )}
 
-                {/* Leveling Sequence Preview */}
+                {/* Full Leveling Sequence */}
                 <div>
-                  <div className="text-sm font-medium mb-2 flex items-center gap-2">
-                    <ChevronRight className="w-4 h-4" />
-                    Leveling Sequence Preview
-                  </div>
-                  
-                  <div className="bg-accent/5 rounded-lg p-3">
-                    <div className="flex flex-wrap items-center gap-1 text-xs">
-                      {path.sequence.slice(0, 10).map((step, idx) => {
-                        const isLastInSequence = idx === path.sequence.length - 1
-                        const isPowerSpike = step.powerSpike
-                        
-                        return (
-                          <div key={idx} className="flex items-center">
-                            <span 
-                              className={`px-2 py-1 rounded ${
-                                isPowerSpike 
-                                  ? 'bg-yellow-200 text-yellow-800 font-medium' 
-                                  : 'bg-gray-100 text-gray-700'
-                              }`}
-                            >
-                              L{step.level}: {step.classId.substring(0, 3).toUpperCase()}
-                            </span>
-                            {!isLastInSequence && idx < 9 && (
-                              <ChevronRight className="w-3 h-3 mx-1 text-muted-foreground" />
-                            )}
-                          </div>
-                        )
-                      })}
-                      
-                      {path.sequence.length > 10 && (
-                        <div className="text-muted-foreground">
-                          ... +{path.sequence.length - 10} more levels
-                        </div>
-                      )}
-                    </div>
-                  </div>
+                  <FullLevelingSequence path={path} />
                 </div>
 
                 {/* Action Buttons */}

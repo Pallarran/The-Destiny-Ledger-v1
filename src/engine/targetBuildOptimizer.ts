@@ -222,24 +222,177 @@ export class TargetBuildOptimizer {
   // Generate all possible leveling sequences to reach target breakdown
   private generateLevelingSequences(targetBreakdown: Record<string, number>): LevelStep[][] {
     const sequences: LevelStep[][] = []
+    const classes = Object.keys(targetBreakdown)
+    const totalLevels = Object.values(targetBreakdown).reduce((sum, levels) => sum + levels, 0)
     
-    // This is a complex combinatorial problem
-    // For now, generate some common patterns
+    // Generate different sequences based on optimization goal
+    const goalId = this.optimizationGoal.id
     
-    // Pattern 1: Single class to milestone, then multiclass
-    // Pattern 2: Early multiclass for synergy
-    // Pattern 3: Alternating levels
-    // Pattern 4: Late multiclass for capstone
+    if (classes.length === 1) {
+      // Single class - only one sequence possible
+      const singleClassSequence = this.generateSingleClassSequence(classes[0], totalLevels)
+      sequences.push(singleClassSequence)
+    } else {
+      // Multi-class - generate different patterns based on goal
+      
+      // Pattern 1: Front-loaded primary class (good for early game optimization)
+      if (goalId === 'early_dpr' || goalId === 'early_survival') {
+        const primaryClass = this.getPrimaryClass(targetBreakdown)
+        const frontLoadedSequence = this.generateFrontLoadedSequence(targetBreakdown, primaryClass)
+        sequences.push(frontLoadedSequence)
+      }
+      
+      // Pattern 2: Late multiclass (good for late game optimization)  
+      if (goalId === 'late_dpr' || goalId === 'nova_damage') {
+        const lateMulticlassSequence = this.generateLateMulticlassSequence(targetBreakdown)
+        sequences.push(lateMulticlassSequence)
+      }
+      
+      // Pattern 3: Alternating levels (good for synergy and spell progression)
+      if (goalId === 'multiclass_synergy' || goalId === 'spell_progression') {
+        const alternatingSequence = this.generateAlternatingSequence(targetBreakdown)
+        sequences.push(alternatingSequence)
+      }
+      
+      // Pattern 4: Milestone-focused (good for consistent performance)
+      if (goalId === 'consistent_dpr' || goalId === 'skill_monkey') {
+        const milestoneSequence = this.generateMilestoneSequence(targetBreakdown)
+        sequences.push(milestoneSequence)
+      }
+      
+      // Always generate at least one sequence
+      if (sequences.length === 0) {
+        const defaultSequence = this.generateDefaultSequence(targetBreakdown)
+        sequences.push(defaultSequence)
+      }
+    }
     
-    // Implementation placeholder - would need sophisticated algorithm
+    return sequences
+  }
+
+  private generateSingleClassSequence(classId: string, levels: number): LevelStep[] {
+    const sequence: LevelStep[] = []
+    for (let level = 1; level <= levels; level++) {
+      sequence.push({
+        level,
+        classId,
+        features: [],
+        keyFeatures: this.getKeyFeaturesAtLevel(classId, level),
+        powerSpike: this.isPowerSpikeLevel(classId, level)
+      })
+    }
+    return sequence
+  }
+
+  private generateFrontLoadedSequence(targetBreakdown: Record<string, number>, primaryClass: string): LevelStep[] {
+    const sequence: LevelStep[] = []
+    let currentLevel = 1
     
-    // Generate at least one simple sequence for testing
-    const simpleSequence: LevelStep[] = []
+    // Take primary class to 5 first for Extra Attack/3rd level spells
+    const primaryLevels = Math.min(targetBreakdown[primaryClass], 5)
+    for (let i = 0; i < primaryLevels; i++) {
+      sequence.push({
+        level: currentLevel++,
+        classId: primaryClass,
+        features: [],
+        keyFeatures: this.getKeyFeaturesAtLevel(primaryClass, i + 1),
+        powerSpike: this.isPowerSpikeLevel(primaryClass, i + 1)
+      })
+    }
+    
+    // Then distribute remaining levels
+    const remaining = { ...targetBreakdown }
+    remaining[primaryClass] -= primaryLevels
+    
+    for (const [classId, levels] of Object.entries(remaining)) {
+      for (let i = 0; i < levels; i++) {
+        sequence.push({
+          level: currentLevel++,
+          classId,
+          features: [],
+          keyFeatures: this.getKeyFeaturesAtLevel(classId, i + 1),
+          powerSpike: this.isPowerSpikeLevel(classId, i + 1)
+        })
+      }
+    }
+    
+    return sequence
+  }
+
+  private generateLateMulticlassSequence(targetBreakdown: Record<string, number>): LevelStep[] {
+    const sequence: LevelStep[] = []
+    let currentLevel = 1
+    const primaryClass = this.getPrimaryClass(targetBreakdown)
+    
+    // Take primary class to high levels first
+    const primaryTarget = Math.min(targetBreakdown[primaryClass], 11)
+    for (let i = 0; i < primaryTarget; i++) {
+      sequence.push({
+        level: currentLevel++,
+        classId: primaryClass,
+        features: [],
+        keyFeatures: this.getKeyFeaturesAtLevel(primaryClass, i + 1),
+        powerSpike: this.isPowerSpikeLevel(primaryClass, i + 1)
+      })
+    }
+    
+    // Then add multiclass levels
+    const remaining = { ...targetBreakdown }
+    remaining[primaryClass] -= primaryTarget
+    
+    for (const [classId, levels] of Object.entries(remaining)) {
+      for (let i = 0; i < levels; i++) {
+        sequence.push({
+          level: currentLevel++,
+          classId,
+          features: [],
+          keyFeatures: this.getKeyFeaturesAtLevel(classId, i + 1),
+          powerSpike: this.isPowerSpikeLevel(classId, i + 1)
+        })
+      }
+    }
+    
+    return sequence
+  }
+
+  private generateAlternatingSequence(targetBreakdown: Record<string, number>): LevelStep[] {
+    const sequence: LevelStep[] = []
+    const classes = Object.keys(targetBreakdown).sort()
+    const remaining = { ...targetBreakdown }
+    let currentLevel = 1
+    
+    // Alternate between classes
+    while (Object.values(remaining).some(levels => levels > 0)) {
+      for (const classId of classes) {
+        if (remaining[classId] > 0) {
+          const classLevel = targetBreakdown[classId] - remaining[classId] + 1
+          sequence.push({
+            level: currentLevel++,
+            classId,
+            features: [],
+            keyFeatures: this.getKeyFeaturesAtLevel(classId, classLevel),
+            powerSpike: this.isPowerSpikeLevel(classId, classLevel)
+          })
+          remaining[classId]--
+        }
+      }
+    }
+    
+    return sequence
+  }
+
+  private generateMilestoneSequence(targetBreakdown: Record<string, number>): LevelStep[] {
+    // Similar to front-loaded but prioritizes key milestone levels (5, 11, etc.)
+    return this.generateFrontLoadedSequence(targetBreakdown, this.getPrimaryClass(targetBreakdown))
+  }
+
+  private generateDefaultSequence(targetBreakdown: Record<string, number>): LevelStep[] {
+    const sequence: LevelStep[] = []
     let currentLevel = 1
     
     for (const [classId, levels] of Object.entries(targetBreakdown)) {
       for (let i = 0; i < levels; i++) {
-        simpleSequence.push({
+        sequence.push({
           level: currentLevel++,
           classId,
           features: [],
@@ -249,9 +402,35 @@ export class TargetBuildOptimizer {
       }
     }
     
-    sequences.push(simpleSequence)
+    return sequence
+  }
+
+  private getPrimaryClass(targetBreakdown: Record<string, number>): string {
+    return Object.entries(targetBreakdown).reduce((primary, current) => {
+      const [classId, levels] = current
+      return levels > targetBreakdown[primary] ? classId : primary
+    }, Object.keys(targetBreakdown)[0])
+  }
+
+  private getKeyFeaturesAtLevel(classId: string, level: number): string[] {
+    const features: string[] = []
     
-    return sequences
+    // Add key features based on class and level
+    if (level === 1) features.push(`${classId} 1`)
+    if (level === 2) features.push(`${classId} Feature`)
+    if (level === 3 && classId !== 'fighter') features.push('Subclass')
+    if (level === 3 && classId === 'fighter') features.push('Fighter Archetype')
+    if (level === 4) features.push('ASI/Feat')
+    if (level === 5) features.push('Extra Attack/3rd Spells')
+    if (level === 11) features.push('Tier 3 Features')
+    
+    return features
+  }
+
+  private isPowerSpikeLevel(_classId: string, level: number): boolean {
+    // Common power spike levels
+    const powerSpikeLevels = [1, 2, 3, 5, 6, 11, 17]
+    return powerSpikeLevels.includes(level)
   }
 
   // Evaluate a specific leveling sequence
