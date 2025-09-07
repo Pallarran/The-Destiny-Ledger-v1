@@ -280,6 +280,7 @@ export function LevelPathExplorer() {
         isOpen={showCustomTargetModal}
         onClose={() => setShowCustomTargetModal(false)}
         onTargetDefine={setCustomTarget}
+        sourceBuild={selectedBuild}
       />
       
       <OptimizationGoalModalV2
