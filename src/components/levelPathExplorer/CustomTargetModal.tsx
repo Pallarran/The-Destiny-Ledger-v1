@@ -10,8 +10,7 @@ import {
 import { 
   Target, 
   Plus,
-  X,
-  Trash2
+  X
 } from 'lucide-react'
 import { classes } from '../../rules/srd/classes'
 import { subclasses } from '../../rules/srd/subclasses'
@@ -72,7 +71,7 @@ export function CustomTargetModal({
         subclassId: undefined // Reset subclass when class changes
       }
     } else if (field === 'subclassId') {
-      updatedEntries[index] = { ...updatedEntries[index], subclassId: value as string }
+      updatedEntries[index] = { ...updatedEntries[index], subclassId: (value as string) || undefined }
     } else if (field === 'levels') {
       updatedEntries[index] = { ...updatedEntries[index], levels: Math.max(1, Math.min(20, value as number)) }
     }
@@ -205,7 +204,7 @@ export function CustomTargetModal({
                       <label className="block text-xs font-medium text-muted-foreground mb-1">Subclass</label>
                       <Select
                         value={entry.subclassId || 'none'}
-                        onValueChange={(value) => updateEntry(index, 'subclassId', value === 'none' ? undefined : value)}
+                        onValueChange={(value) => updateEntry(index, 'subclassId', value === 'none' ? '' : value)}
                         disabled={!entry.classId}
                       >
                         <SelectTrigger className="h-8">
