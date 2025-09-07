@@ -62,19 +62,19 @@ export function OptimizationGoalModalV2({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto bg-background">
-        <DialogHeader>
-          <DialogTitle>Select Optimization Goal</DialogTitle>
+      <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto bg-white dark:bg-slate-900 border-2 border-gray-200 dark:border-gray-700 shadow-2xl rounded-lg">
+        <DialogHeader className="border-b border-gray-200 dark:border-gray-700 pb-4">
+          <DialogTitle className="text-xl font-semibold text-gray-900 dark:text-gray-100">Select Optimization Goal</DialogTitle>
         </DialogHeader>
         
-        <div className="space-y-6 mt-4">
+        <div className="space-y-6 mt-6 p-1">
           {Object.entries(goalsByCategory).map(([category, categoryGoals]) => (
             <div key={category} className="space-y-3">
               <div className="flex items-center gap-2">
                 <div className={`p-1 rounded ${getCategoryColor(category)}`}>
                   {getCategoryIcon(category)}
                 </div>
-                <h3 className="font-medium capitalize">{category}</h3>
+                <h3 className="font-medium capitalize text-gray-900 dark:text-gray-100">{category}</h3>
               </div>
               
               <div className="grid gap-2">
@@ -86,7 +86,7 @@ export function OptimizationGoalModalV2({
                       "w-full justify-start text-left h-auto py-3 border transition-all",
                       selectedGoalId === goal.id 
                         ? "bg-primary text-primary-foreground border-primary shadow-md" 
-                        : "bg-card hover:bg-muted/50 border-border text-foreground"
+                        : "bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 border-gray-200 dark:border-gray-600 text-gray-900 dark:text-gray-100"
                     )}
                     onClick={() => handleSelect(goal.id)}
                   >
@@ -101,7 +101,7 @@ export function OptimizationGoalModalV2({
                             </Badge>
                           )}
                         </div>
-                        <p className="text-sm text-muted-foreground font-normal">
+                        <p className="text-sm text-gray-600 dark:text-gray-300 font-normal">
                           {goal.description}
                         </p>
                       </div>
