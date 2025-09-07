@@ -4,7 +4,8 @@ import { Button } from '../components/ui/button'
 import { TargetBuildModal } from '../components/levelPathExplorer/TargetBuildModal'
 import { OptimizationGoalModalV2 } from '../components/levelPathExplorer/OptimizationGoalModalV2'
 import { LevelingPathResultsV2 } from '../components/levelPathExplorer/LevelingPathResultsV2'
-import { TargetBuildOptimizerV2, getOptimizationGoalsV2 } from '../engine/targetBuildOptimizerV2'
+import { getOptimizationGoalsV2 } from '../engine/targetBuildOptimizerV2'
+import { DynamicPathOptimizer } from '../engine/dynamicPathOptimizer'
 import { useVaultStore } from '../stores/vaultStore'
 import type { LevelingPathV2 } from '../engine/targetBuildOptimizerV2'
 import type { BuildConfiguration } from '../stores/types'
@@ -43,8 +44,8 @@ export function LevelPathExplorer() {
     setLevelingPaths([])
     
     try {
-      const optimizer = new TargetBuildOptimizerV2(targetBuild, selectedGoalId)
-      const paths = await optimizer.generateOptimizedPaths()
+      const optimizer = new DynamicPathOptimizer(targetBuild, selectedGoalId)
+      const paths = await optimizer.generateOptimalPaths()
       setLevelingPaths(paths)
     } catch (error) {
       console.error('Error optimizing leveling paths:', error)
