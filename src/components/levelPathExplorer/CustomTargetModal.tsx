@@ -57,13 +57,55 @@ export function CustomTargetModal({
     return 'medium' // Default
   }
 
-  // Helper function to get primary ability from class breakdown
+  // Helper function to get primary ability from actual build analysis
   const inferPrimaryAbility = (build: BuildConfiguration): AbilityId => {
+    // Analyze actual ability scores to find the highest relevant combat ability
+    if (build.abilityScores) {
+      const combat_abilities: AbilityId[] = ['STR', 'DEX', 'INT', 'WIS', 'CHA']
+      const sortedAbilities = combat_abilities.sort((a, b) => 
+        (build.abilityScores[b] || 8) - (build.abilityScores[a] || 8)
+      )
+      
+      // Check for clear ability focus patterns
+      const highestScore = build.abilityScores[sortedAbilities[0]] || 8
+      const secondHighestScore = build.abilityScores[sortedAbilities[1]] || 8
+      
+      // If there's a clear highest ability with a significant gap, use it
+      if (highestScore >= secondHighestScore + 2) {
+        return sortedAbilities[0]
+      }
+    }
+    
+    // Analyze fighting style for clear indicators
+    const fightingStyleEntry = build.levelTimeline?.find(entry => entry.fightingStyle)
+    if (fightingStyleEntry?.fightingStyle) {
+      const style = fightingStyleEntry.fightingStyle.toLowerCase()
+      if (style.includes('archery') || style.includes('archer')) return 'DEX'
+      if (style.includes('defense') || style.includes('protection')) {
+        // Look at weapon choice for defense/protection users
+        if (build.rangedWeapon) return 'DEX'
+        return 'STR'
+      }
+    }
+    
+    // Analyze weapon choices
+    if (build.rangedWeapon) return 'DEX'
+    if (build.mainHandWeapon) {
+      const weapon = build.mainHandWeapon.toLowerCase()
+      // Finesse weapons typically use DEX
+      if (weapon.includes('rapier') || weapon.includes('shortsword') || 
+          weapon.includes('scimitar') || weapon.includes('dagger')) return 'DEX'
+      // Heavy weapons typically use STR  
+      if (weapon.includes('greatsword') || weapon.includes('maul') || 
+          weapon.includes('greataxe')) return 'STR'
+    }
+    
+    // Fall back to class defaults only if no clear pattern
     if (!build.levelTimeline || build.levelTimeline.length === 0) return 'STR'
     
     const primaryClass = build.levelTimeline[0].classId
     const classToAbility: Record<string, AbilityId> = {
-      'fighter': 'STR',
+      'fighter': 'STR', // Will be overridden by weapon/style analysis above
       'barbarian': 'STR',
       'paladin': 'STR',
       'ranger': 'DEX',

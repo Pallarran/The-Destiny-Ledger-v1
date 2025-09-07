@@ -621,6 +621,16 @@ export class DynamicPathOptimizer {
   }
 
   private getPrimaryAbilityForClass(classId: string): AbilityId {
+    // For existing builds, analyze the actual build concept instead of generic class defaults
+    if (this.targetBuild) {
+      return this.inferPrimaryAbilityFromBuild(this.targetBuild)
+    }
+    
+    if (this.customTarget?.optimizationPriority?.primaryAbility) {
+      return this.customTarget.optimizationPriority.primaryAbility
+    }
+    
+    // Fall back to class defaults only if no build context
     const classToAbility: Record<string, AbilityId> = {
       'fighter': 'STR', // Most fighters are STR-based
       'ranger': 'DEX',
@@ -636,6 +646,69 @@ export class DynamicPathOptimizer {
       'barbarian': 'STR'
     }
     return classToAbility[classId] || 'STR'
+  }
+
+  private inferPrimaryAbilityFromBuild(build: BuildConfiguration): AbilityId {
+    // Analyze actual ability scores to find the highest relevant combat ability
+    if (build.abilityScores) {
+      const combat_abilities: AbilityId[] = ['STR', 'DEX', 'INT', 'WIS', 'CHA']
+      const sortedAbilities = combat_abilities.sort((a, b) => 
+        (build.abilityScores[b] || 8) - (build.abilityScores[a] || 8)
+      )
+      
+      // Check for clear ability focus patterns
+      const highestScore = build.abilityScores[sortedAbilities[0]] || 8
+      const secondHighestScore = build.abilityScores[sortedAbilities[1]] || 8
+      
+      // If there's a clear highest ability with a significant gap, use it
+      if (highestScore >= secondHighestScore + 2) {
+        return sortedAbilities[0]
+      }
+    }
+    
+    // Analyze fighting style for clear indicators
+    const fightingStyleEntry = build.levelTimeline?.find(entry => entry.fightingStyle)
+    if (fightingStyleEntry?.fightingStyle) {
+      const style = fightingStyleEntry.fightingStyle.toLowerCase()
+      if (style.includes('archery') || style.includes('archer')) return 'DEX'
+      if (style.includes('defense') || style.includes('protection')) {
+        // Look at weapon choice for defense/protection users
+        if (build.rangedWeapon) return 'DEX'
+        return 'STR'
+      }
+    }
+    
+    // Analyze weapon choices
+    if (build.rangedWeapon) return 'DEX'
+    if (build.mainHandWeapon) {
+      const weapon = build.mainHandWeapon.toLowerCase()
+      // Finesse weapons typically use DEX
+      if (weapon.includes('rapier') || weapon.includes('shortsword') || 
+          weapon.includes('scimitar') || weapon.includes('dagger')) return 'DEX'
+      // Heavy weapons typically use STR  
+      if (weapon.includes('greatsword') || weapon.includes('maul') || 
+          weapon.includes('greataxe')) return 'STR'
+    }
+    
+    // Fall back to class defaults only if no clear pattern
+    if (!build.levelTimeline || build.levelTimeline.length === 0) return 'STR'
+    
+    const primaryClass = build.levelTimeline[0].classId
+    const classToAbility: Record<string, AbilityId> = {
+      'fighter': 'STR', // Will be overridden by weapon/style analysis above
+      'barbarian': 'STR',
+      'paladin': 'STR',
+      'ranger': 'DEX',
+      'rogue': 'DEX',
+      'monk': 'DEX',
+      'wizard': 'INT',
+      'sorcerer': 'CHA',
+      'warlock': 'CHA',
+      'bard': 'CHA',
+      'cleric': 'WIS',
+      'druid': 'WIS'
+    }
+    return classToAbility[primaryClass] || 'STR'
   }
 
   private getSecondaryAbilityForClass(classId: string): AbilityId {
@@ -657,7 +730,12 @@ export class DynamicPathOptimizer {
   }
 
   private getOptimalPowerFeat(classId: string): string | null {
-    // Power feats by class archetype
+    // Analyze build concept to determine best feat
+    if (this.targetBuild) {
+      return this.getBestFeatForBuild(this.targetBuild, classId)
+    }
+    
+    // Fall back to generic class recommendations
     const meleeFeats = ['great_weapon_master', 'polearm_master', 'sentinel']
     const rangedFeats = ['sharpshooter', 'crossbow_expert']
     const casterFeats = ['war_caster', 'resilient_constitution', 'lucky']
@@ -671,6 +749,67 @@ export class DynamicPathOptimizer {
     }
     
     return null
+  }
+
+  private getBestFeatForBuild(build: BuildConfiguration, classId: string): string | null {
+    // Analyze weapon style first
+    const isRangedBuild = build.rangedWeapon || 
+      (build.levelTimeline?.find(entry => 
+        entry.fightingStyle?.toLowerCase().includes('archery')
+      ))
+    
+    const isFinesseBuild = build.mainHandWeapon && 
+      ['rapier', 'shortsword', 'scimitar', 'dagger'].some(weapon => 
+        build.mainHandWeapon!.toLowerCase().includes(weapon)
+      )
+
+    const isHeavyWeaponBuild = build.mainHandWeapon &&
+      ['greatsword', 'maul', 'greataxe', 'glaive', 'halberd'].some(weapon =>
+        build.mainHandWeapon!.toLowerCase().includes(weapon)
+      )
+
+    // For DPR optimization goals
+    if (this.goalPriority.id === 'dpr_optimization' || this.goalPriority.id === 'combat_effectiveness') {
+      if (isRangedBuild) return 'sharpshooter'
+      if (isHeavyWeaponBuild) return 'great_weapon_master'
+      if (isFinesseBuild) return 'piercer' // or other appropriate finesse feat
+    }
+    
+    // Consider half-feats for ability improvement + utility
+    if (build.abilityScores) {
+      const primaryAbility = this.inferPrimaryAbilityFromBuild(build)
+      const currentScore = build.abilityScores[primaryAbility] || 15
+      
+      // If odd score, half-feats are very attractive
+      if (currentScore % 2 === 1) {
+        if (primaryAbility === 'DEX') {
+          if (isRangedBuild) return 'sharpshooter' // Still best for ranged DPR
+          return 'fey_touched' // DEX half-feat alternative
+        }
+        if (primaryAbility === 'INT') return 'fey_touched'
+        if (primaryAbility === 'WIS') return 'observant'
+        if (primaryAbility === 'CHA') return 'fey_touched'
+      }
+    }
+
+    // Multiclass synergy considerations
+    const hasSpellcasting = build.levelTimeline?.some(entry => 
+      ['wizard', 'sorcerer', 'warlock', 'bard', 'cleric', 'druid'].includes(entry.classId)
+    )
+
+    if (hasSpellcasting) {
+      // War Caster is excellent for gish builds
+      if (['fighter', 'paladin'].includes(classId)) return 'war_caster'
+      
+      // Concentration saves are crucial for casters
+      return 'resilient_constitution'
+    }
+
+    // Default fallbacks based on weapon style
+    if (isRangedBuild) return 'sharpshooter'
+    if (isHeavyWeaponBuild) return 'great_weapon_master'
+    
+    return 'lucky' // Universal good feat
   }
 
   private calculateCurrentAbilities(previousSteps: LevelStepV2[]): Record<AbilityId, number> {
