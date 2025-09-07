@@ -9,19 +9,16 @@ import { getOptimizationGoalsV2 } from '../engine/targetBuildOptimizerV2'
 import { DynamicPathOptimizer } from '../engine/dynamicPathOptimizer'
 import { useVaultStore } from '../stores/vaultStore'
 import type { LevelingPathV2 } from '../engine/targetBuildOptimizerV2'
-import type { BuildConfiguration, PathGenerationMode, CustomTargetConfiguration } from '../stores/types'
-import { RouteIcon, Target, Settings2, TrendingUp, ToggleLeft, ToggleRight } from 'lucide-react'
+import type { BuildConfiguration, CustomTargetConfiguration } from '../stores/types'
+import { RouteIcon, Target, Settings2, TrendingUp } from 'lucide-react'
 
 export function LevelPathExplorer() {
   const { builds } = useVaultStore()
   
-  // Mode state
-  const [mode, setMode] = useState<PathGenerationMode>('existing-build')
-  
-  // Existing build mode state
+  // Build selection state
   const [selectedBuildId, setSelectedBuildId] = useState<string>()
   
-  // Custom target mode state  
+  // Custom target state (shown for non-level-20 builds)
   const [customTarget, setCustomTarget] = useState<CustomTargetConfiguration>()
   
   // Shared state
@@ -37,6 +34,9 @@ export function LevelPathExplorer() {
 
   const selectedBuild = selectedBuildId ? builds.find(b => b.id === selectedBuildId) : undefined
   const selectedGoal = selectedGoalId ? getOptimizationGoalsV2().find(g => g.id === selectedGoalId) : undefined
+  
+  // Determine if we should show custom target option (for non-level-20 builds)
+  const showCustomTargetOption = selectedBuild && selectedBuild.currentLevel < 20
 
   const getClassBreakdown = (build: BuildConfiguration): Record<string, number> => {
     const breakdown: Record<string, number> = {}
@@ -50,10 +50,6 @@ export function LevelPathExplorer() {
 
   const handleOptimize = async () => {
     if (!selectedGoalId) return
-    
-    // Check if we have required data based on mode
-    if (mode === 'existing-build' && !selectedBuildId) return
-    if (mode === 'custom-target' && !customTarget) return
 
     setIsOptimizing(true)
     setLevelingPaths([])
@@ -61,13 +57,16 @@ export function LevelPathExplorer() {
     try {
       let optimizer: DynamicPathOptimizer
       
-      if (mode === 'existing-build') {
+      if (customTarget) {
+        // Use custom target if defined
+        optimizer = DynamicPathOptimizer.fromCustomTarget(customTarget, selectedGoalId)
+      } else if (selectedBuildId) {
+        // Use selected build
         const targetBuild = builds.find(b => b.id === selectedBuildId)
         if (!targetBuild) return
         optimizer = DynamicPathOptimizer.fromBuild(targetBuild, selectedGoalId)
       } else {
-        if (!customTarget) return
-        optimizer = DynamicPathOptimizer.fromCustomTarget(customTarget, selectedGoalId)
+        return // No target defined
       }
       
       const paths = await optimizer.generateOptimalPaths()
@@ -79,52 +78,16 @@ export function LevelPathExplorer() {
     }
   }
 
-  const handleModeSwitch = () => {
-    const newMode = mode === 'existing-build' ? 'custom-target' : 'existing-build'
-    setMode(newMode)
-    
-    // Clear previous results when switching modes
-    setLevelingPaths([])
-    setSelectedPathId(undefined)
-  }
-
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <RouteIcon className="w-6 h-6 text-primary" />
-          <div>
-            <h1 className="text-2xl font-bold">Level Path Explorer</h1>
-            <p className="text-muted-foreground">
-              {mode === 'existing-build' 
-                ? 'Select a target build from your vault and find the optimal leveling sequence to reach it'
-                : 'Define a custom target build and find the optimal leveling sequence to reach it'
-              }
-            </p>
-          </div>
-        </div>
-
-        {/* Mode Toggle */}
-        <div className="flex items-center gap-3">
-          <span className={`text-sm ${mode === 'existing-build' ? 'font-medium' : 'text-muted-foreground'}`}>
-            Vault Build
-          </span>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleModeSwitch}
-            className="p-1 h-8 w-8"
-          >
-            {mode === 'existing-build' ? (
-              <ToggleLeft className="w-6 h-6" />
-            ) : (
-              <ToggleRight className="w-6 h-6 text-primary" />
-            )}
-          </Button>
-          <span className={`text-sm ${mode === 'custom-target' ? 'font-medium' : 'text-muted-foreground'}`}>
-            Custom Target
-          </span>
+      <div className="flex items-center gap-3">
+        <RouteIcon className="w-6 h-6 text-primary" />
+        <div>
+          <h1 className="text-2xl font-bold">Level Path Explorer</h1>
+          <p className="text-muted-foreground">
+            Select a target build from your vault and find the optimal leveling sequence to reach it
+          </p>
         </div>
       </div>
 
@@ -132,53 +95,65 @@ export function LevelPathExplorer() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column: Controls */}
         <div className="lg:col-span-1 space-y-4">
-          {/* Target Selection - Conditional based on mode */}
+          {/* Target Build Selection */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Target className="w-5 h-5" />
-                {mode === 'existing-build' ? 'Target Build' : 'Custom Target'}
+                Target Build
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {mode === 'existing-build' ? (
-                // Existing Build Mode
-                selectedBuild ? (
-                  <div className="space-y-4">
-                    <div className="p-3 border rounded-lg bg-primary/5 border-primary/20">
-                      <div className="font-medium text-sm">{selectedBuild.name}</div>
-                      <div className="text-xs text-muted-foreground mt-1">
-                        Level {selectedBuild.currentLevel} • {
-                          Object.entries(getClassBreakdown(selectedBuild))
-                            .map(([classId, levels]) => `${classId} ${levels}`)
-                            .join(' / ')
-                        }
-                      </div>
+              {selectedBuild ? (
+                <div className="space-y-4">
+                  <div className="p-3 border rounded-lg bg-primary/5 border-primary/20">
+                    <div className="font-medium text-sm">{selectedBuild.name}</div>
+                    <div className="text-xs text-muted-foreground mt-1">
+                      Level {selectedBuild.currentLevel} • {
+                        Object.entries(getClassBreakdown(selectedBuild))
+                          .map(([classId, levels]) => `${classId} ${levels}`)
+                          .join(' / ')
+                      }
                     </div>
-                    <Button 
-                      variant="outline" 
-                      onClick={() => setShowBuildModal(true)}
-                      className="w-full text-sm"
-                      size="sm"
-                    >
-                      Change Build
-                    </Button>
                   </div>
-                ) : (
                   <Button 
+                    variant="outline" 
                     onClick={() => setShowBuildModal(true)}
-                    className="w-full"
+                    className="w-full text-sm"
                     size="sm"
                   >
-                    <Target className="w-4 h-4 mr-2" />
-                    Select Build
+                    Change Build
                   </Button>
-                )
+                </div>
               ) : (
-                // Custom Target Mode
-                customTarget ? (
+                <Button 
+                  onClick={() => setShowBuildModal(true)}
+                  className="w-full"
+                  size="sm"
+                >
+                  <Target className="w-4 h-4 mr-2" />
+                  Select Build
+                </Button>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Custom Target Option - Only shown for non-level-20 builds */}
+          {showCustomTargetOption && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Settings2 className="w-5 h-5" />
+                  Custom Target
+                </CardTitle>
+                <div className="text-xs text-muted-foreground">
+                  Define a different target build to optimize towards
+                </div>
+              </CardHeader>
+              <CardContent>
+                {customTarget ? (
                   <div className="space-y-4">
-                    <div className="p-3 border rounded-lg bg-primary/5 border-primary/20">
+                    <div className="p-3 border rounded-lg bg-secondary/5 border-secondary/20">
                       <div className="font-medium text-sm">{customTarget.name}</div>
                       <div className="text-xs text-muted-foreground mt-1">
                         Level {customTarget.totalLevel} • {
@@ -188,28 +163,39 @@ export function LevelPathExplorer() {
                         }
                       </div>
                     </div>
-                    <Button 
-                      variant="outline" 
-                      onClick={() => setShowCustomTargetModal(true)}
-                      className="w-full text-sm"
-                      size="sm"
-                    >
-                      Change Target
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button 
+                        variant="outline" 
+                        onClick={() => setShowCustomTargetModal(true)}
+                        className="flex-1 text-sm"
+                        size="sm"
+                      >
+                        Edit Target
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        onClick={() => setCustomTarget(undefined)}
+                        className="text-sm"
+                        size="sm"
+                      >
+                        Clear
+                      </Button>
+                    </div>
                   </div>
                 ) : (
                   <Button 
                     onClick={() => setShowCustomTargetModal(true)}
                     className="w-full"
                     size="sm"
+                    variant="outline"
                   >
                     <Target className="w-4 h-4 mr-2" />
-                    Define Target
+                    Define Custom Target
                   </Button>
-                )
-              )}
-            </CardContent>
-          </Card>
+                )}
+              </CardContent>
+            </Card>
+          )}
 
           {/* Optimization Goal Selection */}
           <Card>
@@ -251,7 +237,7 @@ export function LevelPathExplorer() {
           </Card>
 
           {/* Generate Button */}
-          {((mode === 'existing-build' && selectedBuild) || (mode === 'custom-target' && customTarget)) && selectedGoalId && (
+          {(selectedBuild || customTarget) && selectedGoalId && (
             <Button
               onClick={handleOptimize}
               disabled={isOptimizing}

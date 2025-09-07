@@ -36,14 +36,14 @@ export function CustomTargetModal({
   const totalLevel = entries.reduce((sum, entry) => sum + entry.levels, 0)
   
   // Get available classes as options
-  const classOptions = Object.values(classes).map(cls => ({
+  const classOptions = Object.values(classes || {}).map(cls => ({
     id: cls.id,
     name: cls.name
   }))
 
   // Get subclasses for a given class
   const getSubclassOptions = (classId: string) => {
-    return Object.values(subclasses)
+    return Object.values(subclasses || {})
       .filter(sub => sub.className === classId)
       .map(sub => ({
         id: sub.id,
