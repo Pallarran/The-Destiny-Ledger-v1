@@ -339,17 +339,34 @@ export class DynamicPathOptimizer {
 
   private createProgressionBuild(steps: LevelStepV2[]): BuildConfiguration {
     const levelTimeline = steps.map(step => {
-      const originalEntry = this.targetBuild.levelTimeline?.find(l => 
-        l.classId === step.classId && l.level <= step.classLevel
-      )
+      let originalEntry = undefined
+      let subclassId = undefined
+      let fightingStyle = undefined
+      
+      if (this.targetBuild?.levelTimeline) {
+        originalEntry = this.targetBuild.levelTimeline.find(l => 
+          l.classId === step.classId && l.level <= step.classLevel
+        )
+        
+        if (!originalEntry) {
+          const classEntry = this.targetBuild.levelTimeline.find(l => l.classId === step.classId)
+          subclassId = classEntry?.subclassId
+          fightingStyle = classEntry?.fightingStyle
+        } else {
+          subclassId = originalEntry.subclassId
+          fightingStyle = originalEntry.fightingStyle
+        }
+      } else if (this.customTarget) {
+        // For custom targets, try to find subclass from entries
+        const targetEntry = this.customTarget.entries.find(e => e.classId === step.classId)
+        subclassId = targetEntry?.subclassId
+      }
       
       return {
         level: step.level,
         classId: step.classId,
-        subclassId: originalEntry?.subclassId || 
-                   this.targetBuild.levelTimeline?.find(l => l.classId === step.classId)?.subclassId,
-        fightingStyle: originalEntry?.fightingStyle ||
-                      this.targetBuild.levelTimeline?.find(l => l.classId === step.classId)?.fightingStyle,
+        subclassId,
+        fightingStyle,
         features: step.features || [],
         asiOrFeat: originalEntry?.asiOrFeat,
         featId: originalEntry?.featId,
@@ -358,11 +375,33 @@ export class DynamicPathOptimizer {
       }
     })
     
-    return {
-      ...this.targetBuild,
+    // Create a base configuration
+    const baseConfig: BuildConfiguration = {
+      id: `progression_${Date.now()}`,
+      name: 'Progression Build',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      race: this.targetBuild?.race || this.customTarget?.race || 'human',
+      subrace: this.targetBuild?.subrace || this.customTarget?.subrace,
+      background: this.targetBuild?.background || this.customTarget?.background,
+      baseAbilityScores: this.targetBuild?.baseAbilityScores || this.customTarget?.baseAbilityScores || {
+        STR: 15, DEX: 14, CON: 13, INT: 12, WIS: 10, CHA: 8
+      },
+      abilityMethod: this.targetBuild?.abilityMethod || 'standard',
+      abilityScores: this.targetBuild?.abilityScores || {
+        STR: 15, DEX: 14, CON: 13, INT: 12, WIS: 10, CHA: 8
+      },
+      pointBuyLimit: this.targetBuild?.pointBuyLimit || 27,
       levelTimeline,
-      currentLevel: steps[steps.length - 1]?.level || 1
+      currentLevel: steps[steps.length - 1]?.level || 1,
+      weaponEnhancements: this.targetBuild?.weaponEnhancements || [],
+      weaponEnhancementBonus: this.targetBuild?.weaponEnhancementBonus || 0,
+      armorEnhancementBonus: this.targetBuild?.armorEnhancementBonus || 0,
+      activeBuffs: this.targetBuild?.activeBuffs || [],
+      round0Buffs: this.targetBuild?.round0Buffs || []
     }
+    
+    return baseConfig
   }
 
   private calculateLevelMetrics(step: LevelStepV2, fullPath: LevelStepV2[]): LevelMetrics {
@@ -394,10 +433,13 @@ export class DynamicPathOptimizer {
       return sum + (isNaN(score) ? 0 : score)
     }, 0)
     
+    // Create a reference build for the path result
+    const referenceBuild = this.targetBuild || this.createBuildFromCustomTarget()
+    
     return {
       id: `dynamic_path_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       name,
-      targetBuild: this.targetBuild,
+      targetBuild: referenceBuild,
       sequence,
       totalScore,
       levelMetrics,
@@ -431,6 +473,68 @@ export class DynamicPathOptimizer {
     }
     
     return breakdown
+  }
+
+  private createBuildFromCustomTarget(): BuildConfiguration {
+    if (!this.customTarget) {
+      throw new Error('Cannot create build from undefined custom target')
+    }
+    
+    // Create level timeline from custom target entries
+    const levelTimeline = []
+    let currentLevel = 1
+    
+    for (const entry of this.customTarget.entries) {
+      for (let i = 0; i < entry.levels; i++) {
+        levelTimeline.push({
+          level: currentLevel,
+          classId: entry.classId,
+          subclassId: entry.subclassId,
+          features: [],
+          asiOrFeat: undefined,
+          featId: undefined,
+          abilityIncreases: undefined,
+          notes: undefined,
+          fightingStyle: undefined,
+          archetype: undefined,
+          expertiseChoices: undefined,
+          maneuverChoices: undefined,
+          metamagicChoices: undefined,
+          eldritchInvocationChoices: undefined,
+          mysticArcanumChoices: undefined,
+          pactBoonChoice: undefined,
+          favoredEnemyChoice: undefined,
+          naturalExplorerChoice: undefined,
+          spellChoices: undefined
+        })
+        currentLevel++
+      }
+    }
+    
+    return {
+      id: `custom_target_${Date.now()}`,
+      name: this.customTarget.name,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      race: this.customTarget.race || 'human',
+      subrace: this.customTarget.subrace,
+      background: this.customTarget.background,
+      baseAbilityScores: this.customTarget.baseAbilityScores || {
+        STR: 15, DEX: 14, CON: 13, INT: 12, WIS: 10, CHA: 8
+      },
+      abilityMethod: 'standard',
+      abilityScores: this.customTarget.baseAbilityScores || {
+        STR: 15, DEX: 14, CON: 13, INT: 12, WIS: 10, CHA: 8
+      },
+      pointBuyLimit: 27,
+      levelTimeline,
+      currentLevel: this.customTarget.totalLevel,
+      weaponEnhancements: [],
+      weaponEnhancementBonus: 0,
+      armorEnhancementBonus: 0,
+      activeBuffs: [],
+      round0Buffs: []
+    }
   }
 
   private calculateFallbackDPR(classId: string, classLevel: number, characterLevel: number): number {
