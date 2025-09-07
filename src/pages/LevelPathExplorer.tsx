@@ -1,15 +1,14 @@
 import { useState } from 'react'
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/card'
 import { Button } from '../components/ui/button'
-import { Badge } from '../components/ui/badge'
 import { TargetBuildModal } from '../components/levelPathExplorer/TargetBuildModal'
-import { OptimizationGoalSelector } from '../components/levelPathExplorer/OptimizationGoalSelector'
+import { OptimizationGoalModal } from '../components/levelPathExplorer/OptimizationGoalModal'
 import { LevelingPathResults } from '../components/levelPathExplorer/LevelingPathResults'
-import { TargetBuildOptimizer } from '../engine/targetBuildOptimizer'
+import { TargetBuildOptimizer, getOptimizationGoals } from '../engine/targetBuildOptimizer'
 import { useVaultStore } from '../stores/vaultStore'
 import type { LevelingPath } from '../engine/targetBuildOptimizer'
 import type { BuildConfiguration } from '../stores/types'
-import { RouteIcon, Target, Settings2 } from 'lucide-react'
+import { RouteIcon, Target, Settings2, TrendingUp } from 'lucide-react'
 
 export function LevelPathExplorer() {
   const { builds } = useVaultStore()
@@ -19,8 +18,10 @@ export function LevelPathExplorer() {
   const [isOptimizing, setIsOptimizing] = useState(false)
   const [selectedPathId, setSelectedPathId] = useState<string>()
   const [showBuildModal, setShowBuildModal] = useState(false)
+  const [showGoalModal, setShowGoalModal] = useState(false)
 
   const selectedBuild = selectedBuildId ? builds.find(b => b.id === selectedBuildId) : undefined
+  const selectedGoal = selectedGoalId ? getOptimizationGoals().find(g => g.id === selectedGoalId) : undefined
 
   const getClassBreakdown = (build: BuildConfiguration): Record<string, number> => {
     const breakdown: Record<string, number> = {}
@@ -65,114 +66,137 @@ export function LevelPathExplorer() {
         </div>
       </div>
 
-      {/* Configuration */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Target Build Selection */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Target className="w-5 h-5" />
-              Target Build
-            </CardTitle>
-            <p className="text-sm text-muted-foreground">
-              Choose a build from your vault to optimize the leveling path for
-            </p>
-          </CardHeader>
-          <CardContent>
-            {selectedBuild ? (
-              <div className="space-y-4">
-                <div className="p-4 border rounded-lg bg-primary/5 border-primary/20">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="font-medium">{selectedBuild.name}</div>
-                      <div className="text-sm text-muted-foreground mt-1">
-                        Level {selectedBuild.currentLevel} • {
-                          Object.entries(getClassBreakdown(selectedBuild))
-                            .map(([classId, levels]) => `${classId} ${levels}`)
-                            .join(' / ')
-                        }
-                      </div>
-                      {selectedBuild.tags && selectedBuild.tags.length > 0 && (
-                        <div className="flex gap-1 mt-2">
-                          {selectedBuild.tags.slice(0, 3).map(tag => (
-                            <Badge key={tag} variant="outline" className="text-xs">
-                              {tag}
-                            </Badge>
-                          ))}
-                          {selectedBuild.tags.length > 3 && (
-                            <Badge variant="outline" className="text-xs">
-                              +{selectedBuild.tags.length - 3}
-                            </Badge>
-                          )}
-                        </div>
-                      )}
+      {/* Main Layout: Left Column Controls + Right Column Results */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left Column: Controls */}
+        <div className="lg:col-span-1 space-y-4">
+          {/* Target Build Selection */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Target className="w-5 h-5" />
+                Target Build
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {selectedBuild ? (
+                <div className="space-y-4">
+                  <div className="p-3 border rounded-lg bg-primary/5 border-primary/20">
+                    <div className="font-medium text-sm">{selectedBuild.name}</div>
+                    <div className="text-xs text-muted-foreground mt-1">
+                      Level {selectedBuild.currentLevel} • {
+                        Object.entries(getClassBreakdown(selectedBuild))
+                          .map(([classId, levels]) => `${classId} ${levels}`)
+                          .join(' / ')
+                      }
                     </div>
                   </div>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setShowBuildModal(true)}
+                    className="w-full text-sm"
+                    size="sm"
+                  >
+                    Change Build
+                  </Button>
                 </div>
+              ) : (
                 <Button 
-                  variant="outline" 
                   onClick={() => setShowBuildModal(true)}
                   className="w-full"
+                  size="sm"
                 >
-                  Change Target Build
+                  <Target className="w-4 h-4 mr-2" />
+                  Select Build
                 </Button>
-              </div>
-            ) : (
-              <Button 
-                onClick={() => setShowBuildModal(true)}
-                className="w-full"
-              >
-                <Target className="w-4 h-4 mr-2" />
-                Select Target Build
-              </Button>
-            )}
-          </CardContent>
-        </Card>
+              )}
+            </CardContent>
+          </Card>
 
-        {/* Optimization Goal Selection */}
-        <OptimizationGoalSelector
-          selectedGoalId={selectedGoalId}
-          onGoalSelect={setSelectedGoalId}
-        />
+          {/* Optimization Goal Selection */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <TrendingUp className="w-5 h-5" />
+                Optimization Goal
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {selectedGoal ? (
+                <div className="space-y-4">
+                  <div className="p-3 border rounded-lg bg-primary/5 border-primary/20">
+                    <div className="font-medium text-sm">{selectedGoal.name}</div>
+                    <div className="text-xs text-muted-foreground mt-1">
+                      {selectedGoal.description}
+                    </div>
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setShowGoalModal(true)}
+                    className="w-full text-sm"
+                    size="sm"
+                  >
+                    Change Goal
+                  </Button>
+                </div>
+              ) : (
+                <Button 
+                  onClick={() => setShowGoalModal(true)}
+                  className="w-full"
+                  size="sm"
+                >
+                  <TrendingUp className="w-4 h-4 mr-2" />
+                  Select Goal
+                </Button>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Generate Button */}
+          {selectedBuild && selectedGoalId && (
+            <Button
+              onClick={handleOptimize}
+              disabled={isOptimizing}
+              className="w-full"
+            >
+              {isOptimizing ? (
+                <>
+                  <div className="w-4 h-4 animate-spin rounded-full border-2 border-white border-t-transparent mr-2" />
+                  Optimizing...
+                </>
+              ) : (
+                <>
+                  <Settings2 className="w-4 h-4 mr-2" />
+                  Generate Paths
+                </>
+              )}
+            </Button>
+          )}
+        </div>
+
+        {/* Right Column: Results */}
+        <div className="lg:col-span-2">
+          <LevelingPathResults
+            paths={levelingPaths}
+            onSelectPath={setSelectedPathId}
+            selectedPathId={selectedPathId}
+          />
+        </div>
       </div>
 
-      {/* Optimize Button */}
-      {selectedBuild && selectedGoalId && (
-        <div className="flex justify-center">
-          <Button
-            onClick={handleOptimize}
-            disabled={isOptimizing}
-            size="lg"
-            className="px-8"
-          >
-            {isOptimizing ? (
-              <>
-                <div className="w-4 h-4 animate-spin rounded-full border-2 border-white border-t-transparent mr-2" />
-                Optimizing Leveling Path...
-              </>
-            ) : (
-              <>
-                <Settings2 className="w-4 h-4 mr-2" />
-                Generate Optimal Leveling Paths
-              </>
-            )}
-          </Button>
-        </div>
-      )}
-
-      {/* Leveling Path Results */}
-      <LevelingPathResults
-        paths={levelingPaths}
-        onSelectPath={setSelectedPathId}
-        selectedPathId={selectedPathId}
-      />
-
-      {/* Target Build Selection Modal */}
+      {/* Modals */}
       <TargetBuildModal
         isOpen={showBuildModal}
         onClose={() => setShowBuildModal(false)}
         selectedBuildId={selectedBuildId}
         onBuildSelect={setSelectedBuildId}
+      />
+      
+      <OptimizationGoalModal
+        isOpen={showGoalModal}
+        onClose={() => setShowGoalModal(false)}
+        selectedGoalId={selectedGoalId}
+        onGoalSelect={setSelectedGoalId}
       />
     </div>
   )
