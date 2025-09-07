@@ -1,8 +1,7 @@
 import type { BuildConfiguration } from '../stores/types'
-import { buildToCombatState } from './simulator'
-import { calculateBuildDPR } from './calculations'
 import { getClass } from '../rules/loaders'
 import type { AbilityScoreArray } from '../rules/types'
+import { generateDPRCurves } from './simulator'
 
 // Enhanced optimization with spell consideration
 export interface OptimizationGoalV2 {
@@ -291,7 +290,8 @@ export class TargetBuildOptimizerV2 {
     // Simple sequential approach - take all levels of first class, then second, etc.
     for (const [classId, levels] of Object.entries(targetBreakdown)) {
       for (let i = 1; i <= levels; i++) {
-        sequence.push(await this.createLevelStep(currentLevel++, classId, i))
+        const step = await this.createLevelStep(currentLevel++, classId, i, sequence)
+        sequence.push(step)
       }
     }
     
@@ -311,7 +311,8 @@ export class TargetBuildOptimizerV2 {
     
     for (const [classId, maxLevels] of classesByLevels) {
       for (let i = 1; i <= maxLevels; i++) {
-        sequence.push(await this.createLevelStep(currentLevel++, classId, i))
+        const step = await this.createLevelStep(currentLevel++, classId, i, sequence)
+        sequence.push(step)
       }
     }
     
@@ -335,7 +336,8 @@ export class TargetBuildOptimizerV2 {
       
       if (remaining[currentClass] > 0) {
         const classLevel = targetBreakdown[currentClass] - remaining[currentClass] + 1
-        sequence.push(await this.createLevelStep(currentLevel++, currentClass, classLevel))
+        const step = await this.createLevelStep(currentLevel++, currentClass, classLevel, sequence)
+        sequence.push(step)
         remaining[currentClass]--
         
         // Skip to next class after taking 2 levels (creates different pattern)
@@ -525,7 +527,7 @@ export class TargetBuildOptimizerV2 {
     const sequence: LevelStepV2[] = []
     
     for (let level = 1; level <= levels; level++) {
-      const step = await this.createLevelStep(level, classId, level)
+      const step = await this.createLevelStep(level, classId, level, sequence)
       sequence.push(step)
     }
     
@@ -912,54 +914,57 @@ export class TargetBuildOptimizerV2 {
   private async createLevelStep(
     characterLevel: number,
     classId: string,
-    classLevel: number
+    classLevel: number,
+    previousSteps: LevelStepV2[] = []
   ): Promise<LevelStepV2> {
-    // Build a partial configuration up to this point
-    const partialBuild = this.createPartialBuildAtLevel(characterLevel, classId, classLevel)
+    // Build the actual progression up to this point
+    const progressionBuild = this.createProgressionBuild([...previousSteps, {
+      level: characterLevel,
+      classId,
+      classLevel,
+      features: [],
+      dpr: 0, // Will be calculated
+      acEffective: 15,
+      roleScores: {},
+      keyFeatures: [],
+      powerSpike: false,
+      spellsAvailable: []
+    }])
     
-    // Calculate DPR for this configuration
-    const combatState = buildToCombatState(partialBuild, characterLevel)
-    // Use the existing DPR calculation approach from the main app
+    // Calculate actual DPR using the real system
     let dprValue = 0
     try {
-      // Get weapon from the build
-      const weaponId = partialBuild.rangedWeapon || partialBuild.mainHandWeapon || 'longsword'
-      
-      // Create weapon config based on the weapon
-      const weapon: any = {
-        id: weaponId,
-        die: 8, // Default, would be looked up from weapon data
-        count: 1,
-        enhancement: 0,
-        properties: [],
-        category: 'melee'
-      }
-      
-      const config: any = {
-        targetAC: 15,
-        rounds: 3,
+      const dprConfig = {
+        buildId: progressionBuild.id,
+        acMin: 15,
+        acMax: 15,
+        acStep: 1,
+        advantageState: 'normal' as const,
         round0BuffsEnabled: true,
         greedyResourceUse: true,
-        autoGWMSS: true
+        autoGWMSS: true,
+        assumeSneakAttack: true,
+        customDamageBonus: 0
       }
       
-      const result = calculateBuildDPR(combatState, weapon, config)
-      dprValue = result?.expectedDPR || 0
+      const result = generateDPRCurves(progressionBuild, dprConfig)
       
-      // Add some variation based on level and class for demonstration
-      const levelBonus = Math.floor(characterLevel / 4) * 2
-      const classBonus = this.getClassDPRBonus(classId, classLevel)
-      dprValue = Math.max(1, dprValue + levelBonus + classBonus)
+      // Get the DPR for AC 15
+      const ac15Result = result.normalCurve.find(point => point.ac === 15)
+      dprValue = ac15Result?.dpr || result.normalCurve[0]?.dpr || 0
+      
+      // Ensure we have a reasonable value
+      if (dprValue < 0.5) {
+        dprValue = this.calculateFallbackDPR(classId, classLevel, characterLevel)
+      }
       
     } catch (error) {
       console.warn('DPR calculation failed for level', characterLevel, ':', error)
-      // Fallback calculation based on level and class
       dprValue = this.calculateFallbackDPR(classId, classLevel, characterLevel)
     }
     
     // Check for available spells and their impact
     const spellsAvailable = this.getAvailableSpells(classId, classLevel)
-    // Future: calculate DPR with spell contributions
     
     // Get key features for this level
     const keyFeatures = this.getKeyFeaturesAtLevel(classId, classLevel)
@@ -978,25 +983,33 @@ export class TargetBuildOptimizerV2 {
     }
   }
 
-  private createPartialBuildAtLevel(
-    characterLevel: number,
-    currentClass: string,
-    _currentClassLevel: number
-  ): BuildConfiguration {
-    // Create a timeline based on the sequence built so far
-    // For now, create a simple level entry
-    const levelTimeline = [{
-      level: characterLevel,
-      classId: currentClass,
-      features: [],
-      subclassId: this.targetBuild.levelTimeline?.find(l => l.classId === currentClass)?.subclassId,
-      fightingStyle: this.targetBuild.levelTimeline?.find(l => l.classId === currentClass)?.fightingStyle
-    }]
+  private createProgressionBuild(steps: LevelStepV2[]): BuildConfiguration {
+    // Build a proper level timeline from the sequence of steps
+    const levelTimeline = steps.map(step => {
+      // Find the corresponding original timeline entry for this class
+      const originalEntry = this.targetBuild.levelTimeline?.find(l => 
+        l.classId === step.classId && l.level <= step.classLevel
+      )
+      
+      return {
+        level: step.level,
+        classId: step.classId,
+        subclassId: originalEntry?.subclassId || 
+                   this.targetBuild.levelTimeline?.find(l => l.classId === step.classId)?.subclassId,
+        fightingStyle: originalEntry?.fightingStyle ||
+                      this.targetBuild.levelTimeline?.find(l => l.classId === step.classId)?.fightingStyle,
+        features: step.features || [],
+        asiOrFeat: originalEntry?.asiOrFeat,
+        featId: originalEntry?.featId,
+        abilityIncreases: originalEntry?.abilityIncreases,
+        spells: step.spellsAvailable?.map(s => s.id) || []
+      }
+    })
     
     return {
       ...this.targetBuild,
       levelTimeline,
-      currentLevel: characterLevel
+      currentLevel: steps[steps.length - 1]?.level || 1
     }
   }
 
