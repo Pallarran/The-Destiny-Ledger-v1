@@ -2,11 +2,11 @@ import { useState } from 'react'
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/card'
 import { Button } from '../components/ui/button'
 import { TargetBuildModal } from '../components/levelPathExplorer/TargetBuildModal'
-import { OptimizationGoalModal } from '../components/levelPathExplorer/OptimizationGoalModal'
-import { LevelingPathResults } from '../components/levelPathExplorer/LevelingPathResults'
-import { TargetBuildOptimizer, getOptimizationGoals } from '../engine/targetBuildOptimizer'
+import { OptimizationGoalModalV2 } from '../components/levelPathExplorer/OptimizationGoalModalV2'
+import { LevelingPathResultsV2 } from '../components/levelPathExplorer/LevelingPathResultsV2'
+import { TargetBuildOptimizerV2, getOptimizationGoalsV2 } from '../engine/targetBuildOptimizerV2'
 import { useVaultStore } from '../stores/vaultStore'
-import type { LevelingPath } from '../engine/targetBuildOptimizer'
+import type { LevelingPathV2 } from '../engine/targetBuildOptimizerV2'
 import type { BuildConfiguration } from '../stores/types'
 import { RouteIcon, Target, Settings2, TrendingUp } from 'lucide-react'
 
@@ -14,14 +14,14 @@ export function LevelPathExplorer() {
   const { builds } = useVaultStore()
   const [selectedBuildId, setSelectedBuildId] = useState<string>()
   const [selectedGoalId, setSelectedGoalId] = useState<string>()
-  const [levelingPaths, setLevelingPaths] = useState<LevelingPath[]>([])
+  const [levelingPaths, setLevelingPaths] = useState<LevelingPathV2[]>([])
   const [isOptimizing, setIsOptimizing] = useState(false)
   const [selectedPathId, setSelectedPathId] = useState<string>()
   const [showBuildModal, setShowBuildModal] = useState(false)
   const [showGoalModal, setShowGoalModal] = useState(false)
 
   const selectedBuild = selectedBuildId ? builds.find(b => b.id === selectedBuildId) : undefined
-  const selectedGoal = selectedGoalId ? getOptimizationGoals().find(g => g.id === selectedGoalId) : undefined
+  const selectedGoal = selectedGoalId ? getOptimizationGoalsV2().find(g => g.id === selectedGoalId) : undefined
 
   const getClassBreakdown = (build: BuildConfiguration): Record<string, number> => {
     const breakdown: Record<string, number> = {}
@@ -43,8 +43,8 @@ export function LevelPathExplorer() {
     setLevelingPaths([])
     
     try {
-      const optimizer = new TargetBuildOptimizer(targetBuild, selectedGoalId)
-      const paths = await optimizer.generateLevelingPaths()
+      const optimizer = new TargetBuildOptimizerV2(targetBuild, selectedGoalId)
+      const paths = await optimizer.generateOptimizedPaths()
       setLevelingPaths(paths)
     } catch (error) {
       console.error('Error optimizing leveling paths:', error)
@@ -176,7 +176,7 @@ export function LevelPathExplorer() {
 
         {/* Right Column: Results */}
         <div className="lg:col-span-2">
-          <LevelingPathResults
+          <LevelingPathResultsV2
             paths={levelingPaths}
             onSelectPath={setSelectedPathId}
             selectedPathId={selectedPathId}
@@ -192,7 +192,7 @@ export function LevelPathExplorer() {
         onBuildSelect={setSelectedBuildId}
       />
       
-      <OptimizationGoalModal
+      <OptimizationGoalModalV2
         isOpen={showGoalModal}
         onClose={() => setShowGoalModal(false)}
         selectedGoalId={selectedGoalId}
