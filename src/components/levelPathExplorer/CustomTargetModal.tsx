@@ -52,7 +52,9 @@ export function CustomTargetModal({
   }
 
   const addEntry = () => {
-    setEntries([...entries, { classId: '', levels: 1 }])
+    if (entries.length < 3) {
+      setEntries([...entries, { classId: '', levels: 1 }])
+    }
   }
 
   const removeEntry = (index: number) => {
@@ -138,101 +140,141 @@ export function CustomTargetModal({
             />
           </div>
 
-          {/* Class Entries */}
+          {/* Class Composition */}
           <div>
-            <div className="flex items-center justify-between mb-3">
-              <label className="text-sm font-medium">
-                Class Composition
-              </label>
-              <div className="text-sm text-muted-foreground">
-                Total Level: {totalLevel}/20
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <label className="text-sm font-medium">Class Composition</label>
+                <p className="text-xs text-muted-foreground">Define up to 3 classes for your multiclass build</p>
+              </div>
+              <div className="text-right">
+                <div className="text-sm font-medium">Total: {totalLevel}/20</div>
+                <div className="text-xs text-muted-foreground">{entries.length}/3 classes</div>
               </div>
             </div>
             
-            <div className="space-y-3">
+            <div className="space-y-4">
               {entries.map((entry, index) => (
-                <div key={index} className="flex items-center gap-3 p-3 border rounded-lg">
-                  {/* Class Selection */}
-                  <div className="flex-1">
-                    <Select
-                      value={entry.classId}
-                      onValueChange={(value) => updateEntry(index, 'classId', value)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select class..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {classOptions.map(cls => (
-                          <SelectItem key={cls.id} value={cls.id}>
-                            {cls.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                <div key={index} className="relative">
+                  {/* Class Header */}
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-xs font-medium text-primary">
+                        {index + 1}
+                      </div>
+                      <span className="text-sm font-medium">
+                        {entry.classId ? classOptions.find(c => c.id === entry.classId)?.name : 'Class'} {index + 1}
+                      </span>
+                    </div>
+                    {entries.length > 1 && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeEntry(index)}
+                        className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive"
+                      >
+                        <X className="w-4 h-4" />
+                      </Button>
+                    )}
                   </div>
 
-                  {/* Subclass Selection */}
-                  <div className="flex-1">
-                    <Select
-                      value={entry.subclassId || ''}
-                      onValueChange={(value) => updateEntry(index, 'subclassId', value)}
-                      disabled={!entry.classId}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Subclass (optional)..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="">None</SelectItem>
-                        {entry.classId && getSubclassOptions(entry.classId).map(sub => (
-                          <SelectItem key={sub.id} value={sub.id}>
-                            {sub.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                  {/* Class Configuration */}
+                  <div className="grid grid-cols-12 gap-3 p-3 border rounded-lg bg-card">
+                    {/* Class Selection */}
+                    <div className="col-span-5">
+                      <label className="block text-xs font-medium text-muted-foreground mb-1">Class</label>
+                      <Select
+                        value={entry.classId}
+                        onValueChange={(value) => updateEntry(index, 'classId', value)}
+                      >
+                        <SelectTrigger className="h-8">
+                          <SelectValue placeholder="Select..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {classOptions.map(cls => (
+                            <SelectItem key={cls.id} value={cls.id}>
+                              {cls.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
 
-                  {/* Levels Input */}
-                  <div className="w-20">
-                    <input
-                      type="number"
-                      min="1"
-                      max="20"
-                      value={entry.levels}
-                      onChange={(e) => updateEntry(index, 'levels', parseInt(e.target.value) || 1)}
-                      className="w-full px-2 py-2 text-center border rounded-md bg-transparent"
-                    />
-                  </div>
+                    {/* Subclass Selection */}
+                    <div className="col-span-5">
+                      <label className="block text-xs font-medium text-muted-foreground mb-1">Subclass</label>
+                      <Select
+                        value={entry.subclassId || 'none'}
+                        onValueChange={(value) => updateEntry(index, 'subclassId', value === 'none' ? undefined : value)}
+                        disabled={!entry.classId}
+                      >
+                        <SelectTrigger className="h-8">
+                          <SelectValue placeholder="Optional..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">None</SelectItem>
+                          {entry.classId && getSubclassOptions(entry.classId).map(sub => (
+                            <SelectItem key={sub.id} value={sub.id}>
+                              {sub.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
 
-                  {/* Remove Button */}
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => removeEntry(index)}
-                    disabled={entries.length === 1}
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
+                    {/* Levels Input */}
+                    <div className="col-span-2">
+                      <label className="block text-xs font-medium text-muted-foreground mb-1">Levels</label>
+                      <input
+                        type="number"
+                        min="1"
+                        max="20"
+                        value={entry.levels}
+                        onChange={(e) => updateEntry(index, 'levels', parseInt(e.target.value) || 1)}
+                        className="w-full h-8 px-2 text-center border rounded-md bg-background text-sm"
+                      />
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>
 
-            {/* Add Entry Button */}
-            <Button
-              variant="outline"
-              onClick={addEntry}
-              className="w-full mt-3"
-              disabled={totalLevel >= 20}
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Add Class
-            </Button>
+            {/* Add Class Button */}
+            {entries.length < 3 && (
+              <div className="mt-4">
+                <Button
+                  variant="outline"
+                  onClick={addEntry}
+                  className="w-full"
+                  disabled={totalLevel >= 20}
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add {entries.length === 1 ? 'Second' : 'Third'} Class
+                </Button>
+              </div>
+            )}
+
+            {/* Help Text */}
+            <div className="mt-3 text-xs text-muted-foreground">
+              <p>💡 Tip: Most multiclass builds use 2 classes. Add a third only if your build requires it.</p>
+            </div>
           </div>
 
           {/* Validation Messages */}
           {totalLevel > 20 && (
-            <div className="text-sm text-red-600 dark:text-red-400">
-              Total level cannot exceed 20
+            <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+              <div className="flex items-center gap-2 text-sm text-red-600 dark:text-red-400">
+                <X className="w-4 h-4" />
+                Total level cannot exceed 20 (currently {totalLevel})
+              </div>
+            </div>
+          )}
+
+          {entries.some(entry => !entry.classId) && (
+            <div className="p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+              <div className="flex items-center gap-2 text-sm text-yellow-600 dark:text-yellow-400">
+                ⚠️ Please select a class for all entries
+              </div>
             </div>
           )}
         </div>
