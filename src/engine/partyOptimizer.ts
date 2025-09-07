@@ -1,4 +1,5 @@
 import type { BuildConfiguration } from '../stores/types'
+import { generateDPRCurves } from './simulator'
 
 /**
  * Core D&D 5e party roles for composition analysis
@@ -195,25 +196,111 @@ export class PartyOptimizer {
    * Calculate role scores for a build (0-10 scale)
    */
   private calculateRoleScores(build: BuildConfiguration): Record<PartyRole, number> {
-    // This would analyze the build's classes, spells, feats, etc.
-    // For now, return placeholder values based on class heuristics
+    const capabilities = this.assessCapabilities(build)
+    
+    // Intelligent build analysis instead of generic class assumptions
+    const buildConcept = this.analyzeBuildConcept(build)
     const hasSpellcaster = build.levelTimeline?.some(l => 
       ['wizard', 'cleric', 'druid', 'sorcerer', 'bard', 'warlock'].includes(l.classId)
     ) || false
     
-    const hasMartial = build.levelTimeline?.some(l => 
-      ['fighter', 'barbarian', 'paladin', 'ranger', 'rogue', 'monk'].includes(l.classId)
-    ) || false
-    
-    return {
-      tank: hasMartial && build.levelTimeline?.some(l => ['fighter', 'barbarian', 'paladin'].includes(l.classId)) ? 8 : 2,
-      damage: hasMartial || hasSpellcaster ? 7 : 3,
-      support: hasSpellcaster && build.levelTimeline?.some(l => ['cleric', 'bard'].includes(l.classId)) ? 8 : 2,
-      control: hasSpellcaster && build.levelTimeline?.some(l => ['wizard', 'druid', 'bard'].includes(l.classId)) ? 7 : 2,
-      utility: hasSpellcaster || build.levelTimeline?.some(l => ['rogue', 'bard', 'ranger'].includes(l.classId)) ? 6 : 3,
-      healer: build.levelTimeline?.some(l => ['cleric', 'druid'].includes(l.classId)) ? 9 : 
-              build.levelTimeline?.some(l => ['paladin', 'ranger', 'bard'].includes(l.classId)) ? 4 : 1
+    const scores: Record<PartyRole, number> = {
+      tank: 0,
+      damage: 0,
+      support: 0,
+      control: 0,
+      utility: 0,
+      healer: 0
     }
+    
+    // Tank scoring based on actual defensive capabilities
+    scores.tank = this.calculateTankScore(build, capabilities, buildConcept)
+    
+    // Damage scoring based on actual DPR and combat focus
+    scores.damage = this.calculateDamageScore(build, capabilities, buildConcept)
+    
+    // Support/Control/Utility/Healer based on spells and abilities
+    if (hasSpellcaster) {
+      scores.support = build.levelTimeline?.some(l => ['cleric', 'bard'].includes(l.classId)) ? 8 : 4
+      scores.control = build.levelTimeline?.some(l => ['wizard', 'druid', 'bard'].includes(l.classId)) ? 7 : 3
+      scores.healer = build.levelTimeline?.some(l => ['cleric', 'druid'].includes(l.classId)) ? 9 : 
+                    build.levelTimeline?.some(l => ['paladin', 'ranger', 'bard'].includes(l.classId)) ? 4 : 1
+    }
+    
+    scores.utility = hasSpellcaster || build.levelTimeline?.some(l => ['rogue', 'bard', 'ranger'].includes(l.classId)) ? 6 : 3
+    
+    return scores
+  }
+
+  private analyzeBuildConcept(build: BuildConfiguration) {
+    const isRangedBuild = build.rangedWeapon || 
+      (build.levelTimeline?.find(entry => 
+        entry.fightingStyle?.toLowerCase().includes('archery')
+      )) ? true : false
+    
+    const isHeavyArmorBuild = build.armor && 
+      ['plate', 'splint', 'chain'].some(armor => 
+        build.armor!.toLowerCase().includes(armor)
+      )
+    
+    const isFinesseBuild = build.mainHandWeapon && 
+      ['rapier', 'shortsword', 'scimitar', 'dagger'].some(weapon => 
+        build.mainHandWeapon!.toLowerCase().includes(weapon)
+      )
+
+    return {
+      isRangedBuild,
+      isHeavyArmorBuild,
+      isFinesseBuild,
+      hasShield: build.shield || false
+    }
+  }
+
+  private calculateTankScore(build: BuildConfiguration, capabilities: any, concept: any): number {
+    let score = 0
+    
+    // Heavy armor and shields strongly indicate tanking
+    if (concept.isHeavyArmorBuild) score += 4
+    if (concept.hasShield) score += 3
+    
+    // Ranged builds are typically not tanks
+    if (concept.isRangedBuild) score -= 3
+    
+    // High AC indicates tanking capability
+    if (capabilities.ac >= 18) score += 3
+    else if (capabilities.ac >= 15) score += 2
+    
+    // Tank classes with appropriate gear
+    const tankClasses = ['fighter', 'paladin', 'barbarian']
+    if (build.levelTimeline?.some(l => tankClasses.includes(l.classId))) {
+      if (concept.isHeavyArmorBuild || concept.hasShield) score += 2
+      else score -= 1 // Tank class but not tanky gear
+    }
+    
+    return Math.max(0, Math.min(10, score))
+  }
+
+  private calculateDamageScore(build: BuildConfiguration, capabilities: any, concept: any): number {
+    let score = 0
+    
+    // Base DPR contribution (most important factor)
+    if (capabilities.averageDPR >= 30) score += 4
+    else if (capabilities.averageDPR >= 20) score += 3
+    else if (capabilities.averageDPR >= 15) score += 2
+    else score += 1
+    
+    // Martial classes typically have good damage
+    const damageClasses = ['fighter', 'barbarian', 'paladin', 'ranger', 'rogue', 'monk']
+    if (build.levelTimeline?.some(l => damageClasses.includes(l.classId))) score += 2
+    
+    // Damage spellcasters
+    const blasterCasters = ['wizard', 'sorcerer', 'warlock']
+    if (build.levelTimeline?.some(l => blasterCasters.includes(l.classId))) score += 2
+    
+    // Ranged builds are often primary damage dealers
+    if (concept.isRangedBuild) score += 1
+    
+    return Math.max(0, Math.min(10, score))
   }
   
   /**
@@ -240,15 +327,43 @@ export class PartyOptimizer {
   }
   
   /**
-   * Assess combat and utility capabilities
+   * Assess combat and utility capabilities using real calculations
    */
   private assessCapabilities(build: BuildConfiguration): PartyMemberAnalysis['capabilities'] {
-    const level = Math.max(...(build.levelTimeline?.map(l => l.level) || [1]))
+    // Calculate real DPR using the same system as DPR Lab
+    let averageDPR = 5 // Fallback
+    try {
+      const dprConfig = {
+        buildId: build.id,
+        acMin: 15,
+        acMax: 15,
+        acStep: 1,
+        advantageState: 'normal' as const,
+        round0BuffsEnabled: false,
+        greedyResourceUse: false,
+        autoGWMSS: false,
+        assumeSneakAttack: false,
+        customDamageBonus: 0
+      }
+      
+      const result = generateDPRCurves(build, dprConfig)
+      const ac15Result = result.normalCurve.find(point => point.ac === 15)
+      averageDPR = ac15Result?.dpr || result.normalCurve[0]?.dpr || 5
+    } catch (error) {
+      // Use class-based estimation as fallback
+      averageDPR = this.estimateDPRFromBuild(build)
+    }
+
+    // Calculate real AC from equipment
+    const calculatedAC = this.calculateAC(build)
+    
+    // Calculate real HP
+    const hitPoints = this.calculateHP(build)
     
     return {
-      averageDPR: level * 6, // Placeholder estimation
-      ac: 12 + level, // Placeholder
-      hitPoints: level * 8, // Placeholder
+      averageDPR,
+      ac: calculatedAC,
+      hitPoints,
       savingThrows: {
         strength: Math.floor((build.abilityScores.STR - 10) / 2),
         dexterity: Math.floor((build.abilityScores.DEX - 10) / 2),
@@ -261,6 +376,78 @@ export class PartyOptimizer {
       healingPerRound: this.estimateHealing(build),
       controlOptions: this.countControlOptions(build)
     }
+  }
+
+  private estimateDPRFromBuild(build: BuildConfiguration): number {
+    const level = build.currentLevel || 1
+    let baseDPR = 3 + Math.floor(level / 4)
+    
+    // Analyze build for DPR multipliers
+    const hasExtraAttack = build.levelTimeline?.some(l => 
+      ['fighter', 'paladin', 'barbarian', 'ranger'].includes(l.classId) && l.level >= 5
+    )
+    if (hasExtraAttack) baseDPR *= 2
+    
+    const hasRogue = build.levelTimeline?.some(l => l.classId === 'rogue')
+    if (hasRogue) baseDPR += Math.ceil(level / 2) * 3.5 // Sneak attack
+    
+    return Math.max(5, baseDPR)
+  }
+
+  private calculateAC(build: BuildConfiguration): number {
+    let ac = 10 + Math.floor((build.abilityScores.DEX - 10) / 2) // Base AC + DEX
+    
+    if (build.armor) {
+      const armor = build.armor.toLowerCase()
+      if (armor.includes('leather')) ac = 11 + Math.floor((build.abilityScores.DEX - 10) / 2)
+      else if (armor.includes('studded')) ac = 12 + Math.floor((build.abilityScores.DEX - 10) / 2)
+      else if (armor.includes('chain')) ac = 13 + Math.min(2, Math.floor((build.abilityScores.DEX - 10) / 2))
+      else if (armor.includes('scale')) ac = 14 + Math.min(2, Math.floor((build.abilityScores.DEX - 10) / 2))
+      else if (armor.includes('breastplate')) ac = 14 + Math.min(2, Math.floor((build.abilityScores.DEX - 10) / 2))
+      else if (armor.includes('splint')) ac = 17
+      else if (armor.includes('plate')) ac = 18
+    }
+    
+    if (build.shield) ac += 2
+    if (build.armorEnhancementBonus) ac += build.armorEnhancementBonus
+    
+    return ac
+  }
+
+  private calculateHP(build: BuildConfiguration): number {
+    const level = build.currentLevel || 1
+    const conMod = Math.floor((build.abilityScores.CON - 10) / 2)
+    
+    let hp = 0
+    if (build.levelTimeline) {
+      for (const entry of build.levelTimeline) {
+        const hitDie = this.getClassHitDie(entry.classId)
+        hp += Math.floor(hitDie / 2) + 1 + conMod // Average roll + CON
+      }
+    } else {
+      // Fallback calculation
+      hp = level * (6 + conMod) // Assuming d8 hit die average
+    }
+    
+    return Math.max(1, hp)
+  }
+
+  private getClassHitDie(classId: string): number {
+    const hitDice: Record<string, number> = {
+      barbarian: 12,
+      fighter: 10,
+      paladin: 10,
+      ranger: 10,
+      monk: 8,
+      rogue: 8,
+      bard: 8,
+      cleric: 8,
+      druid: 8,
+      warlock: 8,
+      wizard: 6,
+      sorcerer: 6
+    }
+    return hitDice[classId] || 8
   }
   
   private calculateSpellSaveDC(build: BuildConfiguration): number | undefined {
