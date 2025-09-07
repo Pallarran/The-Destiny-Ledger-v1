@@ -93,28 +93,28 @@ export function LevelingPathResultsV2({
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="progression" className="w-full">
-            <TabsList className="grid w-full grid-cols-4 bg-muted/20">
+            <TabsList className="grid w-full grid-cols-4 bg-muted p-1 rounded-lg">
               <TabsTrigger 
                 value="progression" 
-                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all"
+                className="data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm border-0 data-[state=active]:border font-medium transition-all duration-200"
               >
                 📈 Progression
               </TabsTrigger>
               <TabsTrigger 
                 value="milestones" 
-                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all"
+                className="data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm border-0 data-[state=active]:border font-medium transition-all duration-200"
               >
                 🎯 Milestones
               </TabsTrigger>
               <TabsTrigger 
                 value="metrics" 
-                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all"
+                className="data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm border-0 data-[state=active]:border font-medium transition-all duration-200"
               >
                 📊 Metrics
               </TabsTrigger>
               <TabsTrigger 
                 value="summary" 
-                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all"
+                className="data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm border-0 data-[state=active]:border font-medium transition-all duration-200"
               >
                 📋 Summary
               </TabsTrigger>

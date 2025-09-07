@@ -3,6 +3,7 @@ import { Button } from '../ui/button'
 import { Badge } from '../ui/badge'
 import { getOptimizationGoalsV2 } from '../../engine/targetBuildOptimizerV2'
 import type { OptimizationGoalV2 } from '../../engine/targetBuildOptimizerV2'
+import { cn } from '../../lib/utils'
 import { 
   Swords, 
   Shield, 
@@ -81,7 +82,12 @@ export function OptimizationGoalModalV2({
                   <Button
                     key={goal.id}
                     variant={selectedGoalId === goal.id ? 'default' : 'outline'}
-                    className="w-full justify-start text-left h-auto py-3"
+                    className={cn(
+                      "w-full justify-start text-left h-auto py-3 border transition-all",
+                      selectedGoalId === goal.id 
+                        ? "bg-primary text-primary-foreground border-primary shadow-md" 
+                        : "bg-card hover:bg-muted/50 border-border text-foreground"
+                    )}
                     onClick={() => handleSelect(goal.id)}
                   >
                     <div className="flex items-start gap-3 w-full">
