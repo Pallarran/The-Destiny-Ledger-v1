@@ -93,26 +93,58 @@ export function LevelingPathResultsV2({
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="progression" className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="progression">Progression</TabsTrigger>
-              <TabsTrigger value="milestones">Milestones</TabsTrigger>
-              <TabsTrigger value="metrics">Metrics</TabsTrigger>
-              <TabsTrigger value="summary">Summary</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-4 bg-muted/20">
+              <TabsTrigger 
+                value="progression" 
+                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all"
+              >
+                📈 Progression
+              </TabsTrigger>
+              <TabsTrigger 
+                value="milestones" 
+                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all"
+              >
+                🎯 Milestones
+              </TabsTrigger>
+              <TabsTrigger 
+                value="metrics" 
+                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all"
+              >
+                📊 Metrics
+              </TabsTrigger>
+              <TabsTrigger 
+                value="summary" 
+                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all"
+              >
+                📋 Summary
+              </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="progression" className="space-y-4 mt-4">
+            <TabsContent value="progression" className="space-y-4 mt-4 p-4 border rounded-lg bg-muted/10">
+              <div className="flex items-center gap-2 mb-3">
+                📈 <h3 className="font-semibold text-lg">Level-by-Level Progression</h3>
+              </div>
               <LevelProgression sequence={selectedPath.sequence} />
             </TabsContent>
 
-            <TabsContent value="milestones" className="space-y-4 mt-4">
+            <TabsContent value="milestones" className="space-y-4 mt-4 p-4 border rounded-lg bg-muted/10">
+              <div className="flex items-center gap-2 mb-3">
+                🎯 <h3 className="font-semibold text-lg">Key Milestones</h3>
+              </div>
               <MilestonesView milestones={selectedPath.keyMilestones} />
             </TabsContent>
 
-            <TabsContent value="metrics" className="space-y-4 mt-4">
+            <TabsContent value="metrics" className="space-y-4 mt-4 p-4 border rounded-lg bg-muted/10">
+              <div className="flex items-center gap-2 mb-3">
+                📊 <h3 className="font-semibold text-lg">Performance Metrics</h3>
+              </div>
               <MetricsView path={selectedPath} />
             </TabsContent>
 
-            <TabsContent value="summary" className="space-y-4 mt-4">
+            <TabsContent value="summary" className="space-y-4 mt-4 p-4 border rounded-lg bg-muted/10">
+              <div className="flex items-center gap-2 mb-3">
+                📋 <h3 className="font-semibold text-lg">Build Summary</h3>
+              </div>
               <PathSummary path={selectedPath} />
             </TabsContent>
           </Tabs>

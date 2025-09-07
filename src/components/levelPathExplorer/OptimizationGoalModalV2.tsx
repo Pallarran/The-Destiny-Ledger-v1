@@ -61,7 +61,7 @@ export function OptimizationGoalModalV2({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto bg-background">
         <DialogHeader>
           <DialogTitle>Select Optimization Goal</DialogTitle>
         </DialogHeader>

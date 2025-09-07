@@ -827,7 +827,13 @@ export class TargetBuildOptimizerV2 {
     // Create default weapon and config for DPR calculation
     const weapon: any = { die: 8, count: 1, enhancement: 0, properties: [] }
     const config: any = { targetAC: 15, rounds: 3 }
-    const baseDpr = calculateBuildDPR(combatState, weapon, config)
+    let baseDpr
+    try {
+      baseDpr = calculateBuildDPR(combatState, weapon, config)
+    } catch (error) {
+      console.warn('DPR calculation failed:', error)
+      baseDpr = { expectedDPR: 5 } // Fallback value
+    }
     
     // Check for available spells and their impact
     const spellsAvailable = this.getAvailableSpells(classId, classLevel)
@@ -841,12 +847,12 @@ export class TargetBuildOptimizerV2 {
       classId,
       classLevel,
       features: keyFeatures,
-      dpr: baseDpr.expectedDPR,
+      dpr: baseDpr?.expectedDPR || 5,
       acEffective: 15, // Placeholder
       roleScores: {},
       keyFeatures,
       powerSpike: this.isPowerSpikeLevel(classId, classLevel),
-      spellsAvailable
+      spellsAvailable: spellsAvailable || []
     }
   }
 
@@ -976,20 +982,25 @@ export class TargetBuildOptimizerV2 {
     
     for (let i = 0; i < sequence.length; i++) {
       const step = sequence[i]
+      const stepDpr = isNaN(step.dpr) ? 5 : step.dpr
+      const survivalScore = this.calculateSurvivalScore(sequence.slice(0, i + 1))
+      const utilityScore = this.calculateUtilityScore(sequence.slice(0, i + 1))
+      
       const metrics: LevelMetrics = {
         level: step.level,
-        dpr: step.dpr,
-        dprWithSpells: step.dpr * 1.2, // Simplified calculation
-        survivalScore: this.calculateSurvivalScore(sequence.slice(0, i + 1)),
-        utilityScore: this.calculateUtilityScore(sequence.slice(0, i + 1)),
+        dpr: stepDpr,
+        dprWithSpells: stepDpr * 1.2, // Simplified calculation
+        survivalScore: isNaN(survivalScore) ? 10 : survivalScore,
+        utilityScore: isNaN(utilityScore) ? 5 : utilityScore,
         spellSlots: this.calculateSpellSlots(sequence.slice(0, i + 1)),
-        hasHaste: step.spellsAvailable.some(s => s.id === 'haste'),
+        hasHaste: step.spellsAvailable?.some(s => s.id === 'haste') || false,
         hasExtraAttack: this.hasExtraAttackAtLevel(sequence.slice(0, i + 1)),
         hasPowerAttackFeat: false // Would check for GWM/SS
       }
       
       levelMetrics.push(metrics)
-      totalScore += this.optimizationGoal.evaluationFunction(metrics)
+      const goalScore = this.optimizationGoal.evaluationFunction(metrics)
+      totalScore += isNaN(goalScore) ? 0 : goalScore
     }
     
     return {
@@ -1136,13 +1147,16 @@ export class TargetBuildOptimizerV2 {
     const earlyMetrics = metrics.slice(0, 10)
     const lateMetrics = metrics.slice(10)
     
-    const avgEarlyDPR = earlyMetrics.reduce((sum, m) => sum + m.dprWithSpells, 0) / 
-                        (earlyMetrics.length || 1)
-    const avgLateDPR = lateMetrics.reduce((sum, m) => sum + m.dprWithSpells, 0) / 
-                       (lateMetrics.length || 1)
+    const avgEarlyDPR = earlyMetrics.length > 0 
+      ? earlyMetrics.reduce((sum, m) => sum + (isNaN(m.dprWithSpells) ? 0 : m.dprWithSpells), 0) / earlyMetrics.length
+      : 0
+    const avgLateDPR = lateMetrics.length > 0
+      ? lateMetrics.reduce((sum, m) => sum + (isNaN(m.dprWithSpells) ? 0 : m.dprWithSpells), 0) / lateMetrics.length
+      : 0
     
-    const peakDPR = Math.max(...metrics.map(m => m.dprWithSpells))
-    const peakLevel = metrics.findIndex(m => m.dprWithSpells === peakDPR) + 1
+    const validDprValues = metrics.map(m => isNaN(m.dprWithSpells) ? 0 : m.dprWithSpells)
+    const peakDPR = Math.max(...validDprValues)
+    const peakLevel = metrics.findIndex(m => (isNaN(m.dprWithSpells) ? 0 : m.dprWithSpells) === peakDPR) + 1
     
     // Count caster vs martial levels
     let spellCasterLevels = 0
@@ -1163,9 +1177,9 @@ export class TargetBuildOptimizerV2 {
       finalLevel: sequence.length,
       averageEarlyDPR: avgEarlyDPR,
       averageLateDPR: avgLateDPR,
-      peakDPRLevel: peakLevel,
-      survivalScore: metrics[metrics.length - 1]?.survivalScore || 0,
-      utilityScore: metrics[metrics.length - 1]?.utilityScore || 0,
+      peakDPRLevel: isNaN(peakLevel) ? 1 : peakLevel,
+      survivalScore: isNaN(metrics[metrics.length - 1]?.survivalScore) ? 0 : (metrics[metrics.length - 1]?.survivalScore || 0),
+      utilityScore: isNaN(metrics[metrics.length - 1]?.utilityScore) ? 0 : (metrics[metrics.length - 1]?.utilityScore || 0),
       complexity: Object.keys(classBreakdown).length > 2 ? 'complex' :
                   Object.keys(classBreakdown).length > 1 ? 'moderate' : 'simple',
       spellCasterLevels,
