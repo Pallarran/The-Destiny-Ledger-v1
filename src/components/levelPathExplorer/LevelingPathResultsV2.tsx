@@ -160,9 +160,10 @@ function LevelProgression({ sequence }: { sequence: LevelStepV2[] }) {
       <div className="grid grid-cols-12 gap-2 text-xs font-medium text-muted-foreground pb-2 border-b">
         <div className="col-span-1">Lvl</div>
         <div className="col-span-2">Class</div>
-        <div className="col-span-3">Key Features</div>
+        <div className="col-span-2">Key Features</div>
+        <div className="col-span-2">ASI/Feat</div>
         <div className="col-span-2">Spells</div>
-        <div className="col-span-2">DPR</div>
+        <div className="col-span-1">DPR</div>
         <div className="col-span-2">Power</div>
       </div>
       
@@ -184,29 +185,50 @@ function LevelProgression({ sequence }: { sequence: LevelStepV2[] }) {
             </Badge>
           </div>
           
-          <div className="col-span-3 text-xs">
-            {step.keyFeatures.slice(0, 2).join(', ')}
-            {step.keyFeatures.length > 2 && ` +${step.keyFeatures.length - 2}`}
+          <div className="col-span-2 text-xs">
+            {step.keyFeatures.slice(0, 1).join(', ')}
+            {step.keyFeatures.length > 1 && ` +${step.keyFeatures.length - 1}`}
+          </div>
+          
+          <div className="col-span-2">
+            {step.asiOrFeat && (
+              <div className="flex gap-1">
+                {step.asiOrFeat === 'feat' && step.featId ? (
+                  <Badge variant="secondary" className="text-xs">
+                    <Brain className="w-2 h-2 mr-1" />
+                    {step.featId.replace('_', ' ').toUpperCase()}
+                  </Badge>
+                ) : step.asiOrFeat === 'asi' && step.abilityIncreases ? (
+                  <Badge variant="outline" className="text-xs">
+                    <TrendingUp className="w-2 h-2 mr-1" />
+                    ASI: {Object.entries(step.abilityIncreases)
+                      .filter(([_, value]) => value && value > 0)
+                      .map(([ability, value]) => `${ability} +${value}`)
+                      .join(', ')}
+                  </Badge>
+                ) : null}
+              </div>
+            )}
           </div>
           
           <div className="col-span-2">
             {step.spellsAvailable.length > 0 && (
               <div className="flex gap-1">
-                {step.spellsAvailable.slice(0, 2).map(spell => (
+                {step.spellsAvailable.slice(0, 1).map(spell => (
                   <Badge key={spell.id} variant="secondary" className="text-xs">
                     {spell.name}
                   </Badge>
                 ))}
-                {step.spellsAvailable.length > 2 && (
+                {step.spellsAvailable.length > 1 && (
                   <span className="text-xs text-muted-foreground">
-                    +{step.spellsAvailable.length - 2}
+                    +{step.spellsAvailable.length - 1}
                   </span>
                 )}
               </div>
             )}
           </div>
           
-          <div className="col-span-2 font-mono text-sm">
+          <div className="col-span-1 font-mono text-sm">
             {step.dpr.toFixed(1)}
           </div>
           

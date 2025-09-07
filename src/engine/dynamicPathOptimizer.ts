@@ -1,4 +1,4 @@
-import type { BuildConfiguration, CustomTargetConfiguration } from '../stores/types'
+import type { BuildConfiguration, CustomTargetConfiguration, AbilityId } from '../stores/types'
 import { getClass } from '../rules/loaders'
 import { generateDPRCurves } from './simulator'
 import type { 
@@ -32,6 +32,10 @@ export class DynamicPathOptimizer {
   private optimizationGoal: OptimizationGoalV2
   private targetBreakdown: Record<string, number>
   private maxLevel: number
+
+  private get goalPriority(): OptimizationGoalV2 {
+    return this.optimizationGoal
+  }
 
   constructor(target: BuildConfiguration | CustomTargetConfiguration, goalId: string) {
     this.optimizationGoal = OPTIMIZATION_GOALS_V2[goalId]
@@ -281,6 +285,21 @@ export class DynamicPathOptimizer {
     classLevel: number,
     previousSteps: LevelStepV2[]
   ): Promise<LevelStepV2> {
+    // Calculate current ability scores from progression
+    const currentAbilities = this.calculateCurrentAbilities(previousSteps)
+    
+    // Check if this level grants ASI/feat choice
+    let asiOrFeat: 'asi' | 'feat' | undefined
+    let featId: string | undefined
+    let abilityIncreases: Partial<Record<AbilityId, number>> | undefined
+    
+    if (this.isASILevel(classId, classLevel)) {
+      const optimalChoice = this.getOptimalFeatOrASI(characterLevel, classId, currentAbilities, this.goalPriority)
+      asiOrFeat = optimalChoice.choice
+      featId = optimalChoice.featId
+      abilityIncreases = optimalChoice.asiBonus
+    }
+
     const progressionBuild = this.createProgressionBuild([...previousSteps, {
       level: characterLevel,
       classId,
@@ -291,7 +310,10 @@ export class DynamicPathOptimizer {
       roleScores: {},
       keyFeatures: [],
       powerSpike: false,
-      spellsAvailable: []
+      spellsAvailable: [],
+      asiOrFeat,
+      featId,
+      abilityIncreases
     }])
     
     let dprValue = 0
@@ -333,7 +355,10 @@ export class DynamicPathOptimizer {
       roleScores: {},
       keyFeatures,
       powerSpike: this.isPowerSpikeLevel(classId, classLevel),
-      spellsAvailable: spellsAvailable || []
+      spellsAvailable: spellsAvailable || [],
+      asiOrFeat,
+      featId,
+      abilityIncreases
     }
   }
 
@@ -368,9 +393,9 @@ export class DynamicPathOptimizer {
         subclassId,
         fightingStyle,
         features: step.features || [],
-        asiOrFeat: originalEntry?.asiOrFeat,
-        featId: originalEntry?.featId,
-        abilityIncreases: originalEntry?.abilityIncreases,
+        asiOrFeat: step.asiOrFeat || originalEntry?.asiOrFeat,
+        featId: step.featId || originalEntry?.featId,
+        abilityIncreases: step.abilityIncreases || originalEntry?.abilityIncreases,
         spells: step.spellsAvailable?.map(s => s.id) || []
       }
     })
@@ -535,6 +560,151 @@ export class DynamicPathOptimizer {
       activeBuffs: [],
       round0Buffs: []
     }
+  }
+
+  private getOptimalFeatOrASI(
+    characterLevel: number, 
+    classId: string, 
+    currentAbilities: Record<AbilityId, number>,
+    goalPriority: OptimizationGoalV2
+  ): { choice: 'asi' | 'feat', featId?: string, asiBonus?: Partial<Record<AbilityId, number>> } {
+    // ASI levels for most classes: 4, 8, 12, 16, 19 (Fighter gets extra at 6, 14)
+    const isASILevel = this.isASILevel(classId, characterLevel)
+    
+    if (!isASILevel) {
+      return { choice: 'asi' } // Not an ASI level, return default
+    }
+
+    // Determine primary ability based on class and goal
+    const primaryAbility = this.getPrimaryAbilityForClass(classId)
+    const currentPrimaryScore = currentAbilities[primaryAbility] || 15
+
+    // If primary ability is not maxed (20), consider ASI
+    if (currentPrimaryScore < 18) {
+      // Low primary ability - prioritize ASI
+      return { 
+        choice: 'asi', 
+        asiBonus: { [primaryAbility]: 2 } 
+      }
+    }
+
+    // Primary ability is high, consider power feats based on goal
+    if (goalPriority.id === 'dpr_optimization' || goalPriority.id === 'combat_effectiveness') {
+      const optimalFeat = this.getOptimalPowerFeat(classId)
+      if (optimalFeat) {
+        return { choice: 'feat', featId: optimalFeat }
+      }
+    }
+
+    // Fallback to ASI if no good feat found
+    const secondaryAbility = this.getSecondaryAbilityForClass(classId)
+    return { 
+      choice: 'asi', 
+      asiBonus: currentPrimaryScore >= 20 
+        ? { [secondaryAbility]: 2 } 
+        : { [primaryAbility]: 2 }
+    }
+  }
+
+  private isASILevel(classId: string, classLevel: number): boolean {
+    const standardASILevels = [4, 8, 12, 16, 19]
+    const fighterASILevels = [4, 6, 8, 12, 14, 16, 19] // Fighter gets extra
+    const rogueASILevels = [4, 8, 10, 12, 16, 19] // Rogue gets extra at 10
+
+    if (classId === 'fighter') {
+      return fighterASILevels.includes(classLevel)
+    } else if (classId === 'rogue') {
+      return rogueASILevels.includes(classLevel)
+    } else {
+      return standardASILevels.includes(classLevel)
+    }
+  }
+
+  private getPrimaryAbilityForClass(classId: string): AbilityId {
+    const classToAbility: Record<string, AbilityId> = {
+      'fighter': 'STR', // Most fighters are STR-based
+      'ranger': 'DEX',
+      'rogue': 'DEX', 
+      'wizard': 'INT',
+      'sorcerer': 'CHA',
+      'warlock': 'CHA',
+      'bard': 'CHA',
+      'cleric': 'WIS',
+      'druid': 'WIS',
+      'monk': 'DEX',
+      'paladin': 'STR',
+      'barbarian': 'STR'
+    }
+    return classToAbility[classId] || 'STR'
+  }
+
+  private getSecondaryAbilityForClass(classId: string): AbilityId {
+    const classToSecondary: Record<string, AbilityId> = {
+      'fighter': 'CON',
+      'ranger': 'WIS', 
+      'rogue': 'CON',
+      'wizard': 'DEX',
+      'sorcerer': 'CON',
+      'warlock': 'CON',
+      'bard': 'DEX',
+      'cleric': 'CON',
+      'druid': 'CON',
+      'monk': 'WIS',
+      'paladin': 'CON',
+      'barbarian': 'CON'
+    }
+    return classToSecondary[classId] || 'CON'
+  }
+
+  private getOptimalPowerFeat(classId: string): string | null {
+    // Power feats by class archetype
+    const meleeFeats = ['great_weapon_master', 'polearm_master', 'sentinel']
+    const rangedFeats = ['sharpshooter', 'crossbow_expert']
+    const casterFeats = ['war_caster', 'resilient_constitution', 'lucky']
+    
+    if (['fighter', 'paladin', 'barbarian'].includes(classId)) {
+      return meleeFeats[0] // GWM is typically strongest
+    } else if (['ranger', 'rogue'].includes(classId)) {
+      return rangedFeats[0] // Sharpshooter
+    } else if (['wizard', 'sorcerer', 'warlock', 'bard', 'cleric', 'druid'].includes(classId)) {
+      return casterFeats[0] // War Caster
+    }
+    
+    return null
+  }
+
+  private calculateCurrentAbilities(previousSteps: LevelStepV2[]): Record<AbilityId, number> {
+    // Start with base abilities from target build or custom target
+    const baseAbilities = this.targetBuild?.baseAbilityScores || this.customTarget?.baseAbilityScores || {
+      STR: 15, DEX: 14, CON: 13, INT: 12, WIS: 10, CHA: 8
+    }
+    
+    const current = { ...baseAbilities }
+    
+    // Apply racial bonuses (simplified - would need full race logic)
+    const race = this.targetBuild?.race || this.customTarget?.race
+    if (race === 'human') {
+      // Variant Human gets +1 to two different abilities
+      current.STR += 1
+      current.CON += 1
+    } else if (race === 'elf') {
+      current.DEX += 2
+    } else if (race === 'dwarf') {
+      current.CON += 2
+    }
+    
+    // Apply ASI increases from previous levels
+    for (const step of previousSteps) {
+      if (step.abilityIncreases) {
+        for (const [ability, bonus] of Object.entries(step.abilityIncreases)) {
+          if (bonus) {
+            (current as any)[ability] += bonus
+          }
+        }
+      }
+    }
+    
+    return current
   }
 
   private calculateFallbackDPR(classId: string, classLevel: number, characterLevel: number): number {

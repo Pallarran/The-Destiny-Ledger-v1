@@ -10,11 +10,14 @@ import {
 import { 
   Target, 
   Plus,
-  X
+  X,
+  User,
+  Settings
 } from 'lucide-react'
 import { classes } from '../../rules/srd/classes'
 import { subclasses } from '../../rules/srd/subclasses'
-import type { CustomTargetConfiguration, CustomTargetEntry } from '../../stores/types'
+import type { CustomTargetConfiguration, CustomTargetEntry, AbilityScoreMethod, AbilityId } from '../../stores/types'
+import type { AbilityScoreArray } from '../../rules/types'
 
 interface CustomTargetModalProps {
   isOpen: boolean
@@ -31,6 +34,25 @@ export function CustomTargetModal({
   const [entries, setEntries] = useState<CustomTargetEntry[]>([
     { classId: '', levels: 1 }
   ])
+  
+  // Character basics
+  const [race, setRace] = useState('human')
+  const [subrace, setSubrace] = useState('')
+  const [background, setBackground] = useState('')
+  const [abilityMethod, setAbilityMethod] = useState<AbilityScoreMethod>('standard')
+  const [baseAbilityScores, setBaseAbilityScores] = useState<AbilityScoreArray>({
+    STR: 15, DEX: 14, CON: 13, INT: 12, WIS: 10, CHA: 8
+  })
+  
+  // Starting preferences
+  const [startingWeaponPreference, setStartingWeaponPreference] = useState<'melee' | 'ranged' | 'versatile'>('melee')
+  const [armorPreference, setArmorPreference] = useState<'light' | 'medium' | 'heavy' | 'none'>('medium')
+  
+  // Optimization priorities
+  const [primaryAbility, setPrimaryAbility] = useState<AbilityId>('STR')
+  const [secondaryAbility, setSecondaryAbility] = useState<AbilityId>('CON')
+  const [featPreference, setFeatPreference] = useState<'power' | 'utility' | 'combat'>('power')
+  const [multiclassStrategy, setMulticlassStrategy] = useState<'early' | 'late' | 'balanced'>('balanced')
 
   const totalLevel = entries.reduce((sum, entry) => sum + entry.levels, 0)
   
@@ -91,7 +113,20 @@ export function CustomTargetModal({
     const target: CustomTargetConfiguration = {
       name: targetName.trim(),
       entries: entries.filter(entry => entry.classId !== ''),
-      totalLevel
+      totalLevel,
+      race,
+      subrace: subrace || undefined,
+      background: background || undefined,
+      baseAbilityScores,
+      abilityMethod,
+      startingWeaponPreference,
+      armorPreference,
+      optimizationPriority: {
+        primaryAbility,
+        secondaryAbility,
+        featPreference,
+        multiclassStrategy
+      }
     }
     
     onTargetDefine(target)
@@ -100,6 +135,17 @@ export function CustomTargetModal({
     // Reset form
     setTargetName('Custom Build Target')
     setEntries([{ classId: '', levels: 1 }])
+    setRace('human')
+    setSubrace('')
+    setBackground('')
+    setAbilityMethod('standard')
+    setBaseAbilityScores({ STR: 15, DEX: 14, CON: 13, INT: 12, WIS: 10, CHA: 8 })
+    setStartingWeaponPreference('melee')
+    setArmorPreference('medium')
+    setPrimaryAbility('STR')
+    setSecondaryAbility('CON')
+    setFeatPreference('power')
+    setMulticlassStrategy('balanced')
   }
 
   const handleCancel = () => {
@@ -107,13 +153,24 @@ export function CustomTargetModal({
     // Reset form
     setTargetName('Custom Build Target')
     setEntries([{ classId: '', levels: 1 }])
+    setRace('human')
+    setSubrace('')
+    setBackground('')
+    setAbilityMethod('standard')
+    setBaseAbilityScores({ STR: 15, DEX: 14, CON: 13, INT: 12, WIS: 10, CHA: 8 })
+    setStartingWeaponPreference('melee')
+    setArmorPreference('medium')
+    setPrimaryAbility('STR')
+    setSecondaryAbility('CON')
+    setFeatPreference('power')
+    setMulticlassStrategy('balanced')
   }
 
   if (!isOpen) return null
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl max-w-2xl w-full max-h-[80vh] overflow-hidden">
+      <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
         <div className="flex items-center justify-between p-4 border-b">
           <div className="flex items-center gap-2">
             <Target className="w-5 h-5" />
@@ -124,7 +181,7 @@ export function CustomTargetModal({
           </Button>
         </div>
 
-        <div className="p-4 space-y-4 overflow-y-auto max-h-96">
+        <div className="p-4 space-y-6 overflow-y-auto max-h-[70vh]">
           {/* Target Name */}
           <div>
             <label className="block text-sm font-medium mb-2">
@@ -256,6 +313,198 @@ export function CustomTargetModal({
             {/* Help Text */}
             <div className="mt-3 text-xs text-muted-foreground">
               <p>💡 Tip: Most multiclass builds use 2 classes. Add a third only if your build requires it.</p>
+            </div>
+          </div>
+
+          {/* Character Basics */}
+          <div>
+            <div className="flex items-center gap-2 mb-4">
+              <User className="w-4 h-4" />
+              <h3 className="font-medium">Character Basics</h3>
+              <p className="text-xs text-muted-foreground">Starting character details</p>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              {/* Race Selection */}
+              <div>
+                <label className="block text-sm font-medium mb-2">Race</label>
+                <Select value={race} onValueChange={setRace}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select race..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="human">Human</SelectItem>
+                    <SelectItem value="elf">Elf</SelectItem>
+                    <SelectItem value="dwarf">Dwarf</SelectItem>
+                    <SelectItem value="halfling">Halfling</SelectItem>
+                    <SelectItem value="dragonborn">Dragonborn</SelectItem>
+                    <SelectItem value="gnome">Gnome</SelectItem>
+                    <SelectItem value="half-elf">Half-Elf</SelectItem>
+                    <SelectItem value="half-orc">Half-Orc</SelectItem>
+                    <SelectItem value="tiefling">Tiefling</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Background Selection */}
+              <div>
+                <label className="block text-sm font-medium mb-2">Background</label>
+                <input
+                  type="text"
+                  value={background}
+                  onChange={(e) => setBackground(e.target.value)}
+                  placeholder="e.g., Soldier, Noble..."
+                  className="w-full px-3 py-2 border rounded-md bg-transparent text-sm"
+                />
+              </div>
+            </div>
+
+            {/* Ability Scores */}
+            <div className="mt-4">
+              <div className="flex items-center justify-between mb-3">
+                <label className="text-sm font-medium">Base Ability Scores</label>
+                <Select value={abilityMethod} onValueChange={(value: AbilityScoreMethod) => setAbilityMethod(value)}>
+                  <SelectTrigger className="w-32">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="standard">Standard Array</SelectItem>
+                    <SelectItem value="pointbuy">Point Buy</SelectItem>
+                    <SelectItem value="rolled">Rolled</SelectItem>
+                    <SelectItem value="manual">Manual</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="grid grid-cols-6 gap-2">
+                {Object.entries(baseAbilityScores).map(([ability, score]) => (
+                  <div key={ability} className="text-center">
+                    <label className="block text-xs font-medium text-muted-foreground mb-1">
+                      {ability}
+                    </label>
+                    <input
+                      type="number"
+                      min="8"
+                      max="18"
+                      value={score}
+                      onChange={(e) => setBaseAbilityScores(prev => ({
+                        ...prev,
+                        [ability]: parseInt(e.target.value) || 8
+                      }))}
+                      className="w-full h-8 px-2 text-center border rounded-md bg-background text-sm"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Optimization Preferences */}
+          <div>
+            <div className="flex items-center gap-2 mb-4">
+              <Settings className="w-4 h-4" />
+              <h3 className="font-medium">Optimization Preferences</h3>
+              <p className="text-xs text-muted-foreground">Guide intelligent ASI/feat choices</p>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              {/* Primary Ability */}
+              <div>
+                <label className="block text-sm font-medium mb-2">Primary Ability</label>
+                <Select value={primaryAbility} onValueChange={(value: AbilityId) => setPrimaryAbility(value)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="STR">Strength (STR)</SelectItem>
+                    <SelectItem value="DEX">Dexterity (DEX)</SelectItem>
+                    <SelectItem value="CON">Constitution (CON)</SelectItem>
+                    <SelectItem value="INT">Intelligence (INT)</SelectItem>
+                    <SelectItem value="WIS">Wisdom (WIS)</SelectItem>
+                    <SelectItem value="CHA">Charisma (CHA)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Secondary Ability */}
+              <div>
+                <label className="block text-sm font-medium mb-2">Secondary Ability</label>
+                <Select value={secondaryAbility} onValueChange={(value: AbilityId) => setSecondaryAbility(value)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="STR">Strength (STR)</SelectItem>
+                    <SelectItem value="DEX">Dexterity (DEX)</SelectItem>
+                    <SelectItem value="CON">Constitution (CON)</SelectItem>
+                    <SelectItem value="INT">Intelligence (INT)</SelectItem>
+                    <SelectItem value="WIS">Wisdom (WIS)</SelectItem>
+                    <SelectItem value="CHA">Charisma (CHA)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Feat Preference */}
+              <div>
+                <label className="block text-sm font-medium mb-2">Feat Preference</label>
+                <Select value={featPreference} onValueChange={(value: 'power' | 'utility' | 'combat') => setFeatPreference(value)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="power">Power (DPR-focused)</SelectItem>
+                    <SelectItem value="utility">Utility (Versatility)</SelectItem>
+                    <SelectItem value="combat">Combat (Survivability)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Multiclass Strategy */}
+              <div>
+                <label className="block text-sm font-medium mb-2">Multiclass Strategy</label>
+                <Select value={multiclassStrategy} onValueChange={(value: 'early' | 'late' | 'balanced') => setMulticlassStrategy(value)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="early">Early (Front-load)</SelectItem>
+                    <SelectItem value="late">Late (Delayed)</SelectItem>
+                    <SelectItem value="balanced">Balanced</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Starting Preferences */}
+            <div className="mt-4 grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-2">Weapon Preference</label>
+                <Select value={startingWeaponPreference} onValueChange={(value: 'melee' | 'ranged' | 'versatile') => setStartingWeaponPreference(value)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="melee">Melee</SelectItem>
+                    <SelectItem value="ranged">Ranged</SelectItem>
+                    <SelectItem value="versatile">Versatile</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">Armor Preference</label>
+                <Select value={armorPreference} onValueChange={(value: 'light' | 'medium' | 'heavy' | 'none') => setArmorPreference(value)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="light">Light Armor</SelectItem>
+                    <SelectItem value="medium">Medium Armor</SelectItem>
+                    <SelectItem value="heavy">Heavy Armor</SelectItem>
+                    <SelectItem value="none">No Armor</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </div>
 

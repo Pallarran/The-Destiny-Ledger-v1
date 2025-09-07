@@ -29,10 +29,25 @@ export interface CustomTargetConfiguration {
   name: string
   entries: CustomTargetEntry[]
   totalLevel: number
-  race?: string
+  
+  // Character basics - required for proper optimization
+  race: string
   subrace?: string
   background?: string
-  baseAbilityScores?: AbilityScoreArray
+  baseAbilityScores: AbilityScoreArray
+  abilityMethod: AbilityScoreMethod
+  
+  // Starting equipment preferences
+  startingWeaponPreference?: 'melee' | 'ranged' | 'versatile'
+  armorPreference?: 'light' | 'medium' | 'heavy' | 'none'
+  
+  // Optimization preferences for decision making
+  optimizationPriority?: {
+    primaryAbility: AbilityId // Main ability to focus ASI on
+    secondaryAbility?: AbilityId // Secondary ability for ASI
+    featPreference?: 'power' | 'utility' | 'combat' // What type of feats to prioritize
+    multiclassStrategy?: 'early' | 'late' | 'balanced' // When to multiclass
+  }
 }
 
 // Canonical Build type from review document
