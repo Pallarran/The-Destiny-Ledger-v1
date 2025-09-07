@@ -1,4 +1,4 @@
-import type { BuildConfiguration } from '../stores/types'
+import type { BuildConfiguration, CustomTargetConfiguration } from '../stores/types'
 import { getClass } from '../rules/loaders'
 import { generateDPRCurves } from './simulator'
 import type { 
@@ -27,21 +27,38 @@ interface ClassChoice {
 }
 
 export class DynamicPathOptimizer {
-  private targetBuild: BuildConfiguration
+  private targetBuild?: BuildConfiguration
+  private customTarget?: CustomTargetConfiguration
   private optimizationGoal: OptimizationGoalV2
   private targetBreakdown: Record<string, number>
   private maxLevel: number
 
-  constructor(targetBuild: BuildConfiguration, goalId: string) {
-    this.targetBuild = targetBuild
+  constructor(target: BuildConfiguration | CustomTargetConfiguration, goalId: string) {
     this.optimizationGoal = OPTIMIZATION_GOALS_V2[goalId]
     
     if (!this.optimizationGoal) {
       throw new Error(`Unknown optimization goal: ${goalId}`)
     }
 
-    this.targetBreakdown = this.extractClassBreakdown()
+    if ('levelTimeline' in target) {
+      // BuildConfiguration
+      this.targetBuild = target
+      this.targetBreakdown = this.extractClassBreakdown()
+    } else {
+      // CustomTargetConfiguration  
+      this.customTarget = target
+      this.targetBreakdown = this.extractCustomTargetBreakdown()
+    }
+    
     this.maxLevel = Object.values(this.targetBreakdown).reduce((sum, levels) => sum + levels, 0)
+  }
+
+  static fromBuild(targetBuild: BuildConfiguration, goalId: string): DynamicPathOptimizer {
+    return new DynamicPathOptimizer(targetBuild, goalId)
+  }
+
+  static fromCustomTarget(customTarget: CustomTargetConfiguration, goalId: string): DynamicPathOptimizer {
+    return new DynamicPathOptimizer(customTarget, goalId)
   }
 
   async generateOptimalPaths(): Promise<LevelingPathV2[]> {
@@ -392,12 +409,25 @@ export class DynamicPathOptimizer {
   // Helper methods (simplified versions of the ones from the original optimizer)
   private extractClassBreakdown(): Record<string, number> {
     const breakdown: Record<string, number> = {}
-    if (!this.targetBuild.levelTimeline) {
+    if (!this.targetBuild?.levelTimeline) {
       throw new Error('Target build must have level timeline')
     }
     
     for (const entry of this.targetBuild.levelTimeline) {
       breakdown[entry.classId] = (breakdown[entry.classId] || 0) + 1
+    }
+    
+    return breakdown
+  }
+
+  private extractCustomTargetBreakdown(): Record<string, number> {
+    const breakdown: Record<string, number> = {}
+    if (!this.customTarget?.entries) {
+      throw new Error('Custom target must have entries')
+    }
+    
+    for (const entry of this.customTarget.entries) {
+      breakdown[entry.classId] = (breakdown[entry.classId] || 0) + entry.levels
     }
     
     return breakdown

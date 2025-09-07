@@ -15,6 +15,26 @@ export type ArmorId = string
 export type SkillId = string
 export type AbilityId = 'STR' | 'DEX' | 'CON' | 'INT' | 'WIS' | 'CHA'
 
+// Path generation modes for Level Path Explorer
+export type PathGenerationMode = 'existing-build' | 'custom-target'
+
+// Custom target configuration for Level Path Explorer
+export interface CustomTargetEntry {
+  classId: string
+  subclassId?: string
+  levels: number
+}
+
+export interface CustomTargetConfiguration {
+  name: string
+  entries: CustomTargetEntry[]
+  totalLevel: number
+  race?: string
+  subrace?: string
+  background?: string
+  baseAbilityScores?: AbilityScoreArray
+}
+
 // Canonical Build type from review document
 export interface CanonicalBuild {
   identity: {
