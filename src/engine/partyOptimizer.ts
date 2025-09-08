@@ -768,6 +768,7 @@ const SUBCLASS_ROLE_MODIFIERS: Record<string, SubclassRoleModifier> = {
   transmutation: { utility: 3, support: 1 }, // Minor Alchemy, Master Transmuter
   chronurgy: { control: 3, support: 2 }, // Chronal Shift, Arcane Abeyance
   graviturgy: { control: 4, damage: 1 }, // Gravity Well, Event Horizon
+  bladesinger: { damage: 3, tank: 1, utility: 1 }, // Extra Attack, Bladesong AC/saves, melee wizard
 
   // Cleric Subclasses
   life: { healer: 4, support: 2 }, // Disciple of Life, Supreme Healing

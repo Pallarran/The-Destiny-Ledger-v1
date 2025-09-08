@@ -2117,6 +2117,45 @@ export const subclasses: Record<string, Subclass> = {
     ]
   },
 
+  // Wizard - Bladesinger
+  bladesinger: {
+    id: 'bladesinger',
+    name: 'Bladesinger',
+    description: 'Bladesingers master a school of wizardry known as bladesinging. From its name, many would think that bladesinging is only about sword work—but that is a severe underestimation.',
+    className: 'wizard',
+    features: [
+      {
+        level: 2,
+        name: 'Training in War and Song',
+        description: 'You gain proficiency with light armor, and you gain proficiency with one type of one-handed melee weapon of your choice. You also gain proficiency in the Performance skill if you don\'t already have it.'
+      },
+      {
+        level: 2,
+        name: 'Bladesong',
+        description: 'You can invoke an elven magic called the Bladesong, provided that you aren\'t wearing medium or heavy armor or using a shield. It graces you with supernatural speed, agility, and focus. You can use a bonus action to start the Bladesong, which lasts for 1 minute.',
+        rulesKey: 'bladesong'
+      },
+      {
+        level: 6,
+        name: 'Extra Attack',
+        description: 'You can attack twice, instead of once, whenever you take the Attack action on your turn. Moreover, you can cast one of your cantrips in place of one of those attacks.',
+        rulesKey: 'extra_attack'
+      },
+      {
+        level: 10,
+        name: 'Song of Defense',
+        description: 'You can direct your magic to absorb damage while your Bladesong is active. When you take damage, you can use your reaction to expend one spell slot and reduce that damage by an amount equal to five times the spell slot\'s level.',
+        rulesKey: 'song_of_defense'
+      },
+      {
+        level: 14,
+        name: 'Song of Victory',
+        description: 'You can add your Intelligence modifier to the damage of your melee weapon attacks while your Bladesong is active.',
+        rulesKey: 'song_of_victory'
+      }
+    ]
+  },
+
   // === SWORD COAST ADVENTURER'S GUIDE SUBCLASSES ===
 
   // Fighter - Purple Dragon Knight
