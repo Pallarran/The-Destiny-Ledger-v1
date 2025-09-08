@@ -726,7 +726,7 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
   // 3. Archetype Choice (initial selection only)
   const hasArchetype = classFeatures.some((f: Feature) => f.rulesKey === 'archetype')
   if (hasArchetype) {
-    const availableSubclasses = Object.values(loadSubclasses()).filter(sub => sub.parentClass === entry.classId)
+    const availableSubclasses = Object.values(loadSubclasses()).filter((sub: any) => sub.className === entry.classId)
     sections.push({
       id: 'archetype',
       title: `${classData?.name} Archetype`,
