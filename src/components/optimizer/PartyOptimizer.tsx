@@ -96,16 +96,7 @@ export default function PartyOptimizer() {
   return (
     <div className="space-y-6">
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Users className="w-5 h-5" />
-            Party Optimizer
-          </CardTitle>
-          <p className="text-sm text-muted-foreground">
-            Analyze party composition, identify synergies, and optimize for balanced gameplay
-          </p>
-        </CardHeader>
-        <CardContent>
+        <CardContent className="pt-6">
           {/* Success Message */}
           {showSuccessMessage && (
             <div className="mb-4 p-3 bg-green-100 border border-green-300 text-green-700 rounded-md flex items-center gap-2">
