@@ -46,12 +46,10 @@ export default function PartyOptimizer() {
   const handleAnalyze = async () => {
     try {
       await analyzeParty()
-      if (currentAnalysis) {
-        saveAnalysisToHistory(`Party Analysis ${new Date().toLocaleDateString()}`)
-        // Show success message and auto-switch to Analysis tab
-        setShowSuccessMessage(true)
-        setSelectedTab('analysis')
-      }
+      saveAnalysisToHistory(`Party Analysis ${new Date().toLocaleDateString()}`)
+      // Show success message and auto-switch to Analysis tab
+      setShowSuccessMessage(true)
+      setSelectedTab('analysis')
     } catch (error) {
       console.error('Party analysis failed:', error)
     }
@@ -262,329 +260,257 @@ export default function PartyOptimizer() {
             </TabsContent>
 
 
-            {/* Analysis Tab - Now includes Analysis + Recommendations */}
-            <TabsContent value="analysis" className="space-y-6">
+            {/* Analysis Tab - Compact layout with side-by-side sections */}
+            <TabsContent value="analysis" className="space-y-4">
               {currentAnalysis ? (
-                <div className="space-y-6">
+                <div className="space-y-4">
                   
-                  {/* Overall Analysis */}
-                  <Card className="bg-gradient-to-r from-primary/5 via-background to-accent/5 border-primary/20">
-                    <CardHeader>
-                      <CardTitle className="text-xl flex items-center gap-2">
-                        <TrendingUp className="w-6 h-6 text-primary" />
-                        Party Analysis Overview
-                      </CardTitle>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        Key metrics and statistics for your party composition
-                      </p>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                        <div className="text-center space-y-2 p-4 rounded-lg bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200">
-                          <Users className="w-8 h-8 text-blue-600 mx-auto" />
-                          <div className="text-3xl font-bold text-blue-700">{currentAnalysis.size}</div>
-                          <div className="text-sm font-medium text-blue-600">Party Members</div>
+                  {/* Top Row: Key Metrics + Role Coverage */}
+                  <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+                    
+                    {/* Overall Analysis - Compact */}
+                    <Card className="bg-gradient-to-r from-primary/5 via-background to-accent/5 border-primary/20">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-lg flex items-center gap-2">
+                          <TrendingUp className="w-5 h-5 text-primary" />
+                          Party Overview
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="text-center space-y-1 p-3 rounded-lg bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200">
+                            <Users className="w-6 h-6 text-blue-600 mx-auto" />
+                            <div className="text-2xl font-bold text-blue-700">{currentAnalysis.size}</div>
+                            <div className="text-xs font-medium text-blue-600">Members</div>
+                          </div>
+                          <div className="text-center space-y-1 p-3 rounded-lg bg-gradient-to-br from-green-50 to-green-100 border border-green-200">
+                            <TrendingUp className="w-6 h-6 text-green-600 mx-auto" />
+                            <div className="text-2xl font-bold text-green-700">{currentAnalysis.averageLevel.toFixed(1)}</div>
+                            <div className="text-xs font-medium text-green-600">Avg Level</div>
+                          </div>
+                          <div className="text-center space-y-1 p-3 rounded-lg bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200">
+                            <Zap className="w-6 h-6 text-purple-600 mx-auto" />
+                            <div className="text-2xl font-bold text-purple-700">{currentAnalysis.synergyScore.toFixed(1)}</div>
+                            <div className="text-xs font-medium text-purple-600">Synergy</div>
+                          </div>
+                          <div className="text-center space-y-1 p-3 rounded-lg bg-gradient-to-br from-orange-50 to-orange-100 border border-orange-200">
+                            <Target className="w-6 h-6 text-orange-600 mx-auto" />
+                            <div className="text-2xl font-bold text-orange-700">{currentAnalysis.synergies.length}</div>
+                            <div className="text-xs font-medium text-orange-600">Combos</div>
+                          </div>
                         </div>
-                        <div className="text-center space-y-2 p-4 rounded-lg bg-gradient-to-br from-green-50 to-green-100 border border-green-200">
-                          <TrendingUp className="w-8 h-8 text-green-600 mx-auto" />
-                          <div className="text-3xl font-bold text-green-700">{currentAnalysis.averageLevel.toFixed(1)}</div>
-                          <div className="text-sm font-medium text-green-600">Average Level</div>
-                        </div>
-                        <div className="text-center space-y-2 p-4 rounded-lg bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200">
-                          <Zap className="w-8 h-8 text-purple-600 mx-auto" />
-                          <div className="text-3xl font-bold text-purple-700">{currentAnalysis.synergyScore.toFixed(1)}</div>
-                          <div className="text-sm font-medium text-purple-600">Synergy Score</div>
-                        </div>
-                        <div className="text-center space-y-2 p-4 rounded-lg bg-gradient-to-br from-orange-50 to-orange-100 border border-orange-200">
-                          <Target className="w-8 h-8 text-orange-600 mx-auto" />
-                          <div className="text-3xl font-bold text-orange-700">{currentAnalysis.synergies.length}</div>
-                          <div className="text-sm font-medium text-orange-600">Synergies Found</div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
+                      </CardContent>
+                    </Card>
 
-                  {/* Role Coverage with Enhanced Bars */}
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-lg flex items-center gap-2">
-                        <Target className="w-5 h-5" />
-                        Role Coverage Analysis
-                      </CardTitle>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        How well your party covers each essential role - visual bars show coverage strength
-                      </p>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-4">
-                        {Object.entries(currentAnalysis.roleCoverage).map(([role, score]) => (
-                          <div key={role} className="space-y-3">
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-3">
-                                <div className={`p-2 rounded-lg ${score >= 8 ? 'bg-green-100 text-green-700' : score >= 6 ? 'bg-yellow-100 text-yellow-700' : score >= 4 ? 'bg-orange-100 text-orange-700' : 'bg-red-100 text-red-700'}`}>
-                                  {getRoleIcon(role as PartyRole)}
-                                </div>
-                                <div>
-                                  <div className="font-semibold capitalize text-base">{role}</div>
-                                  <div className="text-sm text-muted-foreground">
-                                    {score >= 8 ? 'Excellent Coverage' : score >= 6 ? 'Good Coverage' : score >= 4 ? 'Adequate Coverage' : 'Needs Improvement'}
-                                  </div>
+                    {/* Role Coverage - Compact */}
+                    <Card>
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-lg flex items-center gap-2">
+                          <Target className="w-5 h-5" />
+                          Role Coverage
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-2">
+                          {Object.entries(currentAnalysis.roleCoverage).map(([role, score]) => (
+                            <div key={role} className="flex items-center gap-3">
+                              <div className={`p-1.5 rounded ${score >= 8 ? 'bg-green-100 text-green-700' : score >= 6 ? 'bg-yellow-100 text-yellow-700' : score >= 4 ? 'bg-orange-100 text-orange-700' : 'bg-red-100 text-red-700'}`}>
+                                {getRoleIcon(role as PartyRole)}
+                              </div>
+                              <div className="flex-1">
+                                <div className="font-medium capitalize text-sm">{role}</div>
+                                <div className="relative">
+                                  <Progress 
+                                    value={Math.min(score * 10, 100)} 
+                                    className={`h-2 ${
+                                      score >= 8 ? '[&>div]:bg-green-500' : 
+                                      score >= 6 ? '[&>div]:bg-yellow-500' : 
+                                      score >= 4 ? '[&>div]:bg-orange-500' : 
+                                      '[&>div]:bg-red-500'
+                                    }`} 
+                                  />
                                 </div>
                               </div>
-                              <div className={`text-xl font-bold ${getRoleColor(score)} min-w-[3rem] text-right`}>
+                              <div className={`text-sm font-bold ${getRoleColor(score)} min-w-[2.5rem] text-right`}>
                                 {score.toFixed(1)}
                               </div>
                             </div>
-                            <div className="space-y-2">
-                              <div className="relative">
-                                <Progress 
-                                  value={Math.min(score * 10, 100)} 
-                                  className={`h-4 ${
-                                    score >= 8 ? '[&>div]:bg-green-500' : 
-                                    score >= 6 ? '[&>div]:bg-yellow-500' : 
-                                    score >= 4 ? '[&>div]:bg-orange-500' : 
-                                    '[&>div]:bg-red-500'
-                                  }`} 
-                                />
-                                <div className="absolute inset-0 flex items-center justify-center text-xs font-medium text-white drop-shadow-sm">
-                                  {Math.round(score * 10)}%
-                                </div>
-                              </div>
-                              <div className="flex justify-between text-xs text-muted-foreground">
-                                <span>Weak (0-4)</span>
-                                <span>Adequate (4-6)</span>
-                                <span>Good (6-8)</span>
-                                <span>Excellent (8-10)</span>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  {/* Weaknesses & Recommendations Section */}
-                  {(currentAnalysis.weaknesses.length > 0 || currentAnalysis.recommendations.length > 0) && (
-                    <Card className="bg-gradient-to-r from-amber-50/50 via-background to-red-50/50 border-amber-200/50">
-                      <CardHeader>
-                        <CardTitle className="text-lg flex items-center gap-2">
-                          <AlertCircle className="w-5 h-5 text-amber-600" />
-                          Issues & Recommendations
-                        </CardTitle>
-                        <p className="text-sm text-muted-foreground mt-1">
-                          Areas for improvement and optimization suggestions
-                        </p>
-                      </CardHeader>
-                      <CardContent className="space-y-6">
-                        
-                        {/* Weaknesses */}
-                        {currentAnalysis.weaknesses.length > 0 && (
-                          <div className="space-y-3">
-                            <div className="flex items-center gap-2 text-base font-semibold text-red-700">
-                              <AlertCircle className="w-4 h-4" />
-                              Identified Issues
-                            </div>
-                            <div className="space-y-3">
-                              {currentAnalysis.weaknesses.map((weakness, index) => (
-                                <div key={index} className={`p-4 rounded-lg border-l-4 ${
-                                  weakness.severity === 'major' ? 'bg-red-50 border-l-red-500 border border-red-200' :
-                                  weakness.severity === 'moderate' ? 'bg-orange-50 border-l-orange-500 border border-orange-200' :
-                                  'bg-yellow-50 border-l-yellow-500 border border-yellow-200'
-                                }`}>
-                                  <div className="flex items-start gap-3">
-                                    <div className={`p-1.5 rounded-full mt-0.5 ${
-                                      weakness.severity === 'major' ? 'bg-red-100 text-red-700' :
-                                      weakness.severity === 'moderate' ? 'bg-orange-100 text-orange-700' :
-                                      'bg-yellow-100 text-yellow-700'
-                                    }`}>
-                                      <AlertCircle className="w-3 h-3" />
-                                    </div>
-                                    <div className="flex-1 space-y-2">
-                                      <div className="flex items-center gap-2">
-                                        <Badge variant="outline" className={`text-xs font-medium ${getSeverityColor(weakness.severity)}`}>
-                                          {weakness.severity}
-                                        </Badge>
-                                        <span className="font-semibold capitalize text-sm">
-                                          {weakness.type.replace('_', ' ')}
-                                        </span>
-                                      </div>
-                                      <p className="text-sm text-foreground/80">{weakness.description}</p>
-                                      <div className="space-y-1">
-                                        <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Solutions:</div>
-                                        <ul className="space-y-1">
-                                          {weakness.suggestions.map((suggestion, suggestionIndex) => (
-                                            <li key={suggestionIndex} className="text-xs text-muted-foreground flex items-start gap-2">
-                                              <span className="text-primary mt-0.5">•</span>
-                                              <span>{suggestion}</span>
-                                            </li>
-                                          ))}
-                                        </ul>
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Recommendations */}
-                        {currentAnalysis.recommendations.length > 0 && (
-                          <div className="space-y-3">
-                            <div className="flex items-center gap-2 text-base font-semibold text-blue-700">
-                              <Info className="w-4 h-4" />
-                              Optimization Recommendations
-                            </div>
-                            <div className="space-y-3">
-                              {currentAnalysis.recommendations.map((recommendation, index) => (
-                                <div key={index} className="p-4 rounded-lg bg-blue-50 border border-blue-200 border-l-4 border-l-blue-500">
-                                  <div className="flex items-start gap-3">
-                                    <div className="p-1.5 rounded-full bg-blue-100 text-blue-700 mt-0.5">
-                                      <Info className="w-3 h-3" />
-                                    </div>
-                                    <div className="flex-1 space-y-2">
-                                      <div className="flex items-center gap-2">
-                                        <Badge variant="outline" className={`text-xs font-medium ${
-                                          recommendation.priority === 'high' ? 'border-red-500 text-red-700 bg-red-50' :
-                                          recommendation.priority === 'medium' ? 'border-yellow-500 text-yellow-700 bg-yellow-50' :
-                                          'border-gray-500 text-gray-700 bg-gray-50'
-                                        }`}>
-                                          {recommendation.priority} priority
-                                        </Badge>
-                                        <span className="font-semibold capitalize text-sm">
-                                          {recommendation.type.replace('_', ' ')}
-                                        </span>
-                                      </div>
-                                      <p className="text-sm text-foreground/80">{recommendation.description}</p>
-                                      <div className="text-xs text-blue-600 font-medium">
-                                        Expected improvement: {recommendation.expectedImprovement}
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                        
+                          ))}
+                        </div>
                       </CardContent>
                     </Card>
-                  )}
+                    
+                  </div>
 
-                  {/* Party Members */}
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-lg flex items-center gap-2">
-                        <Users className="w-5 h-5" />
-                        Party Member Details
-                      </CardTitle>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        Detailed breakdown of each party member's capabilities and contributions
-                      </p>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Bottom Row: Issues & Recommendations + Party Members */}
+                  <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+                    
+                    {/* Issues & Recommendations - Compact */}
+                    {(currentAnalysis.weaknesses.length > 0 || currentAnalysis.recommendations.length > 0) && (
+                      <Card className="bg-gradient-to-r from-amber-50/50 via-background to-red-50/50 border-amber-200/50">
+                        <CardHeader className="pb-3">
+                          <CardTitle className="text-lg flex items-center gap-2">
+                            <AlertCircle className="w-5 h-5 text-amber-600" />
+                            Issues & Recommendations
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent className="max-h-96 overflow-y-auto space-y-3">
+                          
+                          {/* Weaknesses - Compact */}
+                          {currentAnalysis.weaknesses.map((weakness, index) => (
+                            <div key={`weakness-${index}`} className={`p-3 rounded-lg border-l-2 ${
+                              weakness.severity === 'major' ? 'bg-red-50 border-l-red-500' :
+                              weakness.severity === 'moderate' ? 'bg-orange-50 border-l-orange-500' :
+                              'bg-yellow-50 border-l-yellow-500'
+                            }`}>
+                              <div className="flex items-start gap-2">
+                                <AlertCircle className={`w-3 h-3 mt-0.5 ${
+                                  weakness.severity === 'major' ? 'text-red-600' :
+                                  weakness.severity === 'moderate' ? 'text-orange-600' :
+                                  'text-yellow-600'
+                                }`} />
+                                <div className="flex-1 space-y-1">
+                                  <div className="flex items-center gap-2">
+                                    <Badge variant="outline" className={`text-xs ${getSeverityColor(weakness.severity)}`}>
+                                      {weakness.severity}
+                                    </Badge>
+                                    <span className="font-medium text-xs capitalize">
+                                      {weakness.type.replace('_', ' ')}
+                                    </span>
+                                  </div>
+                                  <p className="text-xs text-foreground/80">{weakness.description}</p>
+                                  <div className="text-xs text-muted-foreground">
+                                    Solutions: {weakness.suggestions.join(' • ')}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+
+                          {/* Recommendations - Compact */}
+                          {currentAnalysis.recommendations.map((recommendation, index) => (
+                            <div key={`rec-${index}`} className="p-3 rounded-lg bg-blue-50 border border-blue-200 border-l-2 border-l-blue-500">
+                              <div className="flex items-start gap-2">
+                                <Info className="w-3 h-3 text-blue-600 mt-0.5" />
+                                <div className="flex-1 space-y-1">
+                                  <div className="flex items-center gap-2">
+                                    <Badge variant="outline" className={`text-xs ${
+                                      recommendation.priority === 'high' ? 'border-red-500 text-red-700 bg-red-50' :
+                                      recommendation.priority === 'medium' ? 'border-yellow-500 text-yellow-700 bg-yellow-50' :
+                                      'border-gray-500 text-gray-700 bg-gray-50'
+                                    }`}>
+                                      {recommendation.priority}
+                                    </Badge>
+                                    <span className="font-medium text-xs capitalize">
+                                      {recommendation.type.replace('_', ' ')}
+                                    </span>
+                                  </div>
+                                  <p className="text-xs text-foreground/80">{recommendation.description}</p>
+                                  <div className="text-xs text-blue-600 font-medium">
+                                    Expected: {recommendation.expectedImprovement}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                          
+                        </CardContent>
+                      </Card>
+                    )}
+
+                    {/* Party Members - Compact */}
+                    <Card>
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-lg flex items-center gap-2">
+                          <Users className="w-5 h-5" />
+                          Party Members
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="max-h-96 overflow-y-auto space-y-3">
                         {currentAnalysis.members.map((member) => (
-                          <div key={member.buildId} className="border border-border/60 rounded-xl p-5 bg-gradient-to-br from-card to-muted/30 shadow-sm hover:shadow-md transition-shadow">
-                            <div className="flex items-center justify-between mb-4">
-                              <div className="font-bold text-lg text-foreground">{member.buildName}</div>
-                              <Badge variant="secondary" className="text-sm font-medium px-3 py-1">
-                                Level {member.level}
+                          <div key={member.buildId} className="border border-border/60 rounded-lg p-3 bg-gradient-to-br from-card to-muted/30">
+                            <div className="flex items-center justify-between mb-2">
+                              <div className="font-medium text-sm">{member.buildName}</div>
+                              <Badge variant="secondary" className="text-xs px-2 py-0.5">
+                                L{member.level}
                               </Badge>
                             </div>
                             
-                            {/* Role Badges */}
-                            <div className="flex items-center gap-2 mb-4">
-                              <Badge 
-                                variant="default" 
-                                className="text-sm flex items-center gap-2 px-3 py-1.5 font-medium bg-primary/15 text-primary border-primary/30 hover:bg-primary/20"
-                              >
+                            {/* Role Badges - Compact */}
+                            <div className="flex items-center gap-2 mb-2">
+                              <Badge variant="default" className="text-xs flex items-center gap-1 px-2 py-0.5 bg-primary/15 text-primary">
                                 {getRoleIcon(member.primaryRole)}
-                                <span className="capitalize">{member.primaryRole}</span>
+                                {member.primaryRole}
                               </Badge>
                               {member.secondaryRole && (
-                                <Badge 
-                                  variant="outline" 
-                                  className="text-sm flex items-center gap-1 px-2 py-1 text-muted-foreground border-muted/50"
-                                >
+                                <Badge variant="outline" className="text-xs flex items-center gap-1 px-1 py-0.5">
                                   {getRoleIcon(member.secondaryRole)}
-                                  <span className="capitalize">{member.secondaryRole}</span>
+                                  {member.secondaryRole}
                                 </Badge>
                               )}
                             </div>
                             
-                            {/* Stats Grid */}
-                            <div className="grid grid-cols-3 gap-4 mb-4 p-3 bg-muted/30 rounded-lg">
-                              <div className="text-center">
-                                <div className="flex items-center justify-center mb-1">
-                                  <Sword className="w-4 h-4 text-red-600" />
-                                </div>
-                                <div className="text-lg font-bold text-red-700">{member.capabilities.averageDPR.toFixed(1)}</div>
-                                <div className="text-xs text-muted-foreground">DPR</div>
+                            {/* Stats - Compact */}
+                            <div className="flex justify-between items-center text-xs">
+                              <div className="flex items-center gap-1 text-red-600">
+                                <Sword className="w-3 h-3" />
+                                {member.capabilities.averageDPR.toFixed(0)} DPR
                               </div>
-                              <div className="text-center">
-                                <div className="flex items-center justify-center mb-1">
-                                  <Shield className="w-4 h-4 text-blue-600" />
-                                </div>
-                                <div className="text-lg font-bold text-blue-700">{member.capabilities.ac}</div>
-                                <div className="text-xs text-muted-foreground">AC</div>
+                              <div className="flex items-center gap-1 text-blue-600">
+                                <Shield className="w-3 h-3" />
+                                {member.capabilities.ac} AC
                               </div>
-                              <div className="text-center">
-                                <div className="flex items-center justify-center mb-1">
-                                  <Heart className="w-4 h-4 text-green-600" />
-                                </div>
-                                <div className="text-lg font-bold text-green-700">{member.capabilities.hitPoints}</div>
-                                <div className="text-xs text-muted-foreground">HP</div>
+                              <div className="flex items-center gap-1 text-green-600">
+                                <Heart className="w-3 h-3" />
+                                {member.capabilities.hitPoints} HP
                               </div>
                             </div>
                             
-                            {/* Unique Contributions */}
+                            {/* Unique Contributions - Compact */}
                             {member.uniqueContributions.length > 0 && (
-                              <div className="space-y-2">
-                                <div className="text-sm font-medium text-muted-foreground flex items-center gap-1">
-                                  <Zap className="w-3 h-3" />
-                                  Unique Abilities
-                                </div>
-                                <div className="flex flex-wrap gap-1.5">
-                                  {member.uniqueContributions.slice(0, 3).map((contribution) => (
-                                    <Badge key={contribution} variant="outline" className="text-xs px-2 py-0.5 bg-accent/10 text-accent border-accent/30">
-                                      {contribution}
-                                    </Badge>
-                                  ))}
-                                  {member.uniqueContributions.length > 3 && (
-                                    <Badge variant="outline" className="text-xs px-2 py-0.5 bg-muted text-muted-foreground">
-                                      +{member.uniqueContributions.length - 3} more
-                                    </Badge>
-                                  )}
-                                </div>
+                              <div className="mt-2 flex flex-wrap gap-1">
+                                {member.uniqueContributions.slice(0, 2).map((contribution) => (
+                                  <Badge key={contribution} variant="outline" className="text-xs px-1.5 py-0 bg-accent/10">
+                                    {contribution}
+                                  </Badge>
+                                ))}
+                                {member.uniqueContributions.length > 2 && (
+                                  <Badge variant="outline" className="text-xs px-1.5 py-0 bg-muted">
+                                    +{member.uniqueContributions.length - 2}
+                                  </Badge>
+                                )}
                               </div>
                             )}
                           </div>
                         ))}
-                      </div>
-                    </CardContent>
-                  </Card>
+                      </CardContent>
+                    </Card>
+                    
+                  </div>
 
-                  {/* Synergies */}
+                  {/* Synergies Section - If needed */}
                   {currentAnalysis.synergies.length > 0 && (
                     <Card>
-                      <CardHeader>
-                        <CardTitle className="text-base">Party Synergies</CardTitle>
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-lg flex items-center gap-2">
+                          <Zap className="w-5 h-5" />
+                          Party Synergies
+                        </CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <div className="space-y-3">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                           {currentAnalysis.synergies.map((synergy, index) => (
-                            <div key={index} className="border border-accent/20 rounded-lg p-3">
+                            <div key={index} className="border border-accent/20 rounded-lg p-3 bg-gradient-to-br from-purple-50/30 to-accent/5">
                               <div className="flex items-center justify-between mb-2">
                                 <div className="font-medium text-sm">{synergy.name}</div>
-                                <Badge className="bg-accent/10 text-accent">
-                                  {synergy.estimatedBenefit}/10 benefit
+                                <Badge className="bg-accent/10 text-accent text-xs">
+                                  {synergy.estimatedBenefit}/10
                                 </Badge>
                               </div>
-                              <div className="text-sm text-muted-foreground">{synergy.description}</div>
+                              <div className="text-xs text-muted-foreground">{synergy.description}</div>
                               {synergy.requirements && (
-                                <div className="text-xs text-muted-foreground mt-1">
-                                  Requirements: {synergy.requirements.join(', ')}
+                                <div className="text-xs text-muted-foreground mt-1 italic">
+                                  Requires: {synergy.requirements.join(', ')}
                                 </div>
                               )}
                             </div>
