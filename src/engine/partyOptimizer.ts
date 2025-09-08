@@ -452,17 +452,37 @@ export class PartyOptimizer {
   }
 
   private calculateAC(build: BuildConfiguration): number {
-    let ac = 10 + Math.floor((build.abilityScores.DEX - 10) / 2) // Base AC + DEX
+    const dexMod = Math.floor((build.abilityScores.DEX - 10) / 2)
+    const conMod = Math.floor((build.abilityScores.CON - 10) / 2)
+    const wisMod = Math.floor((build.abilityScores.WIS - 10) / 2)
+    let ac = 10 + dexMod // Base AC + DEX
     
     if (build.armor) {
       const armor = build.armor.toLowerCase()
-      if (armor.includes('leather')) ac = 11 + Math.floor((build.abilityScores.DEX - 10) / 2)
-      else if (armor.includes('studded')) ac = 12 + Math.floor((build.abilityScores.DEX - 10) / 2)
-      else if (armor.includes('chain')) ac = 13 + Math.min(2, Math.floor((build.abilityScores.DEX - 10) / 2))
-      else if (armor.includes('scale')) ac = 14 + Math.min(2, Math.floor((build.abilityScores.DEX - 10) / 2))
-      else if (armor.includes('breastplate')) ac = 14 + Math.min(2, Math.floor((build.abilityScores.DEX - 10) / 2))
+      if (armor.includes('leather')) ac = 11 + dexMod
+      else if (armor.includes('studded')) ac = 12 + dexMod
+      else if (armor.includes('chain')) ac = 13 + Math.min(2, dexMod)
+      else if (armor.includes('scale')) ac = 14 + Math.min(2, dexMod)
+      else if (armor.includes('breastplate')) ac = 14 + Math.min(2, dexMod)
       else if (armor.includes('splint')) ac = 17
       else if (armor.includes('plate')) ac = 18
+    } else {
+      // Unarmored - check for class features and spells
+      const hasBarbarianLevel = build.levelTimeline?.some(l => l.classId === 'barbarian')
+      const hasMonkLevel = build.levelTimeline?.some(l => l.classId === 'monk')
+      const hasDraconicSorcerer = build.levelTimeline?.some(l => l.classId === 'sorcerer' && l.subclassId === 'draconic_bloodline')
+      
+      if (hasBarbarianLevel) {
+        ac = 10 + dexMod + conMod // Barbarian Unarmored Defense
+      } else if (hasMonkLevel) {
+        ac = 10 + dexMod + wisMod // Monk Unarmored Defense
+      } else if (hasDraconicSorcerer) {
+        ac = 13 + dexMod // Draconic Resilience
+      } else if (build.activeBuffs.includes('mage_armor') || build.round0Buffs.includes('mage_armor')) {
+        ac = 13 + dexMod // Mage Armor spell
+      } else {
+        ac = 10 + dexMod // Standard unarmored
+      }
     }
     
     if (build.shield) ac += 2

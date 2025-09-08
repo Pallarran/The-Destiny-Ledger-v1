@@ -379,7 +379,18 @@ export function BuildSummary() {
   const dexMod = getAbilityModifier(abilityScores.DEX)
   const selectedArmor = currentBuild.selectedArmor ? armor[currentBuild.selectedArmor] : null
   
-  // Calculate AC properly with equipment
+  // Calculate class levels and subclass info for AC calculations
+  const classLevels: Record<string, number> = {}
+  const subclassInfo: Record<string, string> = {}
+  
+  timeline.forEach(entry => {
+    classLevels[entry.classId] = (classLevels[entry.classId] || 0) + 1
+    if (entry.subclassId) {
+      subclassInfo[entry.classId] = entry.subclassId
+    }
+  })
+  
+  // Calculate AC properly with equipment and class features
   const calculateAC = () => {
     let baseAC = 10
     
@@ -392,7 +403,30 @@ export function BuildSummary() {
       }
       // No dex bonus for heavy armor (dexModifier === 'none')
     } else {
-      baseAC += dexMod // Unarmored
+      // Unarmored - check for class features and spells
+      const conMod = getAbilityModifier(abilityScores.CON)
+      const wisMod = getAbilityModifier(abilityScores.WIS)
+      
+      // Check for Barbarian Unarmored Defense (13 + DEX + CON)
+      const hasBarbarian = Object.keys(classLevels).includes('barbarian')
+      if (hasBarbarian) {
+        baseAC = 10 + dexMod + conMod
+      }
+      // Check for Monk Unarmored Defense (10 + DEX + WIS)
+      else if (Object.keys(classLevels).includes('monk')) {
+        baseAC = 10 + dexMod + wisMod
+      }
+      // Check for Draconic Resilience (Draconic Bloodline Sorcerer)
+      else if (Object.entries(classLevels).some(([classId]) => classId === 'sorcerer') &&
+               subclassInfo['sorcerer'] === 'draconic_bloodline') {
+        baseAC = 13 + dexMod
+      }
+      // Check for Mage Armor spell effect (13 + DEX)
+      else if (currentBuild.activeBuffs.includes('mage_armor') || currentBuild.round0Buffs.includes('mage_armor')) {
+        baseAC = 13 + dexMod
+      } else {
+        baseAC = 10 + dexMod // Standard unarmored
+      }
     }
     
     if (currentBuild.hasShield) {

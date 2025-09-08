@@ -65,6 +65,16 @@ export const buffs: Record<string, Buff> = {
       }]
     }
   },
+  mage_armor: {
+    id: 'mage_armor',
+    name: 'Mage Armor',
+    description: 'You touch a willing creature who isn\'t wearing armor, and a protective magical force surrounds it until the spell ends. The target\'s base AC becomes 13 + its Dexterity modifier.',
+    concentration: false,
+    duration: '8 hours',
+    actionCost: 'action',
+    allowedRound0: true,
+    effects: {}
+  },
 
   // 2nd Level Spells
   magic_weapon: {
