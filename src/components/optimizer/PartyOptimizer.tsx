@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card'
 import { Button } from '../ui/button'
 import { Badge } from '../ui/badge'
@@ -41,13 +41,31 @@ export default function PartyOptimizer() {
   
   const { builds } = useVaultStore()
   const [selectedTab, setSelectedTab] = useState('composition')
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false)
 
   const handleAnalyze = async () => {
-    await analyzeParty()
-    if (currentAnalysis) {
-      saveAnalysisToHistory(`Party Analysis ${new Date().toLocaleDateString()}`)
+    try {
+      await analyzeParty()
+      if (currentAnalysis) {
+        saveAnalysisToHistory(`Party Analysis ${new Date().toLocaleDateString()}`)
+        // Show success message and auto-switch to Analysis tab
+        setShowSuccessMessage(true)
+        setSelectedTab('analysis')
+      }
+    } catch (error) {
+      console.error('Party analysis failed:', error)
     }
   }
+
+  // Hide success message after 3 seconds
+  useEffect(() => {
+    if (showSuccessMessage) {
+      const timer = setTimeout(() => {
+        setShowSuccessMessage(false)
+      }, 3000)
+      return () => clearTimeout(timer)
+    }
+  }, [showSuccessMessage])
 
   const getRoleIcon = (role: PartyRole) => {
     switch (role) {
@@ -90,6 +108,13 @@ export default function PartyOptimizer() {
           </p>
         </CardHeader>
         <CardContent>
+          {/* Success Message */}
+          {showSuccessMessage && (
+            <div className="mb-4 p-3 bg-green-100 border border-green-300 text-green-700 rounded-md flex items-center gap-2">
+              <Info className="w-4 h-4" />
+              <span className="text-sm">Party analysis completed successfully! Results shown in the Analysis tab.</span>
+            </div>
+          )}
           
           <Tabs value={selectedTab} onValueChange={setSelectedTab} className="w-full">
             <TabsList className="grid w-full grid-cols-3">
@@ -230,30 +255,37 @@ export default function PartyOptimizer() {
                 <div className="space-y-6">
                   
                   {/* Overall Analysis */}
-                  <Card>
+                  <Card className="bg-gradient-to-r from-primary/5 via-background to-accent/5 border-primary/20">
                     <CardHeader>
-                      <CardTitle className="text-base flex items-center gap-2">
-                        <TrendingUp className="w-4 h-4" />
+                      <CardTitle className="text-xl flex items-center gap-2">
+                        <TrendingUp className="w-6 h-6 text-primary" />
                         Party Analysis Overview
                       </CardTitle>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Key metrics and statistics for your party composition
+                      </p>
                     </CardHeader>
                     <CardContent>
-                      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                        <div className="text-center">
-                          <div className="text-2xl font-bold text-accent">{currentAnalysis.size}</div>
-                          <div className="text-sm text-muted-foreground">Party Size</div>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                        <div className="text-center space-y-2 p-4 rounded-lg bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200">
+                          <Users className="w-8 h-8 text-blue-600 mx-auto" />
+                          <div className="text-3xl font-bold text-blue-700">{currentAnalysis.size}</div>
+                          <div className="text-sm font-medium text-blue-600">Party Members</div>
                         </div>
-                        <div className="text-center">
-                          <div className="text-2xl font-bold text-accent">{currentAnalysis.averageLevel.toFixed(1)}</div>
-                          <div className="text-sm text-muted-foreground">Average Level</div>
+                        <div className="text-center space-y-2 p-4 rounded-lg bg-gradient-to-br from-green-50 to-green-100 border border-green-200">
+                          <TrendingUp className="w-8 h-8 text-green-600 mx-auto" />
+                          <div className="text-3xl font-bold text-green-700">{currentAnalysis.averageLevel.toFixed(1)}</div>
+                          <div className="text-sm font-medium text-green-600">Average Level</div>
                         </div>
-                        <div className="text-center">
-                          <div className="text-2xl font-bold text-accent">{currentAnalysis.synergyScore.toFixed(1)}</div>
-                          <div className="text-sm text-muted-foreground">Synergy Score</div>
+                        <div className="text-center space-y-2 p-4 rounded-lg bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200">
+                          <Zap className="w-8 h-8 text-purple-600 mx-auto" />
+                          <div className="text-3xl font-bold text-purple-700">{currentAnalysis.synergyScore.toFixed(1)}</div>
+                          <div className="text-sm font-medium text-purple-600">Synergy Score</div>
                         </div>
-                        <div className="text-center">
-                          <div className="text-2xl font-bold text-accent">{currentAnalysis.synergies.length}</div>
-                          <div className="text-sm text-muted-foreground">Identified Synergies</div>
+                        <div className="text-center space-y-2 p-4 rounded-lg bg-gradient-to-br from-orange-50 to-orange-100 border border-orange-200">
+                          <Target className="w-8 h-8 text-orange-600 mx-auto" />
+                          <div className="text-3xl font-bold text-orange-700">{currentAnalysis.synergies.length}</div>
+                          <div className="text-sm font-medium text-orange-600">Synergies Found</div>
                         </div>
                       </div>
                     </CardContent>
@@ -262,22 +294,40 @@ export default function PartyOptimizer() {
                   {/* Role Coverage */}
                   <Card>
                     <CardHeader>
-                      <CardTitle className="text-base">Role Coverage</CardTitle>
+                      <CardTitle className="text-lg flex items-center gap-2">
+                        <Target className="w-5 h-5" />
+                        Role Coverage Analysis
+                      </CardTitle>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        How well your party covers each essential role
+                      </p>
                     </CardHeader>
                     <CardContent>
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {Object.entries(currentAnalysis.roleCoverage).map(([role, score]) => (
-                          <div key={role} className="flex items-center gap-3">
-                            {getRoleIcon(role as PartyRole)}
-                            <div className="flex-1">
-                              <div className="text-sm font-medium capitalize">{role}</div>
-                              <div className="text-xs text-muted-foreground">
-                                <span className={getRoleColor(score)}>
-                                  {score}/10
-                                </span>
+                          <div key={role} className="space-y-3 p-4 rounded-lg border border-border/50 bg-gradient-to-br from-background to-muted/20">
+                            <div className="flex items-center gap-3">
+                              <div className={`p-2 rounded-lg ${score >= 8 ? 'bg-green-100 text-green-700' : score >= 6 ? 'bg-yellow-100 text-yellow-700' : score >= 4 ? 'bg-orange-100 text-orange-700' : 'bg-red-100 text-red-700'}`}>
+                                {getRoleIcon(role as PartyRole)}
+                              </div>
+                              <div className="flex-1">
+                                <div className="font-semibold capitalize text-base">{role}</div>
+                                <div className="text-sm text-muted-foreground">
+                                  {score >= 8 ? 'Excellent' : score >= 6 ? 'Good' : score >= 4 ? 'Adequate' : 'Needs Improvement'}
+                                </div>
+                              </div>
+                              <div className={`text-xl font-bold ${getRoleColor(score)}`}>
+                                {score.toFixed(1)}
                               </div>
                             </div>
-                            <Progress value={score * 10} className="w-16 h-2" />
+                            <div className="space-y-2">
+                              <Progress value={score * 10} className="h-3" />
+                              <div className="flex justify-between text-xs text-muted-foreground">
+                                <span>0</span>
+                                <span className="font-medium">Score: {score}/10</span>
+                                <span>10</span>
+                              </div>
+                            </div>
                           </div>
                         ))}
                       </div>
@@ -287,26 +337,30 @@ export default function PartyOptimizer() {
                   {/* Party Members */}
                   <Card>
                     <CardHeader>
-                      <CardTitle className="text-base">Party Members</CardTitle>
+                      <CardTitle className="text-lg flex items-center gap-2">
+                        <Users className="w-5 h-5" />
+                        Party Member Details
+                      </CardTitle>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Detailed breakdown of each party member's capabilities and contributions
+                      </p>
                     </CardHeader>
                     <CardContent>
-                      <div className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {currentAnalysis.members.map((member) => (
-                          <div key={member.buildId} className="border border-accent/20 rounded-lg p-4">
-                            <div className="flex items-center justify-between mb-3">
-                              <div className="font-medium">{member.buildName}</div>
-                              <div className="flex items-center gap-2">
-                                <Badge variant="outline" className="text-xs">
-                                  Level {member.level}
-                                </Badge>
-                              </div>
+                          <div key={member.buildId} className="border border-border/60 rounded-xl p-5 bg-gradient-to-br from-card to-muted/30 shadow-sm hover:shadow-md transition-shadow">
+                            <div className="flex items-center justify-between mb-4">
+                              <div className="font-bold text-lg text-foreground">{member.buildName}</div>
+                              <Badge variant="secondary" className="text-sm font-medium px-3 py-1">
+                                Level {member.level}
+                              </Badge>
                             </div>
                             
                             {/* Role Badges */}
-                            <div className="flex items-center gap-2 mb-3">
+                            <div className="flex items-center gap-2 mb-4">
                               <Badge 
                                 variant="default" 
-                                className="text-sm flex items-center gap-1 bg-primary/10 text-primary border-primary/20"
+                                className="text-sm flex items-center gap-2 px-3 py-1.5 font-medium bg-primary/15 text-primary border-primary/30 hover:bg-primary/20"
                               >
                                 {getRoleIcon(member.primaryRole)}
                                 <span className="capitalize">{member.primaryRole}</span>
@@ -314,7 +368,7 @@ export default function PartyOptimizer() {
                               {member.secondaryRole && (
                                 <Badge 
                                   variant="outline" 
-                                  className="text-xs text-muted-foreground border-muted/30"
+                                  className="text-sm flex items-center gap-1 px-2 py-1 text-muted-foreground border-muted/50"
                                 >
                                   {getRoleIcon(member.secondaryRole)}
                                   <span className="capitalize">{member.secondaryRole}</span>
@@ -322,30 +376,49 @@ export default function PartyOptimizer() {
                               )}
                             </div>
                             
-                            <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm">
-                              <div>
+                            {/* Stats Grid */}
+                            <div className="grid grid-cols-3 gap-4 mb-4 p-3 bg-muted/30 rounded-lg">
+                              <div className="text-center">
+                                <div className="flex items-center justify-center mb-1">
+                                  <Sword className="w-4 h-4 text-red-600" />
+                                </div>
+                                <div className="text-lg font-bold text-red-700">{member.capabilities.averageDPR.toFixed(1)}</div>
                                 <div className="text-xs text-muted-foreground">DPR</div>
-                                <div className="font-medium">{member.capabilities.averageDPR.toFixed(1)}</div>
                               </div>
-                              <div>
+                              <div className="text-center">
+                                <div className="flex items-center justify-center mb-1">
+                                  <Shield className="w-4 h-4 text-blue-600" />
+                                </div>
+                                <div className="text-lg font-bold text-blue-700">{member.capabilities.ac}</div>
                                 <div className="text-xs text-muted-foreground">AC</div>
-                                <div className="font-medium">{member.capabilities.ac}</div>
                               </div>
-                              <div>
+                              <div className="text-center">
+                                <div className="flex items-center justify-center mb-1">
+                                  <Heart className="w-4 h-4 text-green-600" />
+                                </div>
+                                <div className="text-lg font-bold text-green-700">{member.capabilities.hitPoints}</div>
                                 <div className="text-xs text-muted-foreground">HP</div>
-                                <div className="font-medium">{member.capabilities.hitPoints}</div>
                               </div>
                             </div>
                             
+                            {/* Unique Contributions */}
                             {member.uniqueContributions.length > 0 && (
-                              <div className="mt-3">
-                                <div className="text-xs text-muted-foreground mb-1">Unique Contributions</div>
-                                <div className="flex flex-wrap gap-1">
-                                  {member.uniqueContributions.map((contribution) => (
-                                    <Badge key={contribution} variant="outline" className="text-xs">
+                              <div className="space-y-2">
+                                <div className="text-sm font-medium text-muted-foreground flex items-center gap-1">
+                                  <Zap className="w-3 h-3" />
+                                  Unique Abilities
+                                </div>
+                                <div className="flex flex-wrap gap-1.5">
+                                  {member.uniqueContributions.slice(0, 3).map((contribution) => (
+                                    <Badge key={contribution} variant="outline" className="text-xs px-2 py-0.5 bg-accent/10 text-accent border-accent/30">
                                       {contribution}
                                     </Badge>
                                   ))}
+                                  {member.uniqueContributions.length > 3 && (
+                                    <Badge variant="outline" className="text-xs px-2 py-0.5 bg-muted text-muted-foreground">
+                                      +{member.uniqueContributions.length - 3} more
+                                    </Badge>
+                                  )}
                                 </div>
                               </div>
                             )}

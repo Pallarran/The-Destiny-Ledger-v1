@@ -91,16 +91,16 @@ export const MulticlassSpellInfo: React.FC<MulticlassSpellSummaryProps> = ({ cur
             className="fixed inset-0 z-[9998]" 
             onClick={() => setShowDetails(false)}
           />
-          {/* Tooltip with fixed positioning */}
-          <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-96 max-w-[90vw] max-h-[80vh] overflow-y-auto bg-white border border-gray-200 rounded-lg shadow-2xl z-[9999] p-4 space-y-4">
-          <div className="flex items-center justify-between mb-3">
+          {/* Parchment Modal with fixed positioning */}
+          <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-96 max-w-[90vw] max-h-[80vh] overflow-y-auto bg-gradient-to-br from-amber-50 via-yellow-50 to-amber-100 text-amber-900 shadow-2xl shadow-amber-900/40 z-[9999] p-6 space-y-4 relative before:absolute before:inset-0 before:rounded-sm before:border-4 before:border-amber-800/60 before:pointer-events-none before:shadow-[inset_0_2px_4px_rgba(180,83,9,0.3),inset_0_-2px_4px_rgba(180,83,9,0.2)] after:absolute after:inset-0 after:rounded-sm after:pointer-events-none after:bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(180,83,9,0.05)_100%)] after:opacity-40 [box-shadow:0_0_0_1px_rgb(180_83_9_/_0.4),0_0_0_2px_rgb(217_119_6_/_0.3),0_0_0_3px_rgb(180_83_9_/_0.2),0_20px_25px_-5px_rgb(0_0_0_/_0.3),0_10px_10px_-5px_rgb(0_0_0_/_0.2)]">
+          <div className="relative z-10 flex items-center justify-between mb-3 pb-3 border-b border-amber-800/30">
             <div className="flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-purple-600" />
-              <h3 className="font-semibold text-gray-900">Multiclass Spellcasting Summary</h3>
+              <Sparkles className="w-5 h-5 text-amber-800" />
+              <h3 className="font-bold text-amber-900 font-serif">Multiclass Spellcasting Summary</h3>
             </div>
             <button
               onClick={() => setShowDetails(false)}
-              className="text-gray-400 hover:text-gray-600 transition-colors"
+              className="p-1 rounded-full bg-amber-200/80 hover:bg-amber-300/80 text-amber-800 hover:text-amber-900 transition-all duration-200 shadow-lg hover:shadow-xl"
             >
               <X className="w-4 h-4" />
             </button>

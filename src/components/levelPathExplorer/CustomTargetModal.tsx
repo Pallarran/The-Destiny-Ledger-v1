@@ -250,19 +250,22 @@ export function CustomTargetModal({
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
-        <div className="flex items-center justify-between p-4 border-b">
+    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+      <div className="relative max-w-4xl w-full max-h-[90vh] overflow-hidden bg-gradient-to-br from-amber-50 via-yellow-50 to-amber-100 text-amber-900 shadow-2xl shadow-amber-900/40 p-8 before:absolute before:inset-0 before:rounded-sm before:border-4 before:border-amber-800/60 before:pointer-events-none before:shadow-[inset_0_2px_4px_rgba(180,83,9,0.3),inset_0_-2px_4px_rgba(180,83,9,0.2)] after:absolute after:inset-0 after:rounded-sm after:pointer-events-none after:bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(180,83,9,0.05)_100%)] after:opacity-40 [box-shadow:0_0_0_1px_rgb(180_83_9_/_0.4),0_0_0_2px_rgb(217_119_6_/_0.3),0_0_0_3px_rgb(180_83_9_/_0.2),0_20px_25px_-5px_rgb(0_0_0_/_0.3),0_10px_10px_-5px_rgb(0_0_0_/_0.2)]">
+        <div className="relative z-10 flex items-center justify-between pb-4 border-b border-amber-800/30 mb-6">
           <div className="flex items-center gap-2">
-            <Target className="w-5 h-5" />
-            <h2 className="text-lg font-semibold">Define Custom Target</h2>
+            <Target className="w-5 h-5 text-amber-800" />
+            <h2 className="text-xl font-bold text-amber-900 font-serif">Define Custom Target</h2>
           </div>
-          <Button variant="ghost" size="sm" onClick={handleCancel}>
+          <button 
+            onClick={handleCancel}
+            className="p-2 rounded-full bg-amber-200/80 hover:bg-amber-300/80 text-amber-800 hover:text-amber-900 transition-all duration-200 shadow-lg hover:shadow-xl"
+          >
             <X className="w-4 h-4" />
-          </Button>
+          </button>
         </div>
 
-        <div className="p-4 space-y-6 overflow-y-auto max-h-[70vh]">
+        <div className="relative z-10 space-y-6 overflow-y-auto max-h-[70vh]">
           {/* Target Name */}
           <div>
             <label className="block text-sm font-medium mb-2">

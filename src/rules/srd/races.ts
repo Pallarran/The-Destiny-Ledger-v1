@@ -499,6 +499,145 @@ export const races: Record<string, Race> = {
         description: 'You know the thaumaturgy cantrip. When you reach 3rd level, you can cast the hellish rebuke spell as a 2nd-level spell once with this trait and regain the ability to do so when you finish a long rest. When you reach 5th level, you can cast the darkness spell once with this trait and regain the ability to do so when you finish a long rest. Charisma is your spellcasting ability for these spells.'
       }
     ]
+  },
+
+  kobold: {
+    id: 'kobold',
+    name: 'Kobold',
+    description: 'Kobolds are small, draconic creatures that live in underground lairs and work together in groups. They are cunning and resourceful, despite their small size.',
+    abilityScoreIncrease: [
+      { ability: 'DEX', bonus: 2 },
+      { ability: 'STR', bonus: -2 }
+    ],
+    size: 'Small',
+    speed: 30,
+    languages: ['Common', 'Draconic'],
+    traits: [
+      {
+        name: 'Darkvision',
+        description: 'You can see in dim light within 60 feet of you as if it were bright light, and in darkness as if it were dim light.'
+      },
+      {
+        name: 'Grovel, Cower, and Beg',
+        description: 'As an action on your turn, you can cower pathetically to distract nearby foes. Until the end of your next turn, your allies gain advantage on attack rolls against enemies within 10 feet of you that can see you. Once you use this trait, you can\'t use it again until you finish a short or long rest.'
+      },
+      {
+        name: 'Pack Tactics',
+        description: 'You have advantage on an attack roll against a creature if at least one of your allies is within 5 feet of the creature and the ally isn\'t incapacitated.'
+      },
+      {
+        name: 'Sunlight Sensitivity',
+        description: 'You have disadvantage on attack rolls and on Wisdom (Perception) checks that rely on sight when you, the target of your attack, or whatever you are trying to perceive is in direct sunlight.'
+      }
+    ]
+  },
+
+  aasimar: {
+    id: 'aasimar',
+    name: 'Aasimar',
+    description: 'Aasimar are mortals touched by the divine and bear within them a shard of the power of Mount Celestia, the divine realm of many lawful good deities.',
+    abilityScoreIncrease: [
+      { ability: 'CHA', bonus: 2 }
+    ],
+    size: 'Medium',
+    speed: 30,
+    languages: ['Common', 'Celestial'],
+    traits: [
+      {
+        name: 'Darkvision',
+        description: 'You can see in dim light within 60 feet of you as if it were bright light, and in darkness as if it were dim light.'
+      },
+      {
+        name: 'Celestial Resistance',
+        description: 'You have resistance to necrotic damage and radiant damage.'
+      },
+      {
+        name: 'Healing Hands',
+        description: 'As an action, you can touch a creature and cause it to regain a number of hit points equal to your level. Once you use this trait, you can\'t use it again until you finish a long rest.'
+      },
+      {
+        name: 'Light Bearer',
+        description: 'You know the light cantrip. Charisma is your spellcasting ability for it.'
+      }
+    ],
+    subraces: [
+      {
+        id: 'protector_aasimar',
+        name: 'Protector Aasimar',
+        description: 'Protector aasimar are charged by the powers of good to guard the weak, to strike at evil wherever it arises, and to stand vigilant against the darkness.',
+        abilityScoreIncrease: [
+          { ability: 'WIS', bonus: 1 }
+        ],
+        traits: [
+          {
+            name: 'Radiant Soul',
+            description: 'Starting at 3rd level, you can use your action to unleash the divine energy within yourself, causing your eyes to glimmer and two luminous, incorporeal wings to sprout from your back. Your transformation lasts for 1 minute or until you end it as a bonus action. During it, you have a flying speed of 30 feet, and once on each of your turns, you can deal extra radiant damage to one target when you deal damage to it with an attack or a spell. The extra damage equals your level. Once you use this trait, you can\'t use it again until you finish a long rest.'
+          }
+        ]
+      },
+      {
+        id: 'scourge_aasimar',
+        name: 'Scourge Aasimar',
+        description: 'Scourge aasimar are imbued with a divine energy that blazes intensely within them. It feeds a powerful desire to destroy evil—a desire that is, at its best, unflinching and, at its worst, all-consuming.',
+        abilityScoreIncrease: [
+          { ability: 'CON', bonus: 1 }
+        ],
+        traits: [
+          {
+            name: 'Radiant Consumption',
+            description: 'Starting at 3rd level, you can use your action to unleash the divine energy within yourself, causing a searing light to radiate from you, pour out of your eyes and mouth, and threaten to char you. Your transformation lasts for 1 minute or until you end it as a bonus action. During it, you shed bright light in a 10-foot radius and dim light for an additional 10 feet, and at the end of each of your turns, you and each creature within 10 feet of you take radiant damage equal to half your level (rounded up). In addition, once on each of your turns, you can deal extra radiant damage to one target when you deal damage to it with an attack or a spell. The extra damage equals your level. Once you use this trait, you can\'t use it again until you finish a long rest.'
+          }
+        ]
+      },
+      {
+        id: 'fallen_aasimar',
+        name: 'Fallen Aasimar',
+        description: 'An aasimar who was touched by dark powers as a youth or who turns to evil in early adulthood can become one of the fallen—a group of aasimar whose inner light has been replaced by shadow.',
+        abilityScoreIncrease: [
+          { ability: 'STR', bonus: 1 }
+        ],
+        traits: [
+          {
+            name: 'Necrotic Shroud',
+            description: 'Starting at 3rd level, you can use your action to unleash the divine energy within yourself, causing your eyes to turn into pools of darkness and two skeletal, ghostly, flightless wings to sprout from your back. The instant you transform, other creatures within 10 feet of you that can see you must each make a Charisma saving throw (DC 8 + your proficiency bonus + your Charisma modifier). A creature that fails the save becomes frightened of you until the end of your next turn. Your transformation lasts for 1 minute or until you end it as a bonus action. During it, once on each of your turns, you can deal extra necrotic damage to one target when you deal damage to it with an attack or a spell. The extra damage equals your level. Once you use this trait, you can\'t use it again until you finish a long rest.'
+          }
+        ]
+      }
+    ]
+  },
+
+  goliath: {
+    id: 'goliath',
+    name: 'Goliath',
+    description: 'Goliaths are massive. Their bodies look as if they are carved from mountain stone and give them great physical power. Their spirits take after the wandering wind, making them nomads who wander from peak to peak.',
+    abilityScoreIncrease: [
+      { ability: 'STR', bonus: 2 },
+      { ability: 'CON', bonus: 1 }
+    ],
+    size: 'Medium',
+    speed: 30,
+    languages: ['Common', 'Giant'],
+    proficiencies: {
+      skills: ['Athletics']
+    },
+    traits: [
+      {
+        name: 'Natural Athlete',
+        description: 'You have proficiency in the Athletics skill.'
+      },
+      {
+        name: 'Stone\'s Endurance',
+        description: 'You can focus yourself to occasionally shrug off injury. When you take damage, you can use your reaction to roll a d12. Add your Constitution modifier to the number rolled, and reduce the damage by that total. After you use this trait, you can\'t use it again until you finish a short or long rest.'
+      },
+      {
+        name: 'Powerful Build',
+        description: 'You count as one size larger when determining your carrying capacity and the weight you can push, drag, or lift.'
+      },
+      {
+        name: 'Mountain Born',
+        description: 'You have resistance to cold damage. You\'re also naturally adapted to high altitudes, including elevations above 20,000 feet.'
+      }
+    ]
   }
 }
 
