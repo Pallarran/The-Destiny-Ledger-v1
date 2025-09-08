@@ -825,6 +825,11 @@ const SUBCLASS_ROLE_MODIFIERS: Record<string, SubclassRoleModifier> = {
   // Druid Subclasses
   land: { control: 2, utility: 2, support: 1 }, // Natural Recovery, Land's Stride
   moon: { tank: 3, damage: 2 }, // Wild Shape improvements, Elemental Wild Shape
+  dreams: { healer: 3, support: 3, utility: 1 }, // Balm of Summer Court, healing focus
+  shepherd: { support: 3, control: 2, utility: 1 }, // Spirit Totem, summoning focus
+  stars: { control: 3, support: 2, utility: 2 }, // Starry Form, Cosmic Omen versatility
+  wildfire: { damage: 3, healer: 2, support: 1 }, // Wildfire Spirit, Enhanced Bond
+  spores: { damage: 3, tank: 1, control: 1 }, // Symbiotic Entity, Halo of Spores
 
   // Artificer Subclasses
   alchemist: { healer: 3, support: 3 }, // Experimental Elixir, Alchemical Savant

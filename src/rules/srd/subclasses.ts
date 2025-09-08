@@ -1530,6 +1530,206 @@ export const subclasses: Record<string, Subclass> = {
     ]
   },
 
+  // Druid - Circle of Dreams
+  dreams: {
+    id: 'dreams',
+    name: 'Circle of Dreams',
+    description: 'Druids who are members of the Circle of Dreams hail from regions that have strong ties to the Feywild and its dreamlike realms.',
+    className: 'druid',
+    features: [
+      {
+        level: 2,
+        name: 'Balm of the Summer Court',
+        description: 'You have a pool of fey energy represented by a number of d6s equal to your druid level. As a bonus action, you can choose an ally within 120 feet and spend dice to restore hit points.',
+        rulesKey: 'balm_summer_court'
+      },
+      {
+        level: 6,
+        name: 'Hearth of Moonlight and Shadow',
+        description: 'During a short or long rest, you can invoke the shadowy power of the Shadowfell to help guard your respite.',
+        rulesKey: 'hearth_moonlight_shadow'
+      },
+      {
+        level: 10,
+        name: 'Hidden Paths',
+        description: 'You can use the hidden, magical pathways that some fey use to traverse space in the blink of an eye.',
+        rulesKey: 'hidden_paths'
+      },
+      {
+        level: 14,
+        name: 'Walker in Dreams',
+        description: 'The magic of the Feywild grants you the ability to travel mentally or physically through dreamlands.',
+        rulesKey: 'walker_in_dreams'
+      }
+    ]
+  },
+
+  // Druid - Circle of the Shepherd
+  shepherd: {
+    id: 'shepherd',
+    name: 'Circle of the Shepherd',
+    description: 'Druids of the Circle of the Shepherd commune with the spirits of nature, especially the spirits of beasts and the fey.',
+    className: 'druid',
+    features: [
+      {
+        level: 2,
+        name: 'Speech of the Woods',
+        description: 'You gain the ability to converse with beasts and many fey. You learn the speak with animals spell and can cast it at will, without expending a spell slot.',
+        rulesKey: 'speech_of_woods'
+      },
+      {
+        level: 2,
+        name: 'Spirit Totem',
+        description: 'You can call forth nature spirits to influence the world around you. As a bonus action, you can magically summon an incorporeal spirit to a point within 60 feet.',
+        rulesKey: 'spirit_totem'
+      },
+      {
+        level: 6,
+        name: 'Mighty Summoner',
+        description: 'Beasts and fey that you conjure are more resilient than normal. Any beast or fey summoned or created by your spells gains two benefits.',
+        rulesKey: 'mighty_summoner'
+      },
+      {
+        level: 10,
+        name: 'Guardian Spirit',
+        description: 'Your spirit totem safeguards the beasts and fey that you call forth with your magic.',
+        rulesKey: 'guardian_spirit'
+      },
+      {
+        level: 14,
+        name: 'Faithful Summons',
+        description: 'The nature spirits you commune with protect you when you are the most defenseless.',
+        rulesKey: 'faithful_summons'
+      }
+    ]
+  },
+
+  // Druid - Circle of Stars
+  stars: {
+    id: 'stars',
+    name: 'Circle of Stars',
+    description: 'The Circle of Stars allows druids to draw on the power of starlight. These druids have tracked heavenly patterns since time immemorial.',
+    className: 'druid',
+    features: [
+      {
+        level: 2,
+        name: 'Star Map',
+        description: 'You\'ve created a star chart as part of your heavenly studies. It is a Tiny object and can serve as a spellcasting focus for your druid spells.',
+        rulesKey: 'star_map'
+      },
+      {
+        level: 2,
+        name: 'Starry Form',
+        description: 'As a bonus action, you can expend a use of your Wild Shape feature to take on a starry form, rather than transforming into a beast.',
+        rulesKey: 'starry_form'
+      },
+      {
+        level: 6,
+        name: 'Cosmic Omen',
+        description: 'Whenever you finish a long rest, you can consult your Star Map for omens. When you do so, roll a die.',
+        rulesKey: 'cosmic_omen'
+      },
+      {
+        level: 10,
+        name: 'Twinkling Constellations',
+        description: 'The constellations of your Starry Form improve. The Archer, the Chalice, and the Dragon all gain additional benefits.',
+        rulesKey: 'twinkling_constellations'
+      },
+      {
+        level: 14,
+        name: 'Full of Stars',
+        description: 'While in your Starry Form, you become partially incorporeal, giving you resistance to bludgeoning, piercing, and slashing damage.',
+        rulesKey: 'full_of_stars'
+      }
+    ]
+  },
+
+  // Druid - Circle of Wildfire
+  wildfire: {
+    id: 'wildfire',
+    name: 'Circle of Wildfire',
+    description: 'Druids within the Circle of Wildfire understand that destruction is sometimes the precursor of creation.',
+    className: 'druid',
+    features: [
+      {
+        level: 2,
+        name: 'Circle Spells',
+        description: 'Your mystical connection to wildfire infuses you with the ability to cast certain spells.',
+        rulesKey: 'wildfire_circle_spells'
+      },
+      {
+        level: 2,
+        name: 'Summon Wildfire Spirit',
+        description: 'You can summon the primal spirit bound to your soul. As an action, you can expend one use of your Wild Shape feature to summon your wildfire spirit.',
+        rulesKey: 'summon_wildfire_spirit'
+      },
+      {
+        level: 6,
+        name: 'Enhanced Bond',
+        description: 'The bond with your wildfire spirit enhances your destructive and restorative spells.',
+        rulesKey: 'enhanced_bond'
+      },
+      {
+        level: 10,
+        name: 'Cauterizing Flames',
+        description: 'You gain the ability to turn death into magical flames that can heal or incinerate.',
+        rulesKey: 'cauterizing_flames'
+      },
+      {
+        level: 14,
+        name: 'Blazing Revival',
+        description: 'The bond with your wildfire spirit can save you from death.',
+        rulesKey: 'blazing_revival'
+      }
+    ]
+  },
+
+  // Druid - Circle of Spores
+  spores: {
+    id: 'spores',
+    name: 'Circle of Spores',
+    description: 'Druids of the Circle of Spores find beauty in decay. They see within mold and other fungi the ability to transform lifeless material into abundant, albeit somewhat strange, life.',
+    className: 'druid',
+    features: [
+      {
+        level: 2,
+        name: 'Circle Spells',
+        description: 'Your symbiotic link to fungi infuses you with the ability to cast certain spells.',
+        rulesKey: 'spores_circle_spells'
+      },
+      {
+        level: 2,
+        name: 'Halo of Spores',
+        description: 'You are surrounded by invisible, necrotic spores that are harmless until you unleash them on a creature nearby.',
+        rulesKey: 'halo_of_spores'
+      },
+      {
+        level: 2,
+        name: 'Symbiotic Entity',
+        description: 'You gain the ability to channel magic into your spores. As an action, you can expend a use of your Wild Shape feature to awaken those spores.',
+        rulesKey: 'symbiotic_entity'
+      },
+      {
+        level: 6,
+        name: 'Fungal Infestation',
+        description: 'Your spores gain the ability to infest a corpse and animate it.',
+        rulesKey: 'fungal_infestation'
+      },
+      {
+        level: 10,
+        name: 'Spreading Spores',
+        description: 'You gain the ability to seed an area with deadly spores.',
+        rulesKey: 'spreading_spores'
+      },
+      {
+        level: 14,
+        name: 'Fungal Body',
+        description: 'The fungal spores in your body alter you: you can\'t be blinded, deafened, frightened, or poisoned, and any critical hit against you counts as a normal hit instead.',
+        rulesKey: 'fungal_body'
+      }
+    ]
+  },
+
   // === XANATHAR'S GUIDE TO EVERYTHING SUBCLASSES ===
   
   // Barbarian - Path of the Ancestral Guardian
