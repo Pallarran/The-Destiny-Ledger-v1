@@ -117,10 +117,23 @@ export default function PartyOptimizer() {
           )}
           
           <Tabs value={selectedTab} onValueChange={setSelectedTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="composition">Composition</TabsTrigger>
-              <TabsTrigger value="analysis">Analysis</TabsTrigger>
-              <TabsTrigger value="recommendations">Recommendations</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-2 bg-muted/50 p-1 rounded-lg">
+              <TabsTrigger 
+                value="composition" 
+                className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all"
+              >
+                <Users className="w-4 h-4" />
+                Party Setup
+                {selectedTab === 'composition' && <div className="w-2 h-2 bg-primary-foreground rounded-full ml-1"></div>}
+              </TabsTrigger>
+              <TabsTrigger 
+                value="analysis" 
+                className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md transition-all"
+              >
+                <TrendingUp className="w-4 h-4" />
+                Analysis & Recommendations
+                {selectedTab === 'analysis' && <div className="w-2 h-2 bg-primary-foreground rounded-full ml-1"></div>}
+              </TabsTrigger>
             </TabsList>
 
             {/* Party Composition Tab */}
@@ -249,7 +262,7 @@ export default function PartyOptimizer() {
             </TabsContent>
 
 
-            {/* Analysis Tab */}
+            {/* Analysis Tab - Now includes Analysis + Recommendations */}
             <TabsContent value="analysis" className="space-y-6">
               {currentAnalysis ? (
                 <div className="space-y-6">
@@ -291,7 +304,7 @@ export default function PartyOptimizer() {
                     </CardContent>
                   </Card>
 
-                  {/* Role Coverage */}
+                  {/* Role Coverage with Enhanced Bars */}
                   <Card>
                     <CardHeader>
                       <CardTitle className="text-lg flex items-center gap-2">
@@ -299,33 +312,49 @@ export default function PartyOptimizer() {
                         Role Coverage Analysis
                       </CardTitle>
                       <p className="text-sm text-muted-foreground mt-1">
-                        How well your party covers each essential role
+                        How well your party covers each essential role - visual bars show coverage strength
                       </p>
                     </CardHeader>
                     <CardContent>
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      <div className="space-y-4">
                         {Object.entries(currentAnalysis.roleCoverage).map(([role, score]) => (
-                          <div key={role} className="space-y-3 p-4 rounded-lg border border-border/50 bg-gradient-to-br from-background to-muted/20">
-                            <div className="flex items-center gap-3">
-                              <div className={`p-2 rounded-lg ${score >= 8 ? 'bg-green-100 text-green-700' : score >= 6 ? 'bg-yellow-100 text-yellow-700' : score >= 4 ? 'bg-orange-100 text-orange-700' : 'bg-red-100 text-red-700'}`}>
-                                {getRoleIcon(role as PartyRole)}
-                              </div>
-                              <div className="flex-1">
-                                <div className="font-semibold capitalize text-base">{role}</div>
-                                <div className="text-sm text-muted-foreground">
-                                  {score >= 8 ? 'Excellent' : score >= 6 ? 'Good' : score >= 4 ? 'Adequate' : 'Needs Improvement'}
+                          <div key={role} className="space-y-3">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-3">
+                                <div className={`p-2 rounded-lg ${score >= 8 ? 'bg-green-100 text-green-700' : score >= 6 ? 'bg-yellow-100 text-yellow-700' : score >= 4 ? 'bg-orange-100 text-orange-700' : 'bg-red-100 text-red-700'}`}>
+                                  {getRoleIcon(role as PartyRole)}
+                                </div>
+                                <div>
+                                  <div className="font-semibold capitalize text-base">{role}</div>
+                                  <div className="text-sm text-muted-foreground">
+                                    {score >= 8 ? 'Excellent Coverage' : score >= 6 ? 'Good Coverage' : score >= 4 ? 'Adequate Coverage' : 'Needs Improvement'}
+                                  </div>
                                 </div>
                               </div>
-                              <div className={`text-xl font-bold ${getRoleColor(score)}`}>
+                              <div className={`text-xl font-bold ${getRoleColor(score)} min-w-[3rem] text-right`}>
                                 {score.toFixed(1)}
                               </div>
                             </div>
                             <div className="space-y-2">
-                              <Progress value={score * 10} className="h-3" />
+                              <div className="relative">
+                                <Progress 
+                                  value={Math.min(score * 10, 100)} 
+                                  className={`h-4 ${
+                                    score >= 8 ? '[&>div]:bg-green-500' : 
+                                    score >= 6 ? '[&>div]:bg-yellow-500' : 
+                                    score >= 4 ? '[&>div]:bg-orange-500' : 
+                                    '[&>div]:bg-red-500'
+                                  }`} 
+                                />
+                                <div className="absolute inset-0 flex items-center justify-center text-xs font-medium text-white drop-shadow-sm">
+                                  {Math.round(score * 10)}%
+                                </div>
+                              </div>
                               <div className="flex justify-between text-xs text-muted-foreground">
-                                <span>0</span>
-                                <span className="font-medium">Score: {score}/10</span>
-                                <span>10</span>
+                                <span>Weak (0-4)</span>
+                                <span>Adequate (4-6)</span>
+                                <span>Good (6-8)</span>
+                                <span>Excellent (8-10)</span>
                               </div>
                             </div>
                           </div>
@@ -333,6 +362,114 @@ export default function PartyOptimizer() {
                       </div>
                     </CardContent>
                   </Card>
+
+                  {/* Weaknesses & Recommendations Section */}
+                  {(currentAnalysis.weaknesses.length > 0 || currentAnalysis.recommendations.length > 0) && (
+                    <Card className="bg-gradient-to-r from-amber-50/50 via-background to-red-50/50 border-amber-200/50">
+                      <CardHeader>
+                        <CardTitle className="text-lg flex items-center gap-2">
+                          <AlertCircle className="w-5 h-5 text-amber-600" />
+                          Issues & Recommendations
+                        </CardTitle>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          Areas for improvement and optimization suggestions
+                        </p>
+                      </CardHeader>
+                      <CardContent className="space-y-6">
+                        
+                        {/* Weaknesses */}
+                        {currentAnalysis.weaknesses.length > 0 && (
+                          <div className="space-y-3">
+                            <div className="flex items-center gap-2 text-base font-semibold text-red-700">
+                              <AlertCircle className="w-4 h-4" />
+                              Identified Issues
+                            </div>
+                            <div className="space-y-3">
+                              {currentAnalysis.weaknesses.map((weakness, index) => (
+                                <div key={index} className={`p-4 rounded-lg border-l-4 ${
+                                  weakness.severity === 'major' ? 'bg-red-50 border-l-red-500 border border-red-200' :
+                                  weakness.severity === 'moderate' ? 'bg-orange-50 border-l-orange-500 border border-orange-200' :
+                                  'bg-yellow-50 border-l-yellow-500 border border-yellow-200'
+                                }`}>
+                                  <div className="flex items-start gap-3">
+                                    <div className={`p-1.5 rounded-full mt-0.5 ${
+                                      weakness.severity === 'major' ? 'bg-red-100 text-red-700' :
+                                      weakness.severity === 'moderate' ? 'bg-orange-100 text-orange-700' :
+                                      'bg-yellow-100 text-yellow-700'
+                                    }`}>
+                                      <AlertCircle className="w-3 h-3" />
+                                    </div>
+                                    <div className="flex-1 space-y-2">
+                                      <div className="flex items-center gap-2">
+                                        <Badge variant="outline" className={`text-xs font-medium ${getSeverityColor(weakness.severity)}`}>
+                                          {weakness.severity}
+                                        </Badge>
+                                        <span className="font-semibold capitalize text-sm">
+                                          {weakness.type.replace('_', ' ')}
+                                        </span>
+                                      </div>
+                                      <p className="text-sm text-foreground/80">{weakness.description}</p>
+                                      <div className="space-y-1">
+                                        <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Solutions:</div>
+                                        <ul className="space-y-1">
+                                          {weakness.suggestions.map((suggestion, suggestionIndex) => (
+                                            <li key={suggestionIndex} className="text-xs text-muted-foreground flex items-start gap-2">
+                                              <span className="text-primary mt-0.5">•</span>
+                                              <span>{suggestion}</span>
+                                            </li>
+                                          ))}
+                                        </ul>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Recommendations */}
+                        {currentAnalysis.recommendations.length > 0 && (
+                          <div className="space-y-3">
+                            <div className="flex items-center gap-2 text-base font-semibold text-blue-700">
+                              <Info className="w-4 h-4" />
+                              Optimization Recommendations
+                            </div>
+                            <div className="space-y-3">
+                              {currentAnalysis.recommendations.map((recommendation, index) => (
+                                <div key={index} className="p-4 rounded-lg bg-blue-50 border border-blue-200 border-l-4 border-l-blue-500">
+                                  <div className="flex items-start gap-3">
+                                    <div className="p-1.5 rounded-full bg-blue-100 text-blue-700 mt-0.5">
+                                      <Info className="w-3 h-3" />
+                                    </div>
+                                    <div className="flex-1 space-y-2">
+                                      <div className="flex items-center gap-2">
+                                        <Badge variant="outline" className={`text-xs font-medium ${
+                                          recommendation.priority === 'high' ? 'border-red-500 text-red-700 bg-red-50' :
+                                          recommendation.priority === 'medium' ? 'border-yellow-500 text-yellow-700 bg-yellow-50' :
+                                          'border-gray-500 text-gray-700 bg-gray-50'
+                                        }`}>
+                                          {recommendation.priority} priority
+                                        </Badge>
+                                        <span className="font-semibold capitalize text-sm">
+                                          {recommendation.type.replace('_', ' ')}
+                                        </span>
+                                      </div>
+                                      <p className="text-sm text-foreground/80">{recommendation.description}</p>
+                                      <div className="text-xs text-blue-600 font-medium">
+                                        Expected improvement: {recommendation.expectedImprovement}
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        
+                      </CardContent>
+                    </Card>
+                  )}
 
                   {/* Party Members */}
                   <Card>
@@ -470,89 +607,6 @@ export default function PartyOptimizer() {
               )}
             </TabsContent>
 
-            {/* Recommendations Tab */}
-            <TabsContent value="recommendations" className="space-y-6">
-              {currentAnalysis ? (
-                <div className="space-y-6">
-                  
-                  {/* Weaknesses */}
-                  {currentAnalysis.weaknesses.length > 0 && (
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="text-base flex items-center gap-2">
-                          <AlertCircle className="w-4 h-4" />
-                          Identified Weaknesses
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-3">
-                          {currentAnalysis.weaknesses.map((weakness, index) => (
-                            <div key={index} className={`p-3 rounded-lg border ${getSeverityColor(weakness.severity)}`}>
-                              <div className="flex items-center gap-2 mb-1">
-                                <div className="font-medium text-sm capitalize">
-                                  {weakness.severity} {weakness.type.replace('_', ' ')}
-                                </div>
-                              </div>
-                              <div className="text-sm mb-2">{weakness.description}</div>
-                              <div className="text-sm">
-                                <div className="font-medium mb-1">Suggestions:</div>
-                                <ul className="list-disc list-inside space-y-1">
-                                  {weakness.suggestions.map((suggestion, suggestionIndex) => (
-                                    <li key={suggestionIndex}>{suggestion}</li>
-                                  ))}
-                                </ul>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  )}
-
-                  {/* Recommendations */}
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-base flex items-center gap-2">
-                        <Info className="w-4 h-4" />
-                        Optimization Recommendations
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-3">
-                        {currentAnalysis.recommendations.map((recommendation, index) => (
-                          <div key={index} className="border border-accent/20 rounded-lg p-3">
-                            <div className="flex items-center gap-2 mb-2">
-                              <Badge 
-                                variant="outline" 
-                                className={`text-xs ${
-                                  recommendation.priority === 'high' ? 'border-red-500 text-red-700' :
-                                  recommendation.priority === 'medium' ? 'border-yellow-500 text-yellow-700' :
-                                  'border-gray-500 text-gray-700'
-                                }`}
-                              >
-                                {recommendation.priority} priority
-                              </Badge>
-                              <div className="font-medium text-sm capitalize">
-                                {recommendation.type.replace('_', ' ')}
-                              </div>
-                            </div>
-                            <div className="text-sm mb-1">{recommendation.description}</div>
-                            <div className="text-xs text-muted-foreground">
-                              Expected improvement: {recommendation.expectedImprovement}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </CardContent>
-                  </Card>
-                  
-                </div>
-              ) : (
-                <div className="text-center py-12 text-muted-foreground">
-                  Run an analysis to see recommendations for your party composition.
-                </div>
-              )}
-            </TabsContent>
 
           </Tabs>
           
