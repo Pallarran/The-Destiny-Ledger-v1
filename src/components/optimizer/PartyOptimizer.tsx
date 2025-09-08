@@ -507,18 +507,33 @@ export default function PartyOptimizer() {
                             <div className="flex items-center justify-between mb-3">
                               <div className="font-medium">{member.buildName}</div>
                               <div className="flex items-center gap-2">
-                                {getRoleIcon(member.primaryRole)}
                                 <Badge variant="outline" className="text-xs">
                                   Level {member.level}
                                 </Badge>
                               </div>
                             </div>
                             
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
-                              <div>
-                                <div className="text-xs text-muted-foreground">Primary Role</div>
-                                <div className="font-medium capitalize">{member.primaryRole}</div>
-                              </div>
+                            {/* Role Badges */}
+                            <div className="flex items-center gap-2 mb-3">
+                              <Badge 
+                                variant="default" 
+                                className="text-sm flex items-center gap-1 bg-primary/10 text-primary border-primary/20"
+                              >
+                                {getRoleIcon(member.primaryRole)}
+                                <span className="capitalize">{member.primaryRole}</span>
+                              </Badge>
+                              {member.secondaryRole && (
+                                <Badge 
+                                  variant="outline" 
+                                  className="text-xs text-muted-foreground border-muted/30"
+                                >
+                                  {getRoleIcon(member.secondaryRole)}
+                                  <span className="capitalize">{member.secondaryRole}</span>
+                                </Badge>
+                              )}
+                            </div>
+                            
+                            <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm">
                               <div>
                                 <div className="text-xs text-muted-foreground">DPR</div>
                                 <div className="font-medium">{member.capabilities.averageDPR.toFixed(1)}</div>

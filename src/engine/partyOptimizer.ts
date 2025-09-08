@@ -7,6 +7,18 @@ import { generateDPRCurves } from './simulator'
 export type PartyRole = 'tank' | 'damage' | 'support' | 'control' | 'utility' | 'healer'
 
 /**
+ * Subclass role modifier for specific role contributions
+ */
+export interface SubclassRoleModifier {
+  tank?: number
+  damage?: number
+  support?: number
+  control?: number
+  utility?: number
+  healer?: number
+}
+
+/**
  * Synergy types between party members
  */
 export type SynergyType = 
@@ -229,7 +241,52 @@ export class PartyOptimizer {
     
     scores.utility = hasSpellcaster || build.levelTimeline?.some(l => ['rogue', 'bard', 'ranger'].includes(l.classId)) ? 6 : 3
     
+    // Apply subclass modifiers with multiclass weighting
+    const subclassModifiers = this.calculateSubclassModifiers(build)
+    for (const role of Object.keys(scores) as PartyRole[]) {
+      scores[role] = Math.max(0, Math.min(10, scores[role] + (subclassModifiers[role] || 0)))
+    }
+    
     return scores
+  }
+
+  /**
+   * Calculate weighted subclass modifiers for multiclass builds
+   */
+  private calculateSubclassModifiers(build: BuildConfiguration): SubclassRoleModifier {
+    if (!build.levelTimeline || build.levelTimeline.length === 0) {
+      return {}
+    }
+
+    const totalLevel = build.levelTimeline.length
+    const classLevelCounts: Record<string, number> = {}
+    const classSubclasses: Record<string, string> = {}
+
+    // Count levels per class and track subclasses
+    for (const entry of build.levelTimeline) {
+      classLevelCounts[entry.classId] = (classLevelCounts[entry.classId] || 0) + 1
+      if (entry.subclassId) {
+        classSubclasses[entry.classId] = entry.subclassId
+      }
+    }
+
+    const aggregatedModifiers: SubclassRoleModifier = {}
+
+    // Weight subclass modifiers by class level proportion
+    for (const [classId, levels] of Object.entries(classLevelCounts)) {
+      const subclassId = classSubclasses[classId]
+      if (subclassId) {
+        const weight = levels / totalLevel
+        const subclassModifiers = this.getSubclassRoleModifiers(subclassId)
+        
+        for (const [role, modifier] of Object.entries(subclassModifiers)) {
+          const roleKey = role as PartyRole
+          aggregatedModifiers[roleKey] = (aggregatedModifiers[roleKey] || 0) + (modifier * weight)
+        }
+      }
+    }
+
+    return aggregatedModifiers
   }
 
   private analyzeBuildConcept(build: BuildConfiguration) {
@@ -673,4 +730,103 @@ export class PartyOptimizer {
     const totalBenefit = synergies.reduce((sum, synergy) => sum + synergy.estimatedBenefit, 0)
     return Math.min(10, totalBenefit / synergies.length)
   }
+
+  /**
+   * Get subclass-specific role modifiers
+   */
+  private getSubclassRoleModifiers(subclassId: string): SubclassRoleModifier {
+    return SUBCLASS_ROLE_MODIFIERS[subclassId] || {}
+  }
+}
+
+/**
+ * Comprehensive subclass role modifiers based on mechanical analysis
+ * Each modifier represents the additional role capability the subclass provides (0-4 scale)
+ */
+const SUBCLASS_ROLE_MODIFIERS: Record<string, SubclassRoleModifier> = {
+  // Fighter Subclasses
+  champion: { damage: 2, tank: 1 }, // Improved Critical, Superior Critical
+  battle_master: { damage: 3, control: 2, utility: 1 }, // Maneuvers provide damage and tactical control
+  eldritch_knight: { damage: 1, control: 2, utility: 2 }, // War Magic, spell utility
+  purple_dragon_knight: { support: 2, healer: 1, tank: 1 }, // Rally, healing abilities
+
+  // Rogue Subclasses  
+  thief: { utility: 3, damage: 1 }, // Fast Hands, Use Magic Device
+  assassin: { damage: 3, utility: 1 }, // Assassinate, Death Strike
+  arcane_trickster: { control: 2, utility: 3, damage: 1 }, // Mage Hand Legerdemain, spells
+  scout: { utility: 2, damage: 1 }, // Skirmisher, Superior Mobility
+  swashbuckler: { damage: 2, support: 1 }, // Fancy Footwork, Panache
+
+  // Wizard Subclasses
+  evocation: { damage: 4 }, // Sculpt Spells, Overchannel
+  abjuration: { tank: 3, support: 2 }, // Arcane Ward, Counterspell mastery
+  divination: { control: 4, utility: 2 }, // Portent, Third Eye
+  enchantment: { control: 3, support: 1 }, // Hypnotic Gaze, Charm abilities
+  illusion: { control: 2, utility: 3 }, // Malleable Illusions, Illusory Reality
+  necromancy: { damage: 2, utility: 1, support: 1 }, // Undead Thralls, Grim Harvest
+  conjuration: { control: 2, utility: 2, support: 1 }, // Minor Conjuration, Misty Step recovery
+  transmutation: { utility: 3, support: 1 }, // Minor Alchemy, Master Transmuter
+  chronurgy: { control: 3, support: 2 }, // Chronal Shift, Arcane Abeyance
+  graviturgy: { control: 4, damage: 1 }, // Gravity Well, Event Horizon
+
+  // Cleric Subclasses
+  life: { healer: 4, support: 2 }, // Disciple of Life, Supreme Healing
+  war: { damage: 2, tank: 2 }, // War Priest, Guided Strike
+  nature: { control: 1, utility: 2, healer: 2 }, // Nature's Wrath, Master of Nature
+  knowledge: { utility: 4, support: 1 }, // Knowledge of the Ages, Visions of the Past
+  light: { damage: 3, control: 1 }, // Burning Hands, Corona of Light
+  tempest: { damage: 3, control: 2 }, // Destructive Wrath, Thunderbolt Strike
+  trickery: { utility: 3, control: 1 }, // Blessing of the Trickster, Cloak of Shadows
+  forge: { tank: 2, support: 2, utility: 1 }, // Blessing of the Forge, Armor/Weapon enhancement
+  grave: { healer: 3, control: 2 }, // Circle of Mortality, Sentinel at Death's Door
+
+  // Barbarian Subclasses
+  berserker: { damage: 3, tank: 1 }, // Frenzy, Intimidating Presence
+  totem_warrior: { tank: 3, utility: 1 }, // Totem resistances and abilities
+  ancestral_guardian: { tank: 3, support: 1 }, // Ancestral Protectors, Spirit Shield
+  storm_herald: { damage: 2, support: 1 }, // Storm Aura benefits party
+  zealot: { damage: 4 }, // Divine Fury, Zealous Presence
+
+  // Bard Subclasses
+  lore: { support: 3, utility: 3, control: 1 }, // Cutting Words, Additional Magical Secrets
+  valor: { damage: 2, tank: 1, support: 2 }, // Combat Inspiration, Extra Attack
+  glamour: { support: 4, control: 1 }, // Mantle of Inspiration, Enthralling Performance
+  swords: { damage: 3, utility: 1 }, // Blade Flourishes, Fighting Style
+  whispers: { damage: 2, utility: 2 }, // Psychic Blades, Mantle of Whispers
+
+  // Paladin Subclasses
+  devotion: { tank: 2, support: 2, healer: 1 }, // Sacred Weapon, Turn the Unholy
+  ancients: { tank: 2, control: 2, support: 1 }, // Nature's Wrath, Aura of Warding
+  vengeance: { damage: 4, utility: 1 }, // Hunter's Mark, Relentless Avenger
+
+  // Ranger Subclasses
+  hunter: { damage: 3, utility: 1 }, // Hunter's Prey, Multiattack Defense
+  beast_master: { damage: 1, utility: 2, support: 1 }, // Animal Companion abilities
+
+  // Sorcerer Subclasses
+  draconic_bloodline: { damage: 2, tank: 1, utility: 1 }, // Elemental Affinity, Dragon Wings
+  wild_magic: { damage: 1, control: 1, utility: 2 }, // Wild Magic Surge unpredictability
+  aberrant_mind: { control: 3, utility: 2 }, // Telepathic Speech, Psionic Spells
+  clockwork_soul: { control: 2, support: 2, utility: 1 }, // Restore Balance, Clockwork Magic
+  divine_soul: { healer: 3, support: 2 }, // Cleric spell access, Empowered Healing
+
+  // Warlock Subclasses
+  fiend: { damage: 3, healer: 1 }, // Dark One's Blessing, Fiendish Resilience
+  archfey: { control: 3, utility: 1 }, // Fey Presence, Misty Escape
+  great_old_one: { control: 2, utility: 2 }, // Telepathic Communication, Create Thrall
+  genie: { damage: 2, utility: 3 }, // Genie's Vessel, Elemental Gift
+
+  // Monk Subclasses
+  open_hand: { control: 2, tank: 1, damage: 1 }, // Open Hand Technique, Quivering Palm
+  shadow: { utility: 3, damage: 1 }, // Shadow Arts, Shadow Step
+  four_elements: { damage: 2, control: 2 }, // Elemental Disciplines
+
+  // Druid Subclasses
+  land: { control: 2, utility: 2, support: 1 }, // Natural Recovery, Land's Stride
+  moon: { tank: 3, damage: 2 }, // Wild Shape improvements, Elemental Wild Shape
+
+  // Artificer Subclasses
+  alchemist: { healer: 3, support: 3 }, // Experimental Elixir, Alchemical Savant
+  armorer: { tank: 3, utility: 1 }, // Magical Tinkering, Armor Model features
+  battle_smith: { damage: 2, support: 1, utility: 1 }, // Steel Defender, Battle Ready
 }
