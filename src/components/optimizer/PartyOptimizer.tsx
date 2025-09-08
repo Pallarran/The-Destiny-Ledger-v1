@@ -2,10 +2,6 @@ import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card'
 import { Button } from '../ui/button'
 import { Badge } from '../ui/badge'
-import { Label } from '../ui/label'
-import { Slider } from '../ui/slider'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select'
-import { Switch } from '../ui/switch'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs'
 import { Progress } from '../ui/progress'
 import { usePartyOptimizerStore } from '../../stores/partyOptimizerStore'
@@ -18,7 +14,6 @@ import {
   Zap, 
   Settings, 
   Play, 
-  RotateCcw,
   AlertCircle,
   Info,
   Plus,
@@ -39,8 +34,7 @@ export default function PartyOptimizer() {
     addBuildToParty,
     removeBuildFromParty,
     clearParty,
-    setConfig, 
-    resetConfig, 
+ 
     analyzeParty,
     saveAnalysisToHistory
   } = usePartyOptimizerStore()
@@ -98,9 +92,8 @@ export default function PartyOptimizer() {
         <CardContent>
           
           <Tabs value={selectedTab} onValueChange={setSelectedTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="composition">Composition</TabsTrigger>
-              <TabsTrigger value="config">Configuration</TabsTrigger>
               <TabsTrigger value="analysis">Analysis</TabsTrigger>
               <TabsTrigger value="recommendations">Recommendations</TabsTrigger>
             </TabsList>
@@ -230,210 +223,6 @@ export default function PartyOptimizer() {
               )}
             </TabsContent>
 
-            {/* Configuration Tab */}
-            <TabsContent value="config" className="space-y-6">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                
-                {/* Party Settings */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-base">Party Settings</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    
-                    <div className="space-y-2">
-                      <Label>Maximum Party Size: {config.maxSize}</Label>
-                      <Slider
-                        value={[config.maxSize]}
-                        onValueChange={([value]) => setConfig({ maxSize: value })}
-                        min={1}
-                        max={6}
-                        step={1}
-                        className="w-full"
-                      />
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label>Target Level (Optional)</Label>
-                      <Select 
-                        value={config.targetLevel?.toString() || 'none'} 
-                        onValueChange={(value) => setConfig({ targetLevel: value === 'none' ? undefined : parseInt(value) })}
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="none">No Target Level</SelectItem>
-                          {Array.from({ length: 20 }, (_, i) => i + 1).map(level => (
-                            <SelectItem key={level} value={level.toString()}>Level {level}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    
-                  </CardContent>
-                </Card>
-
-                {/* Encounter Settings */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-base">Encounter Settings</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    
-                    <div className="space-y-2">
-                      <Label>Combat Duration</Label>
-                      <Select 
-                        value={config.combatDuration} 
-                        onValueChange={(value: 'short' | 'medium' | 'long') => setConfig({ combatDuration: value })}
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="short">Short (1-3 rounds)</SelectItem>
-                          <SelectItem value="medium">Medium (4-6 rounds)</SelectItem>
-                          <SelectItem value="long">Long (7+ rounds)</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    
-                  </CardContent>
-                </Card>
-
-                {/* Optimization Priorities */}
-                <Card className="lg:col-span-2">
-                  <CardHeader>
-                    <CardTitle className="text-base">Optimization Priorities</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label>Role Balance: {config.priorities.roleBalance}</Label>
-                        <Slider
-                          value={[config.priorities.roleBalance]}
-                          onValueChange={([value]) => setConfig({ 
-                            priorities: { ...config.priorities, roleBalance: value }
-                          })}
-                          min={0}
-                          max={10}
-                          step={1}
-                          className="w-full"
-                        />
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <Label>Synergy: {config.priorities.synergy}</Label>
-                        <Slider
-                          value={[config.priorities.synergy]}
-                          onValueChange={([value]) => setConfig({ 
-                            priorities: { ...config.priorities, synergy: value }
-                          })}
-                          min={0}
-                          max={10}
-                          step={1}
-                          className="w-full"
-                        />
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <Label>Damage Output: {config.priorities.damageOutput}</Label>
-                        <Slider
-                          value={[config.priorities.damageOutput]}
-                          onValueChange={([value]) => setConfig({ 
-                            priorities: { ...config.priorities, damageOutput: value }
-                          })}
-                          min={0}
-                          max={10}
-                          step={1}
-                          className="w-full"
-                        />
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <Label>Survivability: {config.priorities.survivability}</Label>
-                        <Slider
-                          value={[config.priorities.survivability]}
-                          onValueChange={([value]) => setConfig({ 
-                            priorities: { ...config.priorities, survivability: value }
-                          })}
-                          min={0}
-                          max={10}
-                          step={1}
-                          className="w-full"
-                        />
-                      </div>
-                      
-                      <div className="space-y-2 md:col-span-2">
-                        <Label>Versatility: {config.priorities.versatility}</Label>
-                        <Slider
-                          value={[config.priorities.versatility]}
-                          onValueChange={([value]) => setConfig({ 
-                            priorities: { ...config.priorities, versatility: value }
-                          })}
-                          min={0}
-                          max={10}
-                          step={1}
-                          className="w-full"
-                        />
-                      </div>
-                    </div>
-                    
-                  </CardContent>
-                </Card>
-                
-              </div>
-
-              {/* Advanced Options */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base">Advanced Options</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="consider-multiclass">Consider Multiclass</Label>
-                      <Switch
-                        id="consider-multiclass"
-                        checked={config.considerMulticlass}
-                        onCheckedChange={(checked) => setConfig({ considerMulticlass: checked })}
-                      />
-                    </div>
-                    
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="allow-respeccing">Allow Respeccing</Label>
-                      <Switch
-                        id="allow-respeccing"
-                        checked={config.allowRespeccing}
-                        onCheckedChange={(checked) => setConfig({ allowRespeccing: checked })}
-                      />
-                    </div>
-                    
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="include-homebrew">Include Homebrew</Label>
-                      <Switch
-                        id="include-homebrew"
-                        checked={config.includeHomebrewBuilds}
-                        onCheckedChange={(checked) => setConfig({ includeHomebrewBuilds: checked })}
-                      />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Action Buttons */}
-              <div className="flex justify-between">
-                <Button
-                  variant="outline"
-                  onClick={resetConfig}
-                  className="flex items-center gap-2"
-                >
-                  <RotateCcw className="w-4 h-4" />
-                  Reset Configuration
-                </Button>
-              </div>
-            </TabsContent>
 
             {/* Analysis Tab */}
             <TabsContent value="analysis" className="space-y-6">

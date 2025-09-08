@@ -544,7 +544,7 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
       const subclass = Object.values(loadSubclasses()).find(sub => sub.id === entry.subclassId)
       if (subclass && subclass.features) {
         const subclassFeatures = subclass.features[classLevel] || []
-        maneuverFeature = subclassFeatures.find(f => 
+        maneuverFeature = subclassFeatures.find((f: any) => 
           f.name === 'Combat Superiority' || f.name === 'Improved Combat Superiority'
         )
       }
@@ -767,7 +767,7 @@ function LevelMilestoneCard({ entry, classData, classLevel, currentBuild, update
         // Get features for this class level from the subclass (features is keyed by level)
         const subclassFeatures = subclass.features[classLevel] || []
         if (subclassFeatures && subclassFeatures.length > 0) {
-          specificArchetypeFeatures.push(...subclassFeatures.map(f => ({ 
+          specificArchetypeFeatures.push(...subclassFeatures.map((f: any) => ({ 
             name: f.name, 
             description: f.description 
           })))

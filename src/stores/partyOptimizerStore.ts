@@ -47,7 +47,7 @@ interface PartyOptimizerActions {
 
 const DEFAULT_CONFIG: PartyOptimizationConfig = {
   // Party constraints
-  maxSize: 5,
+  maxSize: 8,
   targetLevel: undefined,
   
   // Encounter assumptions

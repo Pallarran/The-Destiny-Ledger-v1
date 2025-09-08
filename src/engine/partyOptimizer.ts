@@ -118,7 +118,7 @@ export interface PartyCompositionAnalysis {
  */
 export interface PartyOptimizationConfig {
   // Party constraints
-  maxSize: number // 1-5
+  maxSize: number // 1-8
   targetLevel?: number // If set, suggests adjustments to reach this level
   
   // Encounter assumptions
